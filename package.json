@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "chess.js": "^1.4.0",
+    "convex": "^1.27.3",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-chessboard": "^5.6.1",
@@ -17,6 +18,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
