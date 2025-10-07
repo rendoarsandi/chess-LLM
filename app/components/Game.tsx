@@ -65,7 +65,7 @@ function GameDisplay({ gameId }: { gameId: Id<"games"> }) {
           </h3>
           <ul>
             {game.players?.white?.reasoning?.map((reason, i) => (
-              <li key={i}>{reason}</li>
+              <li key={`white-reason-${i}`}>{reason}</li>
             ))}
           </ul>
         </div>
