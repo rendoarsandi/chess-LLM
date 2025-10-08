@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_CONVEX_URL": "@convex_url",
+    "GOOGLE_AI_API_KEY": "@google_ai_api_key"
+  }
+}
+
