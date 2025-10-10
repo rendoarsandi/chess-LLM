@@ -134,9 +134,12 @@ export const takeTurn = internal.action({
       return;
     }
     let reference;
+    let opening;
     if (chess.history().length < 10) {
       try {
-        reference = await findReference(chess);
+        const result = await findReference(chess);
+        reference = result.reference;
+        opening = result.opening;
       } catch (error) {
         console.error(error);
       }
@@ -147,7 +150,7 @@ export const takeTurn = internal.action({
       gameId: args.gameId,
       move,
       reasoning,
-      opening: undefined,
+      opening: opening,
       error: move === "error",
     });
     if (move !== "error") {
