@@ -9,27 +9,43 @@ type Opening = {
 };
 
 export async function findReference(chess: Chess) {
-  const history = chess.history({ verbose: true });
+  const history = chess.history();
   if (history.length === 0) {
-    return;
+    return { reference: undefined, opening: undefined };
   }
-  const lastMove = history[history.length - 1];
-  const turn = lastMove.color === "w" ? "black" : "white";
-  const url = `https://explorer.lichess.ovh/masters?play=${chess
-    .history()
-    .join(", ")}&player=&variant=standard&turn=${turn}`;
+  const url = `https://explorer.lichess.ovh/masters?play=${history.join(
+    ","
+  )}`;
   const response = await fetch(url);
-  const data = (await response.json()) as LichessOpening;
-  const mostPopularMove = data.moves[0];
-  if (!mostPopularMove) {
-    return;
+  if (!response.ok) {
+    console.error(`Lichess API failed with status ${response.status}`);
+    return { reference: undefined, opening: undefined };
   }
-  const pgn = `${chess.pgn()} ${mostPopularMove.san}`;
-  const description = `The most popular move in this position is ${mostPopularMove.san}. It has been played in ${mostPopularMove.white} games where white won, ${mostPopularMove.draws} games where it was a draw, and ${mostPopularMove.black} games where black won.`;
-  return {
-    pgn,
-    description,
-  };
+  const data = (await response.json()) as LichessOpening;
+
+  let opening;
+  if (data.opening) {
+    opening = {
+      name: data.opening.name,
+      url: `https://lichess.org/opening/${data.opening.name.replace(
+        /[ ,:]/g,
+        "_"
+      )}`,
+    };
+  }
+
+  let reference;
+  const mostPopularMove = data.moves[0];
+  if (mostPopularMove) {
+    const pgn = `${chess.pgn()} ${mostPopularMove.san}`;
+    const description = `The most popular move in this position is ${mostPopularMove.san}. It has been played in ${mostPopularMove.white} games where white won, ${mostPopularMove.draws} games where it was a draw, and ${mostPopularMove.black} games where black won.`;
+    reference = {
+      pgn,
+      description,
+    };
+  }
+
+  return { reference, opening };
 }
 
 type LichessGame = {
