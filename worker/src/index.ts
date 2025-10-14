@@ -1,7 +1,15 @@
-import { DurableObject } from "@cloudflare/workers-types";
+import {
+  DurableObjectNamespace,
+  D1Database,
+  KVNamespace,
+  ExecutionContext,
+  Request as WorkerRequest,
+  Response as WorkerResponse,
+} from "@cloudflare/workers-types";
+import { GameDO } from "./durable-objects/GameDO";
 
 export interface Env {
-  GAME_DO: DurableObjectNamespace<GameDO>;
+  GAME_DO: DurableObjectNamespace;
   DB: D1Database;
   OPENINGS_KV: KVNamespace;
   GEMINI_API_KEY: string;
@@ -11,10 +19,10 @@ export { GameDO } from "./durable-objects/GameDO";
 
 export default {
   async fetch(
-    request: Request,
+    request: WorkerRequest,
     env: Env,
     ctx: ExecutionContext
-  ): Promise<Response> {
+  ): Promise<WorkerResponse> {
     try {
       const url = new URL(request.url);
       const path = url.pathname;
@@ -34,16 +42,16 @@ export default {
           const newUrl = new URL(request.url);
           newUrl.pathname = newPath;
 
-          const newRequest = new Request(newUrl.toString(), request);
+          const newRequest = new WorkerRequest(newUrl.toString(), request);
           return await stub.fetch(newRequest);
         }
       }
 
       // In a real application, you'd serve your frontend here.
-      return new Response("Not found", { status: 404 });
+      return new WorkerResponse("Not found", { status: 404 });
     } catch (error) {
       console.error("Error in worker fetch handler:", error);
-      return new Response("Internal Server Error", { status: 500 });
+      return new WorkerResponse("Internal Server Error", { status: 500 });
     }
   },
 };
