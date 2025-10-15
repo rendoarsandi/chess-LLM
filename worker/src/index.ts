@@ -41,7 +41,7 @@ export default {
           newUrl.pathname = newPath;
 
           const newRequest = new Request(newUrl.toString(), request);
-          return await stub.fetch(newRequest);
+          return await stub.fetch(newRequest as any) as unknown as Response;
         }
       }
 
