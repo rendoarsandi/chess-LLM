@@ -1,12 +1,11 @@
 import {
   DurableObjectState,
-  DurableObject,
 } from "@cloudflare/workers-types";
 import { Chess } from "chess.js";
 import { getAiMove } from "../lib/gemini";
 import { Env } from "../index";
 
-export class GameDO implements DurableObject {
+export class GameDO {
   state: DurableObjectState;
   chess: Chess;
   pgn: string;
