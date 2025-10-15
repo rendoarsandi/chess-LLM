@@ -1,7 +1,13 @@
-import { DurableObject } from "@cloudflare/workers-types";
+import {
+  DurableObjectNamespace,
+  D1Database,
+  KVNamespace,
+  ExecutionContext,
+} from "@cloudflare/workers-types";
+import { GameDO } from "./durable-objects/GameDO";
 
 export interface Env {
-  GAME_DO: DurableObjectNamespace<GameDO>;
+  GAME_DO: DurableObjectNamespace;
   DB: D1Database;
   OPENINGS_KV: KVNamespace;
   GEMINI_API_KEY: string;
@@ -35,7 +41,7 @@ export default {
           newUrl.pathname = newPath;
 
           const newRequest = new Request(newUrl.toString(), request);
-          return await stub.fetch(newRequest);
+          return await stub.fetch(newRequest as any) as unknown as Response;
         }
       }
 

@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Chessboard } from "react-chessboard";
+import dynamic from "next/dynamic";
 import { Chess } from "chess.js";
+import type { DraggingPieceDataType } from "react-chessboard";
+
+const Chessboard = dynamic(() => import("react-chessboard").then((mod) => ({ default: mod.Chessboard })), {
+  ssr: false,
+});
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -80,7 +85,9 @@ export default function Home() {
     }
   };
 
-  const onPieceDrop = (sourceSquare: string, targetSquare: string) => {
+  const onPieceDrop = ({ sourceSquare, targetSquare }: { piece: DraggingPieceDataType; sourceSquare: string; targetSquare: string | null }) => {
+    if (!targetSquare) return false;
+    
     const move = {
       from: sourceSquare,
       to: targetSquare,
@@ -154,7 +161,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
         <div className="w-full lg:w-1/2">
-          <Chessboard position={fen} onPieceDrop={onPieceDrop} />
+          <Chessboard options={{ position: fen, onPieceDrop: onPieceDrop }} />
         </div>
         <div className="w-full lg:w-1/2 lg:pl-8">
           <h1 className="text-4xl font-bold mb-4">Chess LLM</h1>
