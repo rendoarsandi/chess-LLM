@@ -1,8 +1,6 @@
 import {
   DurableObjectState,
   DurableObject,
-  Request as WorkerRequest,
-  Response as WorkerResponse,
 } from "@cloudflare/workers-types";
 import { Chess } from "chess.js";
 import { getAiMove } from "../lib/gemini";
@@ -44,7 +42,7 @@ export class GameDO implements DurableObject {
     });
   }
 
-  async fetch(request: WorkerRequest): Promise<WorkerResponse> {
+  async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/^\/api/, ""); // Remove /api prefix
 
@@ -70,10 +68,10 @@ export class GameDO implements DurableObject {
         break;
     }
 
-    return new WorkerResponse("Not Found", { status: 404 });
+    return new Response("Not Found", { status: 404 });
   }
 
-  private async handleMove(request: WorkerRequest): Promise<WorkerResponse> {
+  private async handleMove(request: Request): Promise<Response> {
     try {
       const { move, gameMode } = (await request.json()) as { move: string, gameMode: string };
 
@@ -86,7 +84,7 @@ export class GameDO implements DurableObject {
         if (this.errorCount >= 5) {
           this.chess.setComment("Game over by error limit");
         }
-        return new WorkerResponse(
+        return new Response(
           JSON.stringify({
             error: "Illegal move",
             errorCount: this.errorCount,
@@ -107,13 +105,13 @@ export class GameDO implements DurableObject {
         this.state.waitUntil(this.handleAiMove(request));
       }
 
-      return new WorkerResponse(JSON.stringify({ fen: this.fen, pgn: this.pgn }), {
+      return new Response(JSON.stringify({ fen: this.fen, pgn: this.pgn }), {
         headers: { "Content-Type": "application/json" },
       });
     } catch (e) {
       this.errorCount++;
       await this.state.storage.put("errorCount", this.errorCount);
-      return new WorkerResponse(
+      return new Response(
         JSON.stringify({
           error: "Invalid move format or game state error.",
           errorCount: this.errorCount,
@@ -123,11 +121,11 @@ export class GameDO implements DurableObject {
     }
   }
 
-  private async handleAiMove(request: WorkerRequest): Promise<WorkerResponse> {
+  private async handleAiMove(request: Request): Promise<Response> {
     const { aiModel, gameMode } = (await request.json()) as { aiModel: string, gameMode: string };
 
     if (this.chess.isGameOver()) {
-      return new WorkerResponse("Game is over", { status: 400 });
+      return new Response("Game is over", { status: 400 });
     }
 
     const { move, reasoning } = await getAiMove(
@@ -146,7 +144,7 @@ export class GameDO implements DurableObject {
         this.chess.setComment("Game over by error limit");
       }
       // Even if the AI makes an illegal move, we should return the reasoning
-      return new WorkerResponse(
+      return new Response(
         JSON.stringify({
           error: "AI made an illegal move",
           errorCount: this.errorCount,
@@ -168,7 +166,7 @@ export class GameDO implements DurableObject {
       this.state.waitUntil(this.handleAiMove(request));
     }
 
-    return new WorkerResponse(
+    return new Response(
       JSON.stringify({
         fen: this.fen,
         pgn: this.pgn,
@@ -180,14 +178,14 @@ export class GameDO implements DurableObject {
     );
   }
 
-  private async handleGetReasoning(): Promise<WorkerResponse> {
+  private async handleGetReasoning(): Promise<Response> {
     const reasoning = await this.state.storage.get("aiReasoning");
-    return new WorkerResponse(JSON.stringify({ reasoning }), {
+    return new Response(JSON.stringify({ reasoning }), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  private async handleReset(): Promise<WorkerResponse> {
+  private async handleReset(): Promise<Response> {
     this.chess.reset();
     this.fen = this.chess.fen();
     this.pgn = this.chess.pgn();
@@ -197,13 +195,13 @@ export class GameDO implements DurableObject {
     await this.state.storage.put("pgn", this.pgn);
     await this.state.storage.put("errorCount", this.errorCount);
 
-    return new WorkerResponse(JSON.stringify({ message: "Game reset" }), {
+    return new Response(JSON.stringify({ message: "Game reset" }), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  private handleGetState(): WorkerResponse {
-    return new WorkerResponse(
+  private handleGetState(): Response {
+    return new Response(
       JSON.stringify({
         fen: this.fen,
         pgn: this.pgn,
