@@ -9,16 +9,12 @@ WORKER_ENV = "development"
 [[d1_databases]]
 binding = "DB"
 database_name = "chess-llm-db"
-database_id = "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+database_id = "09d5a988-3a7b-4266-bd63-338be284be2d"
 migrations_dir = "migrations"
 
-# KV Namespace for chess openings (OPTIONAL - can be removed if not needed)
-# To create: wrangler kv:namespace create "OPENINGS_KV"
-# Then replace the IDs below with your actual namespace IDs
-# [[kv_namespaces]]
-# binding = "OPENINGS_KV"
-# id = "YOUR_KV_NAMESPACE_ID"
-# preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"
+[[kv_namespaces]]
+binding = "OPENINGS_KV"
+id = "cfb1f6a5302747f49ff73b785fdd2771"
 
 [[durable_objects.bindings]]
 name = "GAME_DO"
