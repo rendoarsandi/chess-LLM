@@ -46,7 +46,7 @@ Project ini menggunakan **@cloudflare/next-on-pages** untuk deploy Next.js sebag
 npm install --legacy-peer-deps
 ```
 
-**Note**: `--legacy-peer-deps` diperlukan karena @cloudflare/next-on-pages belum support Next.js 15.5.4 (support sampai 15.5.2).
+**Note**: `--legacy-peer-deps` diperlukan karena package dependency conflicts. Project menggunakan Next.js 15.5.2 (latest supported) dan Vercel CLI 47.0.4.
 
 ### 2. Setup Cloudflare Resources
 
