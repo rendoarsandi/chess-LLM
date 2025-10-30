@@ -5,12 +5,15 @@ import {
   ExecutionContext,
 } from "@cloudflare/workers-types";
 import { GameDO } from "./durable-objects/GameDO";
+import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 
 export interface Env {
   GAME_DO: DurableObjectNamespace;
   DB: D1Database;
   OPENINGS_KV: KVNamespace;
   GEMINI_API_KEY: string;
+  __STATIC_CONTENT: KVNamespace;
+  __STATIC_CONTENT_MANIFEST: string;
 }
 
 export { GameDO } from "./durable-objects/GameDO";
@@ -25,6 +28,7 @@ export default {
       const url = new URL(request.url);
       const path = url.pathname;
 
+      // Handle API routes
       if (path.startsWith("/api/")) {
         // Extract the game ID from the path, e.g., /api/game/{gameId}/move
         const pathSegments = path.split("/");
@@ -45,8 +49,42 @@ export default {
         }
       }
 
-      // In a real application, you'd serve your frontend here.
-      return new Response("Not found", { status: 404 });
+      // Serve Next.js static assets
+      try {
+        return await getAssetFromKV(
+          {
+            request,
+            waitUntil: ctx.waitUntil.bind(ctx),
+          },
+          {
+            ASSET_NAMESPACE: env.__STATIC_CONTENT,
+            ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+            cacheControl: {
+              bypassCache: false,
+            },
+          }
+        );
+      } catch (e) {
+        // If asset not found, serve index.html for client-side routing
+        try {
+          const notFoundResponse = await getAssetFromKV(
+            {
+              request: new Request(`${url.origin}/index.html`, request),
+              waitUntil: ctx.waitUntil.bind(ctx),
+            },
+            {
+              ASSET_NAMESPACE: env.__STATIC_CONTENT,
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+            }
+          );
+          return new Response(notFoundResponse.body, {
+            ...notFoundResponse,
+            status: 200,
+          });
+        } catch (error) {
+          return new Response("Not Found", { status: 404 });
+        }
+      }
     } catch (error) {
       console.error("Error in worker fetch handler:", error);
       return new Response("Internal Server Error", { status: 500 });

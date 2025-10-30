@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable static export for Cloudflare Workers deployment
+  output: "export",
+
+  // Disable image optimization for static export
+  images: {
+    unoptimized: true,
+  },
+
   // Enable build caching
   generateBuildId: async () => {
     // Use git commit SHA or timestamp for build ID
@@ -9,17 +17,7 @@ const nextConfig: NextConfig = {
            `build-${Date.now()}`;
   },
 
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        // Use Worker URL in production, localhost in development
-        destination: process.env.NODE_ENV === "production"
-          ? "https://chess-ai.rendoarsandi.workers.dev/api/:path*"
-          : "http://127.0.0.1:8787/api/:path*",
-      },
-    ];
-  },
+  // No rewrites needed - Worker will serve both frontend and API on same domain
 };
 
 export default nextConfig;

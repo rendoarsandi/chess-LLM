@@ -1,6 +1,14 @@
-# Chess LLM - Cloudflare Deployment Guide
+# Chess LLM - Cloudflare Workers Fullstack Deployment Guide
 
-This guide will help you deploy the Chess LLM application to Cloudflare Workers with D1 database support.
+This guide will help you deploy the Chess LLM application as a **fullstack application** on Cloudflare Workers with D1 database support.
+
+## Architecture
+
+This application deploys as a **single Cloudflare Worker** that serves:
+- ✅ Next.js frontend (static export)
+- ✅ API endpoints (Durable Objects + D1 + KV)
+- ✅ No CORS issues (same origin)
+- ✅ Simplified deployment (one command)
 
 ## Prerequisites
 
@@ -73,24 +81,50 @@ wrangler secret put GEMINI_API_KEY
 
 When prompted, enter your Gemini API key.
 
-### 7. Deploy the Worker
+### 7. Deploy the Fullstack Application
 
-Deploy your application:
+Deploy your frontend + backend in one command:
 
 ```bash
-wrangler deploy
+npm run deploy
 ```
+
+This will:
+1. Build Next.js static export to `/out` directory
+2. Deploy Worker with static assets to Cloudflare
+
+Your app will be live at: `https://chess-ai.YOUR_SUBDOMAIN.workers.dev`
 
 ## Local Development
 
-### Start Development Server
+### Development Mode
 
+You have two options for local development:
+
+**Option 1: Frontend Development (Recommended for UI changes)**
 ```bash
-# Start the Next.js development server
+# Start Next.js dev server with hot reload
+npm run dev
+# Access at http://localhost:3000
+# API calls will proxy to http://localhost:8787 (run worker:dev in another terminal)
+```
+
+**Option 2: Fullstack Development (Testing production behavior)**
+```bash
+# Build Next.js and start Worker
+npm run build
+npm run worker:dev
+# Access at http://localhost:8787
+# Frontend + API on same origin (no CORS)
+```
+
+**Option 3: Parallel Development**
+```bash
+# Terminal 1: Frontend with hot reload
 npm run dev
 
-# In another terminal, start the Wrangler dev server
-wrangler dev
+# Terminal 2: Worker API
+npm run worker:dev
 ```
 
 ### Test with Local D1
@@ -109,10 +143,33 @@ wrangler dev --local
 
 The configuration file includes:
 
+- **Static Assets**: Serves Next.js frontend from `/out` directory
 - **D1 Database**: For storing game history and move data
 - **KV Namespace**: For caching chess opening information
 - **Durable Objects**: For managing game state
 - **Observability**: Logging and monitoring configuration
+
+### Deployment Architecture
+
+**Before (Dual Deployment - Deprecated):**
+```
+chess-llm.pages.dev (Next.js)
+    ↓ (CORS required)
+chess-ai.workers.dev (API)
+```
+
+**After (Fullstack Workers - Current):**
+```
+chess-ai.workers.dev
+  ├── / (Next.js frontend)
+  └── /api (Worker backend)
+```
+
+Benefits:
+- ✅ No CORS configuration needed
+- ✅ Single deployment URL
+- ✅ Faster response times
+- ✅ Simplified architecture
 
 ### Observability Settings
 
