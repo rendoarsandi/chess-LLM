@@ -20,6 +20,10 @@ id = "cfb1f6a5302747f49ff73b785fdd2771"
 name = "GAME_DO"
 class_name = "GameDO"
 
+[[migrations]]
+tag = "v1"
+new_classes = ["GameDO"]
+
 [observability]
 enabled = false
 head_sampling_rate = 1
