@@ -5,35 +5,18 @@ import {
   ExecutionContext,
 } from "@cloudflare/workers-types";
 import { GameDO } from "./durable-objects/GameDO";
+import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
 
 export interface Env {
   GAME_DO: DurableObjectNamespace;
   DB: D1Database;
   OPENINGS_KV: KVNamespace;
   GEMINI_API_KEY: string;
+  __STATIC_CONTENT: KVNamespace;
+  __STATIC_CONTENT_MANIFEST: string;
 }
 
 export { GameDO } from "./durable-objects/GameDO";
-
-// CORS headers helper
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Max-Age": "86400",
-};
-
-function addCorsHeaders(response: Response): Response {
-  const newHeaders = new Headers(response.headers);
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    newHeaders.set(key, value);
-  });
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
-}
 
 export default {
   async fetch(
@@ -42,16 +25,10 @@ export default {
     ctx: ExecutionContext
   ): Promise<Response> {
     try {
-      // Handle CORS preflight requests
-      if (request.method === "OPTIONS") {
-        return new Response(null, {
-          headers: corsHeaders,
-        });
-      }
-
       const url = new URL(request.url);
       const path = url.pathname;
 
+      // Handle API routes
       if (path.startsWith("/api/")) {
         // Extract the game ID from the path, e.g., /api/game/{gameId}/move
         const pathSegments = path.split("/");
@@ -68,16 +45,49 @@ export default {
           newUrl.pathname = newPath;
 
           const newRequest = new Request(newUrl.toString(), request);
-          const response = await stub.fetch(newRequest as any) as unknown as Response;
-          return addCorsHeaders(response);
+          return await stub.fetch(newRequest as any) as unknown as Response;
         }
       }
 
-      // In a real application, you'd serve your frontend here.
-      return addCorsHeaders(new Response("Not found", { status: 404 }));
+      // Serve Next.js static assets
+      try {
+        return await getAssetFromKV(
+          {
+            request,
+            waitUntil: ctx.waitUntil.bind(ctx),
+          },
+          {
+            ASSET_NAMESPACE: env.__STATIC_CONTENT,
+            ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+            cacheControl: {
+              bypassCache: false,
+            },
+          }
+        );
+      } catch (e) {
+        // If asset not found, serve index.html for client-side routing
+        try {
+          const notFoundResponse = await getAssetFromKV(
+            {
+              request: new Request(`${url.origin}/index.html`, request),
+              waitUntil: ctx.waitUntil.bind(ctx),
+            },
+            {
+              ASSET_NAMESPACE: env.__STATIC_CONTENT,
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+            }
+          );
+          return new Response(notFoundResponse.body, {
+            ...notFoundResponse,
+            status: 200,
+          });
+        } catch (error) {
+          return new Response("Not Found", { status: 404 });
+        }
+      }
     } catch (error) {
       console.error("Error in worker fetch handler:", error);
-      return addCorsHeaders(new Response("Internal Server Error", { status: 500 }));
+      return new Response("Internal Server Error", { status: 500 });
     }
   },
 };

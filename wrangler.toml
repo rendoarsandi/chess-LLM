@@ -1,10 +1,14 @@
 name = "chess-ai"
 main = "worker/src/index.ts"
-compatibility_date = "2024-06-20"
+compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Serve Next.js static assets from /out directory
+[site]
+bucket = "./out"
+
 [vars]
-WORKER_ENV = "development"
+WORKER_ENV = "production"
 
 [[d1_databases]]
 binding = "DB"
