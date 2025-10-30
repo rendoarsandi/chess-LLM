@@ -4,15 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "dev:worker": "wrangler dev",
+    "build:next": "npx @cloudflare/next-on-pages",
+    "build": "npm run build:next",
     "start": "next start",
     "lint": "eslint",
-    "pages:build": "next build",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy .next --project-name=chess-llm",
-    "pages:dev": "wrangler pages dev .next --port 3000",
-    "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy",
-    "deploy": "npm run worker:deploy && npm run pages:deploy"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -29,6 +28,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^4.20251011.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
@@ -39,6 +39,7 @@
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vercel": "^48.7.1",
     "wrangler": "^4.42.2"
   }
 }

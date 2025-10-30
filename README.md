@@ -63,33 +63,28 @@ npm run dev
 
 ## Deployment
 
-### Single Command Fullstack Deploy
+### ⚡ Single Worker Fullstack Deploy (Recommended)
 
-Deploy both frontend and backend with one command:
+Deploy **frontend + backend** dalam **single Cloudflare Worker** dengan satu command:
 
 ```bash
 npm run deploy
 ```
 
 This will:
-1. Deploy Worker API to Cloudflare Workers
-2. Build Next.js app
-3. Deploy frontend to Cloudflare Pages
+1. Build Next.js dengan @cloudflare/next-on-pages
+2. Bundle frontend + backend dalam satu Worker
+3. Deploy ke Cloudflare Workers
 
-### Separate Deployment
-
-```bash
-# Deploy Worker only
-npm run worker:deploy
-
-# Deploy Pages only
-npm run pages:deploy
-```
+**Result**: Single URL untuk semua (frontend + API)!
+- Frontend: `https://chess-ai.rendoarsandi.workers.dev/`
+- API: `https://chess-ai.rendoarsandi.workers.dev/api/game/{id}/*`
 
 ### Deployment Guides
 
-- **📘 [Cloudflare Pages Fullstack Deployment](./CLOUDFLARE_PAGES_DEPLOYMENT.md)** - Panduan lengkap deploy fullstack
-- **📗 [Worker Deployment](./DEPLOYMENT.md)** - Panduan deploy Worker
+- **⚡ [Single Worker Deployment](./SINGLE_WORKER_DEPLOYMENT.md)** - Setup & deploy single Worker fullstack (Recommended)
+- **📘 [Cloudflare Pages Deployment](./CLOUDFLARE_PAGES_DEPLOYMENT.md)** - Alternative: Worker + Pages terpisah
+- **📗 [Worker-only Deployment](./DEPLOYMENT.md)** - Legacy: API-only Worker
 - **📙 [KV Setup](./SETUP_KV.md)** - Setup KV namespace
 
 ## Project Structure
@@ -110,31 +105,42 @@ chess-LLM/
 
 ## Architecture
 
+### Single Worker Fullstack (Current)
+
 ```
-┌─────────────────┐
-│  Cloudflare CDN │
-│   (Edge Cache)  │
-└────────┬────────┘
-         │
-         ├─→ Frontend (Pages)     ┌─────────────────┐
-         │   - Next.js App         │   Google Gemini │
-         │   - Static Assets       │   AI API        │
-         │                         └────────▲────────┘
-         └─→ Backend (Worker)              │
-             - API Routes  ────────────────┘
-             - Durable Objects (Game State)
-             - D1 Database (History)
-             - KV Store (Cache)
+┌─────────────────────────────────────┐
+│   Cloudflare Global Network (Edge)  │
+└────────────────┬────────────────────┘
+                 │
+      ┌──────────▼──────────┐          ┌─────────────────┐
+      │  Single Worker      │          │  Google Gemini  │
+      │  chess-ai           │◄─────────┤  AI API         │
+      ├─────────────────────┤          └─────────────────┘
+      │                     │
+      │  Frontend           │
+      │  - Next.js Pages    │
+      │  - React Components │
+      │  - Static Assets    │
+      │                     │
+      │  Backend            │
+      │  - API Routes       │
+      │  - Game Logic       │
+      ├─────────────────────┤
+      │                     │
+      │  Durable Objects    │◄─── Game State
+      │  D1 Database        │◄─── Game History
+      │  KV Store           │◄─── Opening Cache
+      └─────────────────────┘
 ```
 
 ## Available Scripts
 
-- `npm run dev` - Run Next.js dev server
-- `npm run build` - Build Next.js app
-- `npm run worker:dev` - Run Worker dev server
-- `npm run worker:deploy` - Deploy Worker
-- `npm run pages:deploy` - Deploy Pages
-- `npm run deploy` - Deploy fullstack (Worker + Pages)
+- `npm run dev` - Run Next.js dev server (UI development)
+- `npm run dev:worker` - Run Worker dev server
+- `npm run build` - Build Next.js untuk Cloudflare Workers
+- `npm run preview` - Build & run fullstack Worker locally
+- `npm run deploy` - Build & deploy single Worker fullstack
+- `npm run cf-typegen` - Generate Cloudflare TypeScript types
 
 ## Environment Variables
 
@@ -159,13 +165,33 @@ All endpoints are prefixed with `/api/game/{gameId}/`:
 
 ### "Not Found" Error on Website
 
-**Problem**: Mengakses Worker URL langsung (`chess-ai.rendoarsandi.workers.dev`)
+**Cause**: Worker belum deploy dengan Next.js frontend (hanya API).
 
-**Solution**: Gunakan Cloudflare Pages URL, bukan Worker URL. Worker URL hanya untuk API endpoints.
+**Solution**: Deploy dengan single Worker fullstack:
+```bash
+npm run deploy
+```
+
+Setelah deploy, akses `https://chess-ai.rendoarsandi.workers.dev/` untuk frontend.
+
+### Build Error: "Cannot resolve dependency"
+
+**Cause**: Next.js version conflict dengan @cloudflare/next-on-pages
+
+**Solution**: Install dengan legacy peer deps:
+```bash
+npm install --legacy-peer-deps
+```
+
+### API Routes Tidak Work di Local Dev
+
+**Cause**: `npm run dev` hanya jalankan Next.js dev server.
+
+**Solution**: Gunakan `npm run preview` untuk test fullstack locally.
 
 ### More Issues?
 
-Lihat [Troubleshooting Guide](./CLOUDFLARE_PAGES_DEPLOYMENT.md#troubleshooting) untuk solusi lengkap.
+Lihat [Single Worker Deployment Guide](./SINGLE_WORKER_DEPLOYMENT.md#troubleshooting) untuk troubleshooting lengkap.
 
 ## Contributing
 

@@ -1,9 +1,10 @@
 #!/bin/bash
-# Build script for Cloudflare Pages deployment
+# Build script for Cloudflare Worker fullstack deployment
 
 set -e
 
-echo "Building Next.js application..."
-npm run build
+echo "Building Next.js application for Cloudflare Workers..."
+npm run build:next
 
 echo "Build completed successfully!"
+echo "Output directory: .vercel/output/static"

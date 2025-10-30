@@ -1,16 +1,16 @@
-# Deploy Cloudflare Fullstack (Worker + Pages)
+# Deploy Cloudflare Fullstack Single Worker
 
 name: Deploy Cloudflare Fullstack
 
 on:
   push:
-    branches: [ main, claude/cloudflare-d1-deployment-011CUdUyjsytLut8wEwf6XmQ ]
+    branches: [ main, claude/cloudflare-d1-deployment-011CUdUyjsytLut8wEwf6XmQ, claude/cloudflare-fullstack-deploy-011CUeA7YAHvnAqkPwjBKXKk ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy Worker & Pages
+    name: Deploy Fullstack Worker
     steps:
       - uses: actions/checkout@v4
 
@@ -21,21 +21,14 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
-      - name: Build Next.js
+      - name: Build Next.js for Workers
         run: npm run build
 
-      - name: Deploy Worker
+      - name: Deploy Fullstack Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .next --project-name=chess-llm
