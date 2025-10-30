@@ -27,9 +27,9 @@ export default function Home() {
   const [isLoss, setIsLoss] = useState(false);
   const [aiReasoning, setAiReasoning] = useState("");
   const [opening, setOpening] = useState("");
-  const [playerColor, setPlayerColor] = useState<"white" | "black">("white");
-  const [aiModel, setAiModel] = useState("2.5-flash");
+  const [aiModel, setAiModel] = useState("gemini-1.5-flash-latest");
   const [gameMode, setGameMode] = useState("human-vs-ai");
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,6 +43,7 @@ export default function Home() {
     if (pgn) {
       fetchOpeningName();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pgn]);
 
   const fetchGameState = async () => {
@@ -108,6 +109,7 @@ export default function Home() {
 
   const makeMove = async (move: string) => {
     try {
+      setIsAiThinking(true);
       const response = await fetch(`${API_BASE_URL}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,6 +135,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Failed to make move:", error);
+    } finally {
+      setIsAiThinking(false);
     }
   };
 
@@ -158,50 +162,106 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <div className="w-full lg:w-1/2">
-          <Chessboard options={{ position: fen, onPieceDrop: onPieceDrop }} />
-        </div>
-        <div className="w-full lg:w-1/2 lg:pl-8">
-          <h1 className="text-4xl font-bold mb-4">Chess LLM</h1>
-          <div className="flex space-x-2 mb-4">
-            <Button onClick={() => handleNewGame("human-vs-ai")}>
-              Human vs AI
-            </Button>
-            <Button onClick={() => handleNewGame("ai-vs-ai")}>AI vs AI</Button>
-            <Select value={aiModel} onValueChange={setAiModel}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select AI Model" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gemini-1.5-pro-latest">Gemini 1.5 Pro</SelectItem>
-                <SelectItem value="gemini-1.5-flash-latest">Gemini 1.5 Flash</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold">AI Reasoning</h2>
-            <p>{aiReasoning || "Waiting for AI..."}</p>
-          </div>
-          <div className="mt-4">
-            <h2 className="text-xl font-semibold">Game Info</h2>
-            <p>
-              <strong>Opening:</strong> {opening || "N/A"}
-            </p>
-            <p>
-              <strong>Errors:</strong> {errorCount}
-            </p>
-            <p>
-              <strong>Turn:</strong> {game.turn() === "w" ? "White" : "Black"}
-            </p>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="z-10 w-full max-w-7xl">
+        <h1 className="text-5xl font-bold mb-8 text-center text-white">
+          Chess LLM <span className="text-blue-400">Arena</span>
+        </h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chessboard Section */}
+          <div className="lg:col-span-2 bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+            <Chessboard options={{ position: fen, onPieceDrop: onPieceDrop }} />
+
+            {/* Game Status Banner */}
+            {isAiThinking && (
+              <div className="mt-4 p-3 bg-blue-900 text-white rounded-lg text-center animate-pulse">
+                🤖 AI is thinking...
+              </div>
+            )}
             {(game.isGameOver() || isLoss) && (
-              <p className="text-2xl font-bold text-red-500">Game Over</p>
+              <div className="mt-4 p-4 bg-red-900 text-white rounded-lg text-center text-xl font-bold">
+                🏁 Game Over
+                {game.isCheckmate() && <p className="text-sm mt-1">Checkmate!</p>}
+                {game.isDraw() && <p className="text-sm mt-1">Draw</p>}
+                {game.isStalemate() && <p className="text-sm mt-1">Stalemate</p>}
+                {isLoss && <p className="text-sm mt-1">Too many errors</p>}
+              </div>
             )}
           </div>
-          <div className="mt-4 h-64 overflow-y-auto bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold">PGN</h2>
-            <pre>{pgn}</pre>
+
+          {/* Control Panel */}
+          <div className="space-y-6">
+            {/* Game Controls */}
+            <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+              <h2 className="text-2xl font-bold mb-4 text-white">Game Mode</h2>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => handleNewGame("human-vs-ai")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+                  disabled={isAiThinking}
+                >
+                  👤 Human vs AI
+                </Button>
+                <Button
+                  onClick={() => handleNewGame("ai-vs-ai")}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3"
+                  disabled={isAiThinking}
+                >
+                  🤖 AI vs AI
+                </Button>
+                <Select value={aiModel} onValueChange={setAiModel}>
+                  <SelectTrigger className="w-full bg-slate-700 text-white border-slate-600">
+                    <SelectValue placeholder="Select AI Model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini-1.5-pro-latest">Gemini 1.5 Pro</SelectItem>
+                    <SelectItem value="gemini-1.5-flash-latest">Gemini 1.5 Flash</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Game Info */}
+            <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+              <h2 className="text-2xl font-bold mb-4 text-white">Game Info</h2>
+              <div className="space-y-2 text-white">
+                <div className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                  <span className="font-semibold">Turn:</span>
+                  <span className={`font-bold ${game.turn() === "w" ? "text-gray-300" : "text-gray-700"}`}>
+                    {game.turn() === "w" ? "⚪ White" : "⚫ Black"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                  <span className="font-semibold">Moves:</span>
+                  <span>{Math.floor(game.history().length / 2)}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                  <span className="font-semibold">Opening:</span>
+                  <span className="text-xs">{opening || "Starting position"}</span>
+                </div>
+                <div className="flex justify-between items-center p-2 bg-slate-700 rounded">
+                  <span className="font-semibold">Errors:</span>
+                  <span className={errorCount > 3 ? "text-red-400 font-bold" : ""}>{errorCount}/5</span>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Reasoning */}
+            <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+              <h2 className="text-2xl font-bold mb-4 text-white">🧠 AI Analysis</h2>
+              <div className="bg-slate-900 p-4 rounded-lg max-h-48 overflow-y-auto text-gray-300 text-sm leading-relaxed">
+                {aiReasoning || "Waiting for AI move..."}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PGN Section */}
+        <div className="mt-6 bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+          <h2 className="text-2xl font-bold mb-4 text-white">📝 Move History (PGN)</h2>
+          <div className="bg-slate-900 p-4 rounded-lg max-h-32 overflow-y-auto">
+            <pre className="text-gray-300 text-sm font-mono">{pgn || "No moves yet"}</pre>
           </div>
         </div>
       </div>

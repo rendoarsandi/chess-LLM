@@ -4,7 +4,7 @@ name: Deploy Cloudflare Worker
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, claude/cloudflare-d1-deployment-011CUdUyjsytLut8wEwf6XmQ ]
 
 jobs:
   deploy:
@@ -12,12 +12,21 @@ jobs:
     name: Deploy
     steps:
       - uses: actions/checkout@v3
-      # This action is responsible for deploying your worker,
-      # including D1 and KV configurations from wrangler.toml
-      - name: Deploy
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
-          # You must create a secret in your GitHub repository called CLOUDFLARE_API_TOKEN
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # You must create a secret in your GitHub repository called CLOUDFLARE_ACCOUNT_ID
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

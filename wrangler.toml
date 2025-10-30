@@ -1,4 +1,4 @@
-name = "chess-llm"
+name = "chess-ai"
 main = "worker/src/index.ts"
 compatibility_date = "2024-06-20"
 compatibility_flags = ["nodejs_compat"]
@@ -9,14 +9,26 @@ WORKER_ENV = "development"
 [[d1_databases]]
 binding = "DB"
 database_name = "chess-llm-db"
-database_id = "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+database_id = "09d5a988-3a7b-4266-bd63-338be284be2d"
+migrations_dir = "migrations"
 
 [[kv_namespaces]]
 binding = "OPENINGS_KV"
-id = "0123456789abcdef0123456789abcdef"
-preview_id = "0123456789abcdef0123456789abcdef"
+id = "cfb1f6a5302747f49ff73b785fdd2771"
 
 [[durable_objects.bindings]]
 name = "GAME_DO"
 class_name = "GameDO"
-script_name = "chess-llm"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["GameDO"]
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
