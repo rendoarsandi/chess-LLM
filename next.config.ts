@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8787/api/:path*",
+        // Use Worker URL in production, localhost in development
+        destination: process.env.NODE_ENV === "production"
+          ? "https://chess-ai.rendoarsandi.workers.dev/api/:path*"
+          : "http://127.0.0.1:8787/api/:path*",
       },
     ];
   },
