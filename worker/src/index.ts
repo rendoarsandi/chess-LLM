@@ -15,6 +15,26 @@ export interface Env {
 
 export { GameDO } from "./durable-objects/GameDO";
 
+// CORS headers helper
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+};
+
+function addCorsHeaders(response: Response): Response {
+  const newHeaders = new Headers(response.headers);
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    newHeaders.set(key, value);
+  });
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: newHeaders,
+  });
+}
+
 export default {
   async fetch(
     request: Request,
@@ -22,6 +42,13 @@ export default {
     ctx: ExecutionContext
   ): Promise<Response> {
     try {
+      // Handle CORS preflight requests
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          headers: corsHeaders,
+        });
+      }
+
       const url = new URL(request.url);
       const path = url.pathname;
 
@@ -41,15 +68,16 @@ export default {
           newUrl.pathname = newPath;
 
           const newRequest = new Request(newUrl.toString(), request);
-          return await stub.fetch(newRequest as any) as unknown as Response;
+          const response = await stub.fetch(newRequest as any) as unknown as Response;
+          return addCorsHeaders(response);
         }
       }
 
       // In a real application, you'd serve your frontend here.
-      return new Response("Not found", { status: 404 });
+      return addCorsHeaders(new Response("Not found", { status: 404 }));
     } catch (error) {
       console.error("Error in worker fetch handler:", error);
-      return new Response("Internal Server Error", { status: 500 });
+      return addCorsHeaders(new Response("Internal Server Error", { status: 500 }));
     }
   },
 };
