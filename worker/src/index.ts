@@ -9,7 +9,7 @@ import { GameDO } from "./durable-objects/GameDO";
 export interface Env {
   GAME_DO: DurableObjectNamespace;
   DB: D1Database;
-  OPENINGS_KV: KVNamespace;
+  OPENINGS_KV?: KVNamespace; // Optional: Only needed if using chess opening cache
   GEMINI_API_KEY: string;
 }
 

@@ -27,11 +27,9 @@ export default function Home() {
   const [isLoss, setIsLoss] = useState(false);
   const [aiReasoning, setAiReasoning] = useState("");
   const [opening, setOpening] = useState("");
-  const [playerColor, setPlayerColor] = useState<"white" | "black">("white");
   const [aiModel, setAiModel] = useState("gemini-1.5-flash-latest");
   const [gameMode, setGameMode] = useState("human-vs-ai");
   const [isAiThinking, setIsAiThinking] = useState(false);
-  const [lastMoveHighlight, setLastMoveHighlight] = useState<{from: string, to: string} | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,6 +43,7 @@ export default function Home() {
     if (pgn) {
       fetchOpeningName();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pgn]);
 
   const fetchGameState = async () => {

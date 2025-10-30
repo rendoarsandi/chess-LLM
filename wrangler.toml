@@ -1,4 +1,4 @@
-name = "chess-llm"
+name = "chess-ai"
 main = "worker/src/index.ts"
 compatibility_date = "2024-06-20"
 compatibility_flags = ["nodejs_compat"]
@@ -12,15 +12,18 @@ database_name = "chess-llm-db"
 database_id = "a1b2c3d4-e5f6-7890-1234-567890abcdef"
 migrations_dir = "migrations"
 
-[[kv_namespaces]]
-binding = "OPENINGS_KV"
-id = "0123456789abcdef0123456789abcdef"
-preview_id = "0123456789abcdef0123456789abcdef"
+# KV Namespace for chess openings (OPTIONAL - can be removed if not needed)
+# To create: wrangler kv:namespace create "OPENINGS_KV"
+# Then replace the IDs below with your actual namespace IDs
+# [[kv_namespaces]]
+# binding = "OPENINGS_KV"
+# id = "YOUR_KV_NAMESPACE_ID"
+# preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"
 
 [[durable_objects.bindings]]
 name = "GAME_DO"
 class_name = "GameDO"
-script_name = "chess-llm"
+script_name = "chess-ai"
 
 [observability]
 enabled = false
