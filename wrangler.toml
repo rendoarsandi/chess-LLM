@@ -19,7 +19,6 @@ id = "cfb1f6a5302747f49ff73b785fdd2771"
 [[durable_objects.bindings]]
 name = "GAME_DO"
 class_name = "GameDO"
-script_name = "chess-ai"
 
 [observability]
 enabled = false
