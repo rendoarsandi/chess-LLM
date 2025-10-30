@@ -10,6 +10,7 @@ WORKER_ENV = "development"
 binding = "DB"
 database_name = "chess-llm-db"
 database_id = "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+migrations_dir = "migrations"
 
 [[kv_namespaces]]
 binding = "OPENINGS_KV"
@@ -20,3 +21,13 @@ preview_id = "0123456789abcdef0123456789abcdef"
 name = "GAME_DO"
 class_name = "GameDO"
 script_name = "chess-llm"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
