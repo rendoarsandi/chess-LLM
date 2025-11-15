@@ -78,6 +78,23 @@ export default {
           });
         }
 
+        if (path === "/api/match-history") {
+          const matches = await env.DB.prepare(
+            `SELECT id, result, game_mode, ai_model, total_moves, created_at
+             FROM games
+             WHERE result != 'ongoing'
+             ORDER BY created_at DESC
+             LIMIT 20`
+          ).all();
+
+          return new Response(JSON.stringify(matches.results), {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          });
+        }
+
         // Extract the game ID from the path, e.g., /api/game/{gameId}/move
         const pathSegments = path.split("/");
         const gameIdIndex = pathSegments.indexOf("game") + 1;

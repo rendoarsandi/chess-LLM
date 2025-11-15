@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Leaderboard } from "@/components/Leaderboard";
+import { MatchHistory } from "@/components/MatchHistory";
 
 const API_BASE_URL = "/api/game/default-game";
 
@@ -188,8 +189,9 @@ export default function Home() {
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Leaderboard Section - Left Side */}
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-3 space-y-6">
             <Leaderboard />
+            <MatchHistory />
           </div>
 
           {/* Main Game Section - Center */}

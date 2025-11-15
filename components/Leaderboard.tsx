@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Star, Award } from "lucide-react";
+import { PlayerStatsModal } from "./PlayerStatsModal";
 
 interface Player {
   id: string;
@@ -13,6 +14,8 @@ interface Player {
   wins: number;
   losses: number;
   draws: number;
+  total_moves: number;
+  illegal_moves: number;
 }
 
 function getRatingBadge(rating: number) {
@@ -37,6 +40,7 @@ export function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -75,13 +79,14 @@ export function Leaderboard() {
   }
 
   return (
-    <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
-      <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
-        <Trophy className="w-6 h-6 text-yellow-400" />
-        ELO Rankings
-      </h2>
+    <>
+      <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+        <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-yellow-400" />
+          ELO Rankings
+        </h2>
 
-      <div className="space-y-3">
+        <div className="space-y-3">
         {players.length === 0 ? (
           <div className="text-center text-gray-400 py-8">
             No players yet. Start playing to see rankings!
@@ -94,7 +99,8 @@ export function Leaderboard() {
             return (
               <div
                 key={player.id}
-                className={`p-4 rounded-lg transition-all hover:scale-[1.02] ${
+                onClick={() => setSelectedPlayer(player)}
+                className={`p-4 rounded-lg transition-all hover:scale-[1.02] cursor-pointer ${
                   index === 0
                     ? "bg-gradient-to-r from-yellow-900/40 to-yellow-800/20 border-2 border-yellow-600/50"
                     : index === 1
@@ -165,13 +171,21 @@ export function Leaderboard() {
         )}
       </div>
 
-      {players.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-slate-700">
-          <div className="text-xs text-gray-400 text-center">
-            Rankings update automatically every 10 seconds
+        {players.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-700">
+            <div className="text-xs text-gray-400 text-center">
+              Rankings update automatically every 10 seconds
+              <br />
+              Click on a player to view detailed stats
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      <PlayerStatsModal
+        player={selectedPlayer}
+        onClose={() => setSelectedPlayer(null)}
+      />
+    </>
   );
 }
