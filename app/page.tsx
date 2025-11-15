@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Chess } from "chess.js";
 import type { DraggingPieceDataType } from "react-chessboard";
+import { Sparkles, Zap } from "lucide-react";
 
 const Chessboard = dynamic(() => import("react-chessboard").then((mod) => ({ default: mod.Chessboard })), {
   ssr: false,
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Leaderboard } from "@/components/Leaderboard";
 
 const API_BASE_URL = "/api/game/default-game";
 
@@ -142,7 +144,18 @@ export default function Home() {
 
   const handleNewGame = async (mode: "human-vs-ai" | "ai-vs-ai") => {
     try {
-      await fetch(`${API_BASE_URL}/reset`, { method: "POST" });
+      // Send game configuration when resetting
+      await fetch(`${API_BASE_URL}/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameMode: mode,
+          aiModel: mode === "human-vs-ai" ? aiModel : undefined,
+          whiteAiModel: mode === "ai-vs-ai" ? "gemini-1.5-flash" : undefined,
+          blackAiModel: mode === "ai-vs-ai" ? "gemini-1.5-pro" : undefined,
+          playerColor: "white"
+        })
+      });
       setAiReasoning("");
       setOpening("");
       setGameMode(mode);
@@ -162,36 +175,57 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="z-10 w-full max-w-7xl">
-        <h1 className="text-5xl font-bold mb-8 text-center text-white">
-          Chess LLM <span className="text-blue-400">Arena</span>
-        </h1>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950">
+      <div className="z-10 w-full max-w-[1800px]">
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold mb-3 text-white flex items-center justify-center gap-3">
+            <Sparkles className="w-10 h-10 text-yellow-400" />
+            Chess LLM <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Arena</span>
+            <Zap className="w-10 h-10 text-purple-400" />
+          </h1>
+          <p className="text-gray-400 text-lg">Watch AI models battle with ELO rankings!</p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chessboard Section */}
-          <div className="lg:col-span-2 bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
-            <Chessboard options={{ position: fen, onPieceDrop: onPieceDrop }} />
-
-            {/* Game Status Banner */}
-            {isAiThinking && (
-              <div className="mt-4 p-3 bg-blue-900 text-white rounded-lg text-center animate-pulse">
-                🤖 AI is thinking...
-              </div>
-            )}
-            {(game.isGameOver() || isLoss) && (
-              <div className="mt-4 p-4 bg-red-900 text-white rounded-lg text-center text-xl font-bold">
-                🏁 Game Over
-                {game.isCheckmate() && <p className="text-sm mt-1">Checkmate!</p>}
-                {game.isDraw() && <p className="text-sm mt-1">Draw</p>}
-                {game.isStalemate() && <p className="text-sm mt-1">Stalemate</p>}
-                {isLoss && <p className="text-sm mt-1">Too many errors</p>}
-              </div>
-            )}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Leaderboard Section - Left Side */}
+          <div className="xl:col-span-3">
+            <Leaderboard />
           </div>
 
-          {/* Control Panel */}
-          <div className="space-y-6">
+          {/* Main Game Section - Center */}
+          <div className="xl:col-span-6">
+            {/* Chessboard Section */}
+            <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+              <Chessboard options={{ position: fen, onPieceDrop: onPieceDrop }} />
+
+              {/* Game Status Banner */}
+              {isAiThinking && (
+                <div className="mt-4 p-3 bg-blue-900 text-white rounded-lg text-center animate-pulse">
+                  🤖 AI is thinking...
+                </div>
+              )}
+              {(game.isGameOver() || isLoss) && (
+                <div className="mt-4 p-4 bg-red-900 text-white rounded-lg text-center text-xl font-bold">
+                  🏁 Game Over
+                  {game.isCheckmate() && <p className="text-sm mt-1">Checkmate!</p>}
+                  {game.isDraw() && <p className="text-sm mt-1">Draw</p>}
+                  {game.isStalemate() && <p className="text-sm mt-1">Stalemate</p>}
+                  {isLoss && <p className="text-sm mt-1">Too many errors</p>}
+                </div>
+              )}
+            </div>
+
+            {/* PGN Section */}
+            <div className="mt-6 bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+              <h2 className="text-2xl font-bold mb-4 text-white">📝 Move History (PGN)</h2>
+              <div className="bg-slate-900 p-4 rounded-lg max-h-32 overflow-y-auto">
+                <pre className="text-gray-300 text-sm font-mono">{pgn || "No moves yet"}</pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Control Panel - Right Side */}
+          <div className="xl:col-span-3 space-y-6">
             {/* Game Controls */}
             <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
               <h2 className="text-2xl font-bold mb-4 text-white">Game Mode</h2>
@@ -254,14 +288,6 @@ export default function Home() {
                 {aiReasoning || "Waiting for AI move..."}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* PGN Section */}
-        <div className="mt-6 bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
-          <h2 className="text-2xl font-bold mb-4 text-white">📝 Move History (PGN)</h2>
-          <div className="bg-slate-900 p-4 rounded-lg max-h-32 overflow-y-auto">
-            <pre className="text-gray-300 text-sm font-mono">{pgn || "No moves yet"}</pre>
           </div>
         </div>
       </div>

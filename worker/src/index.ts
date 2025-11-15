@@ -30,6 +30,54 @@ export default {
 
       // Handle API routes
       if (path.startsWith("/api/")) {
+        // Player stats and leaderboard endpoints
+        if (path === "/api/leaderboard") {
+          const players = await env.DB.prepare(
+            `SELECT id, name, display_name, elo_rating, peak_elo, games_played, wins, losses, draws
+             FROM ai_players
+             ORDER BY elo_rating DESC`
+          ).all();
+
+          return new Response(JSON.stringify(players.results), {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          });
+        }
+
+        if (path.startsWith("/api/player/")) {
+          const playerId = path.split("/api/player/")[1];
+          const player = await env.DB.prepare(
+            `SELECT * FROM ai_players WHERE id = ?`
+          ).bind(playerId).first();
+
+          if (!player) {
+            return new Response(JSON.stringify({ error: "Player not found" }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" }
+            });
+          }
+
+          // Get recent ELO history
+          const history = await env.DB.prepare(
+            `SELECT * FROM elo_history
+             WHERE ai_player_id = ?
+             ORDER BY created_at DESC
+             LIMIT 20`
+          ).bind(playerId).all();
+
+          return new Response(JSON.stringify({
+            player,
+            history: history.results
+          }), {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          });
+        }
+
         // Extract the game ID from the path, e.g., /api/game/{gameId}/move
         const pathSegments = path.split("/");
         const gameIdIndex = pathSegments.indexOf("game") + 1;

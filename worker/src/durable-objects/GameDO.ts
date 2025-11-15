@@ -4,6 +4,7 @@ import {
 import { Chess } from "chess.js";
 import { getAiMove } from "../lib/gemini";
 import { Env } from "../index";
+import { calculateMatchElo, getPlayerResult } from "../lib/elo";
 
 export class GameDO {
   state: DurableObjectState;
@@ -15,6 +16,9 @@ export class GameDO {
   gameId: string;
   gameMode: string;
   aiModel: string;
+  whitePlayerId: string;
+  blackPlayerId: string;
+  playerColor: string; // For human vs AI mode
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -26,6 +30,9 @@ export class GameDO {
     this.gameId = "";
     this.gameMode = "human-vs-ai";
     this.aiModel = "gemini-1.5-flash-latest";
+    this.whitePlayerId = "";
+    this.blackPlayerId = "";
+    this.playerColor = "white";
 
     this.state.blockConcurrencyWhile(async () => {
       const storedPgn = await this.state.storage.get<string>("pgn");
@@ -36,6 +43,9 @@ export class GameDO {
       const storedGameId = await this.state.storage.get<string>("gameId");
       const storedGameMode = await this.state.storage.get<string>("gameMode");
       const storedAiModel = await this.state.storage.get<string>("aiModel");
+      const storedWhitePlayerId = await this.state.storage.get<string>("whitePlayerId");
+      const storedBlackPlayerId = await this.state.storage.get<string>("blackPlayerId");
+      const storedPlayerColor = await this.state.storage.get<string>("playerColor");
 
       if (storedPgn) {
         this.pgn = storedPgn;
@@ -55,6 +65,15 @@ export class GameDO {
       }
       if (storedAiModel) {
         this.aiModel = storedAiModel;
+      }
+      if (storedWhitePlayerId) {
+        this.whitePlayerId = storedWhitePlayerId;
+      }
+      if (storedBlackPlayerId) {
+        this.blackPlayerId = storedBlackPlayerId;
+      }
+      if (storedPlayerColor) {
+        this.playerColor = storedPlayerColor;
       }
     });
   }
@@ -79,8 +98,143 @@ export class GameDO {
           now
         )
         .run();
+
+      // Update ELO ratings if game is completed and it's AI vs AI
+      if (result !== "ongoing" && this.gameMode === "ai-vs-ai" && this.whitePlayerId && this.blackPlayerId) {
+        await this.updateEloRatings(result);
+      }
     } catch (error) {
       console.error("Error saving game to D1:", error);
+    }
+  }
+
+  private async updateEloRatings(result: string) {
+    try {
+      // Get current player stats
+      const whitePlayer = await this.env.DB.prepare(
+        `SELECT * FROM ai_players WHERE id = ?`
+      ).bind(this.whitePlayerId).first();
+
+      const blackPlayer = await this.env.DB.prepare(
+        `SELECT * FROM ai_players WHERE id = ?`
+      ).bind(this.blackPlayerId).first();
+
+      if (!whitePlayer || !blackPlayer) {
+        console.error("Players not found for ELO update");
+        return;
+      }
+
+      // Determine match result
+      let matchResult: 'player1_win' | 'player2_win' | 'draw';
+      if (result === 'white_win') {
+        matchResult = 'player1_win';
+      } else if (result === 'black_win') {
+        matchResult = 'player2_win';
+      } else {
+        matchResult = 'draw';
+      }
+
+      // Calculate new ELO ratings
+      const eloChanges = calculateMatchElo(
+        whitePlayer.elo_rating as number,
+        whitePlayer.games_played as number,
+        blackPlayer.elo_rating as number,
+        blackPlayer.games_played as number,
+        matchResult
+      );
+
+      const now = Date.now();
+
+      // Update white player
+      const newWhiteElo = eloChanges.player1.newRating;
+      const newWhitePeakElo = Math.max(whitePlayer.peak_elo as number, newWhiteElo);
+      await this.env.DB.prepare(
+        `UPDATE ai_players
+         SET elo_rating = ?,
+             peak_elo = ?,
+             games_played = games_played + 1,
+             wins = wins + ?,
+             losses = losses + ?,
+             draws = draws + ?,
+             total_moves = total_moves + ?,
+             updated_at = ?
+         WHERE id = ?`
+      ).bind(
+        newWhiteElo,
+        newWhitePeakElo,
+        result === 'white_win' ? 1 : 0,
+        result === 'black_win' ? 1 : 0,
+        result === 'draw' ? 1 : 0,
+        this.chess.history().length,
+        now,
+        this.whitePlayerId
+      ).run();
+
+      // Update black player
+      const newBlackElo = eloChanges.player2.newRating;
+      const newBlackPeakElo = Math.max(blackPlayer.peak_elo as number, newBlackElo);
+      await this.env.DB.prepare(
+        `UPDATE ai_players
+         SET elo_rating = ?,
+             peak_elo = ?,
+             games_played = games_played + 1,
+             wins = wins + ?,
+             losses = losses + ?,
+             draws = draws + ?,
+             total_moves = total_moves + ?,
+             updated_at = ?
+         WHERE id = ?`
+      ).bind(
+        newBlackElo,
+        newBlackPeakElo,
+        result === 'black_win' ? 1 : 0,
+        result === 'white_win' ? 1 : 0,
+        result === 'draw' ? 1 : 0,
+        this.chess.history().length,
+        now,
+        this.blackPlayerId
+      ).run();
+
+      // Record ELO history for white player
+      await this.env.DB.prepare(
+        `INSERT INTO elo_history
+         (ai_player_id, game_id, previous_elo, new_elo, elo_change, opponent_id, opponent_elo, player_color, result, k_factor, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        this.whitePlayerId,
+        this.gameId,
+        whitePlayer.elo_rating,
+        newWhiteElo,
+        eloChanges.player1.ratingChange,
+        this.blackPlayerId,
+        blackPlayer.elo_rating,
+        'white',
+        getPlayerResult(result, 'white'),
+        eloChanges.player1.kFactor,
+        now
+      ).run();
+
+      // Record ELO history for black player
+      await this.env.DB.prepare(
+        `INSERT INTO elo_history
+         (ai_player_id, game_id, previous_elo, new_elo, elo_change, opponent_id, opponent_elo, player_color, result, k_factor, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        this.blackPlayerId,
+        this.gameId,
+        blackPlayer.elo_rating,
+        newBlackElo,
+        eloChanges.player2.ratingChange,
+        this.whitePlayerId,
+        whitePlayer.elo_rating,
+        'black',
+        getPlayerResult(result, 'black'),
+        eloChanges.player2.kFactor,
+        now
+      ).run();
+
+    } catch (error) {
+      console.error("Error updating ELO ratings:", error);
     }
   }
 
@@ -129,7 +283,7 @@ export class GameDO {
           return this.handleAiMove(request);
         }
         if (path === "/reset") {
-          return this.handleReset();
+          return this.handleReset(request);
         }
         break;
       case "GET":
@@ -302,7 +456,7 @@ export class GameDO {
     });
   }
 
-  private async handleReset(): Promise<Response> {
+  private async handleReset(request?: Request): Promise<Response> {
     this.chess.reset();
     this.fen = this.chess.fen();
     this.pgn = this.chess.pgn();
@@ -311,15 +465,63 @@ export class GameDO {
     // Generate a unique game ID
     this.gameId = `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    // Parse request body if provided (for game configuration)
+    if (request) {
+      try {
+        const body = await request.json() as {
+          gameMode?: string;
+          aiModel?: string;
+          whiteAiModel?: string;
+          blackAiModel?: string;
+          playerColor?: string;
+        };
+
+        if (body.gameMode) {
+          this.gameMode = body.gameMode;
+        }
+
+        if (body.gameMode === 'ai-vs-ai') {
+          // For AI vs AI, set both player IDs to AI models
+          this.whitePlayerId = body.whiteAiModel || 'gemini-1.5-flash';
+          this.blackPlayerId = body.blackAiModel || 'gemini-1.5-pro';
+        } else {
+          // For human vs AI
+          this.playerColor = body.playerColor || 'white';
+          this.aiModel = body.aiModel || 'gemini-1.5-flash-latest';
+
+          // Set player IDs based on color
+          if (this.playerColor === 'white') {
+            this.whitePlayerId = 'human';
+            this.blackPlayerId = this.aiModel.replace('-latest', '');
+          } else {
+            this.whitePlayerId = this.aiModel.replace('-latest', '');
+            this.blackPlayerId = 'human';
+          }
+        }
+      } catch (e) {
+        // If parsing fails, use defaults
+        console.log("Using default game settings");
+      }
+    }
+
     await this.state.storage.put("fen", this.fen);
     await this.state.storage.put("pgn", this.pgn);
     await this.state.storage.put("errorCount", this.errorCount);
     await this.state.storage.put("gameId", this.gameId);
+    await this.state.storage.put("gameMode", this.gameMode);
+    await this.state.storage.put("whitePlayerId", this.whitePlayerId);
+    await this.state.storage.put("blackPlayerId", this.blackPlayerId);
+    await this.state.storage.put("playerColor", this.playerColor);
 
     // Initialize game in D1
     await this.saveGameToD1("ongoing");
 
-    return new Response(JSON.stringify({ message: "Game reset", gameId: this.gameId }), {
+    return new Response(JSON.stringify({
+      message: "Game reset",
+      gameId: this.gameId,
+      whitePlayerId: this.whitePlayerId,
+      blackPlayerId: this.blackPlayerId
+    }), {
       headers: { "Content-Type": "application/json" },
     });
   }
