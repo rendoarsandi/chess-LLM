@@ -1,4 +1,4 @@
-import { Game } from "@/api";
+import type { Game } from "@/api";
 import { Button } from "@/components/ui/button";
 
 export function GameHistory({ games, onSelect, selectedGameId }: { 
