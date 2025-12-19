@@ -31,7 +31,7 @@ Goal: Build a feature-rich move history list with playback controls.
 
 - [x] Task: Write unit tests for the history navigation logic (jumping between positions). f1b9dd0
 - [x] Task: Update `GameHistory` to make move items clickable. 3dc8579
-- [ ] Task: Implement the `PlaybackControls` component (First, Previous, Next, Last).
+- [x] Task: Implement the `PlaybackControls` component (First, Previous, Next, Last). 4bca826
 - [ ] Task: Update `App.tsx` state to handle "Browsing Mode" vs "Live Mode".
 - [ ] Task: Sync the chessboard to display the move highlight for the selected historical position.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Interactive Move History and Navigation' (Protocol in workflow.md)
