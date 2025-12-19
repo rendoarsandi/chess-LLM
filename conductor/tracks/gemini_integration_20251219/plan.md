@@ -2,7 +2,7 @@
 
 ## Phase 1: Setup & API Infrastructure
 - [x] Task: Install `@google/generative-ai` SDK and configure environment variables (c70e5ab)
-- [~] Task: Create Gemini service utility for basic model interaction
+- [x] Task: Create Gemini service utility for basic model interaction (c6ab8fd)
 - [ ] Task: Conductor - User Manual Verification 'Setup & API Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Gemini Player Core Implementation
