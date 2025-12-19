@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button"
 import { ChessboardContainer } from "@/components/Chessboard"
 import { GameHistory } from "@/components/GameHistory"
 import { useEffect, useState } from "react"
-import { getGames, getGame, Game } from "./api"
+import { getGames, getGame } from "./api"
+import type { Game } from "./api"
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
@@ -34,7 +35,7 @@ function App() {
       setSelectedGame(updated)
     }
 
-    const gameInterval = setInterval(pollSelectedGame, 2000)
+    const gameInterval = setInterval(pollSelectedGame, 1000)
     return () => clearInterval(gameInterval)
   }, [selectedGame?.id])
 
