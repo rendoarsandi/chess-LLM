@@ -71,7 +71,14 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         const moves = chess.moves()
         if (moves.length === 0) return null
         const randomIndex = Math.floor(Math.random() * moves.length)
-        return moves[randomIndex]
+        const move = moves[randomIndex]
+        
+        return JSON.stringify({
+          opening: 'Test Opening',
+          candidates: moves.slice(0, 3),
+          reasoning: 'Test reasoning',
+          move: move
+        })
       })
     }
     
