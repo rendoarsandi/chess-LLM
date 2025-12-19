@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npm run dev -w client\" \"npm run dev -w server\"",
-    "check": "npm run check -w client && npm run check -w server"
+    "check": "npm run check -w client && npm run check -w server",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:push": "drizzle-kit push --config drizzle.config.ts"
   },
   "keywords": [],
   "author": "",
