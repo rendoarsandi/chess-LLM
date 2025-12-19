@@ -9,7 +9,7 @@
 
 ## Phase 2: Core Game Logic (Server-Side)
 - [x] Task: Integrate chess.js and implement Game Manager service (53975bf)
-- [ ] Task: Write Unit Tests for Game Manager (Move validation, state updates)
+- [x] Task: Write Unit Tests for Game Manager (Move validation, state updates) (53975bf)
 - [ ] Task: Implement "Random Player" bot logic
 - [ ] Task: Create background loop to advance games automatically
 - [ ] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md)
