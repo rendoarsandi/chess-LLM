@@ -8,7 +8,7 @@
 - [x] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md) (cbdee7f)
 
 ## Phase 2: Core Game Logic (Server-Side)
-- [ ] Task: Integrate chess.js and implement Game Manager service
+- [x] Task: Integrate chess.js and implement Game Manager service (53975bf)
 - [ ] Task: Write Unit Tests for Game Manager (Move validation, state updates)
 - [ ] Task: Implement "Random Player" bot logic
 - [ ] Task: Create background loop to advance games automatically
