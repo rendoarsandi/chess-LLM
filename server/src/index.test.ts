@@ -1,0 +1,34 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import app from './index'
+import { db } from './db'
+import { players } from './db/schema'
+
+describe('API Endpoints', () => {
+  it('GET / should return Hello Hono!', async () => {
+    const res = await app.request('/')
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('Hello Hono!')
+  })
+
+  it('GET /api/games should return a list of games', async () => {
+    const res = await app.request('/api/games')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
+  })
+
+  it('POST /api/games should create a new game', async () => {
+    // Insert players to satisfy FK constraints
+    await db.insert(players).values([
+      { id: 'test-p1', name: 'Test P1', type: 'human', createdAt: new Date() },
+      { id: 'test-p2', name: 'Test P2', type: 'human', createdAt: new Date() }
+    ]).onConflictDoNothing()
+
+    const res = await app.request('/api/games', {
+      method: 'POST',
+      body: JSON.stringify({ whitePlayerId: 'test-p1', blackPlayerId: 'test-p2' }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    expect(res.status).toBe(201)
+  })
+})

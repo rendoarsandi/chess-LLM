@@ -1,14 +1,36 @@
 import { Button } from "@/components/ui/button"
 import { ChessboardContainer } from "@/components/Chessboard"
+import { useEffect, useState } from "react"
+import { getGames, Game } from "./api"
 
 function App() {
+  const [game, setGame] = useState<Game | null>(null)
+
+  useEffect(() => {
+    async function fetchGame() {
+      const games = await getGames()
+      if (games.length > 0) {
+        setGame(games[0])
+      }
+    }
+    fetchGame()
+
+    const interval = setInterval(fetchGame, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
       <h1 className="text-4xl font-bold mb-8">ChessLLM</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl w-full">
         <div className="flex flex-col items-center justify-center">
-          <ChessboardContainer />
+          <ChessboardContainer fen={game?.fen} />
+          {game && (
+            <div className="mt-4 text-sm text-muted-foreground">
+              Game ID: {game.id.slice(0, 8)}... | Status: {game.status}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-center justify-center">
