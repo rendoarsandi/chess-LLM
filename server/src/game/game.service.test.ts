@@ -42,6 +42,9 @@ describe('GameService', () => {
         player_color TEXT NOT NULL,
         move TEXT NOT NULL,
         fen TEXT NOT NULL,
+        opening TEXT,
+        candidates TEXT,
+        reasoning TEXT,
         created_at INTEGER NOT NULL,
         FOREIGN KEY(game_id) REFERENCES games(id)
       );
@@ -75,6 +78,27 @@ describe('GameService', () => {
     expect(dbMoves).toHaveLength(1)
     expect(dbMoves[0].move).toBe('e4')
     expect(dbMoves[0].moveNumber).toBe(1)
+  })
+
+  it('should make a move with thinking data and update DB', async () => {
+    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    const gameId = await service.createGame('p1', 'p2')
+
+    const thinking = {
+      opening: 'King\'s Pawn Game',
+      candidates: JSON.stringify(['e4', 'd4', 'Nf3']),
+      reasoning: 'Control the center.'
+    }
+
+    await service.makeMove(gameId, 'e4', thinking)
+    
+    const dbMoves = await db.select().from(moves).where(eq(moves.gameId, gameId))
+    expect(dbMoves).toHaveLength(1)
+    expect(dbMoves[0].move).toBe('e4')
+    expect(dbMoves[0].opening).toBe(thinking.opening)
+    expect(dbMoves[0].candidates).toBe(thinking.candidates)
+    expect(dbMoves[0].reasoning).toBe(thinking.reasoning)
   })
 
   it('should throw error for invalid move', async () => {
