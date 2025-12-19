@@ -17,14 +17,14 @@ Goal: Update the LLM player to provide structured thinking data in JSON format.
 - [x] Task: Implement robust JSON parsing and error handling for LLM responses in `GeminiPlayer`. fdb9dd3
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Enhanced AI Prompting and Parsing' (Protocol in workflow.md) 130ed50
 
-## Phase 3: Thinking Panels and Board Rotation
+## Phase 3: Thinking Panels and Board Rotation [checkpoint: 1cec8af]
 Goal: Implement the side panels and the ability to flip the board view.
 
 - [x] Task: Write unit tests for a new `ThinkingPanel` component. f6a97a3
 - [x] Task: Create the `ThinkingPanel` component to display model name, opening, candidates, and reasoning. 7084a0a
 - [x] Task: Update `App.tsx` layout to include White and Black thinking panels flanking the board. 2def747
 - [x] Task: Implement "Rotate Board" state and toggle button in the UI. 1cec8af
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Thinking Panels and Board Rotation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Thinking Panels and Board Rotation' (Protocol in workflow.md) 1cec8af
 
 ## Phase 4: Interactive Move History and Navigation
 Goal: Build a feature-rich move history list with playback controls.
