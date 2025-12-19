@@ -6,6 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "dev": "tsx watch src/index.ts",
+    "seed": "tsx seed.ts",
+    "db:push": "drizzle-kit push",
     "check": "tsc --noEmit"
   },
   "keywords": [],

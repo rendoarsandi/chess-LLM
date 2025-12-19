@@ -12,7 +12,7 @@
 - [x] Task: Write Unit Tests for Game Manager (Move validation, state updates) (53975bf)
 - [x] Task: Implement "Random Player" bot logic (076a546)
 - [x] Task: Create background loop to advance games automatically (6bd5898)
-- [ ] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md) (f2813e6)
 
 ## Phase 3: Frontend MVP
 - [ ] Task: Setup Tailwind CSS and Shadcn UI
