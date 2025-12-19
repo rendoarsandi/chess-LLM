@@ -10,9 +10,9 @@ This plan outlines the steps to integrate a client-side Stockfish evaluation bar
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Stockfish Integration' (Protocol in workflow.md)
 
 ## Phase 2: React State & Logic (Service Layer)
-- [ ] Task: Create `useStockfish` hook to manage engine state (evaluation, depth, mate status).
-- [ ] Task: Implement logic to trigger evaluation on FEN changes with a 2-second timeout.
-- [ ] Task: Write tests for `useStockfish` hook using `chess.js` positions to verify state updates.
+- [x] Task: Create `useStockfish` hook to manage engine state (evaluation, depth, mate status).
+- [x] Task: Implement logic to trigger evaluation on FEN changes with a 2-second timeout.
+- [x] Task: Write tests for `useStockfish` hook using `chess.js` positions to verify state updates.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: React State & Logic' (Protocol in workflow.md)
 
 ## Phase 3: UI Components (Presentation Layer)
