@@ -11,7 +11,7 @@
 - [x] Task: Implement `GeminiPlayer` move generation with PGN + FEN context (4fd09c8)
 - [ ] Task: Conductor - User Manual Verification 'Gemini Player Core Implementation' (Protocol in workflow.md)
 
-## Phase 3: Validation, Retries & Error Handling
+## Phase 3: Validation, Retries & Error Handling [checkpoint: 95fc18b]
 - [x] Task: Write Tests: Verify retry logic triggers on invalid SAN responses (d197cc0)
 - [x] Task: Implement retry mechanism (up to 3 times) with feedback loop (error + legal moves) (d197cc0)
 - [x] Task: Write Tests: Verify timeout and network error handling (e4a7aa0)
