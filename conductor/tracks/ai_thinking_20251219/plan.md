@@ -30,7 +30,7 @@ Goal: Implement the side panels and the ability to flip the board view.
 Goal: Build a feature-rich move history list with playback controls.
 
 - [x] Task: Write unit tests for the history navigation logic (jumping between positions). f1b9dd0
-- [ ] Task: Update `GameHistory` to make move items clickable.
+- [x] Task: Update `GameHistory` to make move items clickable. 3dc8579
 - [ ] Task: Implement the `PlaybackControls` component (First, Previous, Next, Last).
 - [ ] Task: Update `App.tsx` state to handle "Browsing Mode" vs "Live Mode".
 - [ ] Task: Sync the chessboard to display the move highlight for the selected historical position.
