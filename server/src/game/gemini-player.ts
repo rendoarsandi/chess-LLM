@@ -5,7 +5,8 @@ import { Chess } from 'chess.js'
 export class GeminiPlayer implements Player {
   constructor(
     private geminiService: GeminiService,
-    private modelName: string = 'gemini-2.0-flash'
+    private modelName: string = 'gemini-2.0-flash',
+    private timeoutMs: number = 30000 // Default 30s timeout
   ) {}
 
   async makeMove(fen: string, history: string[] = []): Promise<string | null> {
@@ -16,7 +17,20 @@ export class GeminiPlayer implements Player {
 
     while (attempts <= maxRetries) {
       try {
-        const move = await this.geminiService.generateMove(this.modelName, currentPrompt)
+        let timeoutId: any
+        const timeoutPromise = new Promise<null>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Timeout')), this.timeoutMs)
+        })
+
+        const movePromise = this.geminiService.generateMove(this.modelName, currentPrompt)
+        
+        const move = await Promise.race([
+          movePromise.then(res => {
+            clearTimeout(timeoutId)
+            return res
+          }),
+          timeoutPromise
+        ])
         
         if (!move) {
           attempts++

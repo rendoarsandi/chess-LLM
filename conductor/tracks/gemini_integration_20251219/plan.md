@@ -14,8 +14,8 @@
 ## Phase 3: Validation, Retries & Error Handling
 - [x] Task: Write Tests: Verify retry logic triggers on invalid SAN responses (d197cc0)
 - [x] Task: Implement retry mechanism (up to 3 times) with feedback loop (error + legal moves) (d197cc0)
-- [ ] Task: Write Tests: Verify timeout and network error handling
-- [ ] Task: Implement graceful failure for the game loop
+- [~] Task: Write Tests: Verify timeout and network error handling
+- [~] Task: Implement graceful failure for the game loop
 - [ ] Task: Conductor - User Manual Verification 'Validation, Retries & Error Handling' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Live Testing

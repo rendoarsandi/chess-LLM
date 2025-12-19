@@ -96,4 +96,22 @@ describe('GeminiPlayer', () => {
     expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(2)
     expect(move).toBe('e4')
   })
+
+  it('should timeout if GeminiService takes too long', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    
+    // Create player with very short timeout (1ms) for testing
+    const timeoutPlayer = new TestGeminiPlayer(mockGeminiService, 'model', 1)
+    
+    // Mock generateMove to resolve slowly (100ms)
+    mockGeminiService.generateMove.mockReturnValue(new Promise(resolve => setTimeout(() => resolve('e4'), 100)))
+    
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await timeoutPlayer.makeMove(startFen, [])
+    
+    expect(move).toBeNull()
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Error generating move (attempt 1):'), expect.any(Error))
+    
+    consoleSpy.mockRestore()
+  })
 })

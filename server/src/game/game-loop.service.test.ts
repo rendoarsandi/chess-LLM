@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GameLoopService } from './game-loop.service'
-import { GameService } from './game.service'
-import { RandomPlayer } from './random-player'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import { games, players } from '../db/schema'
+import { games, players, moves } from '../db/schema'
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
   let gameService: any
-  let randomPlayer: any
+  let player: any
   let db: any
 
   beforeEach(() => {
@@ -35,16 +33,26 @@ describe('GameLoopService', () => {
         FOREIGN KEY(white_player_id) REFERENCES players(id),
         FOREIGN KEY(black_player_id) REFERENCES players(id)
       );
+      CREATE TABLE moves (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_id TEXT NOT NULL,
+        move_number INTEGER NOT NULL,
+        player_color TEXT NOT NULL,
+        move TEXT NOT NULL,
+        fen TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY(game_id) REFERENCES games(id)
+      );
     `)
 
     gameService = {
       makeMove: vi.fn().mockResolvedValue({}),
     }
-    randomPlayer = {
-      makeMove: vi.fn().mockReturnValue('e4'),
+    player = {
+      makeMove: vi.fn().mockResolvedValue('e4'),
     }
     
-    loopService = new GameLoopService(db, gameService, randomPlayer)
+    loopService = new GameLoopService(db, gameService, player)
   })
 
   it('should advance an ongoing game if it is an LLM turn', async () => {
@@ -68,6 +76,56 @@ describe('GameLoopService', () => {
     await loopService.runIteration()
     
     expect(gameService.makeMove).toHaveBeenCalledWith('game1', 'e4')
+  })
+
+  it('should log a warning if player fails to provide a move', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    player.makeMove.mockResolvedValue(null)
+
+    await db.insert(players).values([
+      { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    ])
+
+    await db.insert(games).values({
+      id: 'game_fail',
+      whitePlayerId: 'p1',
+      blackPlayerId: 'p2',
+      status: 'ongoing',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+
+    await loopService.runIteration()
+    
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Player failed to provide a move'))
+    warnSpy.mockRestore()
+  })
+
+  it('should log an error if applying move fails', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    gameService.makeMove.mockRejectedValue(new Error('DB Error'))
+
+    await db.insert(players).values([
+      { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    ])
+
+    await db.insert(games).values({
+      id: 'game_err',
+      whitePlayerId: 'p1',
+      blackPlayerId: 'p2',
+      status: 'ongoing',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+
+    await loopService.runIteration()
+    
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Error applying move'), expect.any(Error))
+    errorSpy.mockRestore()
   })
 
   it('should NOT advance if it is a human turn', async () => {
