@@ -48,6 +48,16 @@ describe('API Endpoints', () => {
     })
     const { id: gameId } = await createRes.json()
 
+    const moveRes = await app.request(`/api/games/${gameId}/move`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        move: 'e4', 
+        thinking: { opening: 'King Pawn', reasoning: 'Control' } 
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    expect(moveRes.status).toBe(200)
+
     // Inject a move with thinking data manually or via service if exported
     // For API test, we just check the structure
     const res = await app.request(`/api/games/${gameId}/moves`)

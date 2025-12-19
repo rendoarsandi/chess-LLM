@@ -40,6 +40,9 @@ describe('GameLoopService', () => {
         player_color TEXT NOT NULL,
         move TEXT NOT NULL,
         fen TEXT NOT NULL,
+        opening TEXT,
+        candidates TEXT,
+        reasoning TEXT,
         created_at INTEGER NOT NULL,
         FOREIGN KEY(game_id) REFERENCES games(id)
       );

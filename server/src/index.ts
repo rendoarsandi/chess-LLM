@@ -20,18 +20,56 @@ app.use('*', cors())
 const gameManager = new GameManager()
 const gameService = new GameService(db, gameManager)
 
+// System Player IDs
+const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
+const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
+const GEMINI_2_5_ID = '00000000-0000-0000-0000-000000000004'
+const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
+
 // Initialize players
 const randomPlayer = new RandomPlayer()
+gameManager.setPlayer(RANDOM_BOT_ID, randomPlayer)
+
 let defaultLlmPlayer: any = randomPlayer
 
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+const apiKey = process.env.GEMINI_API_KEY
 if (apiKey && apiKey !== 'your_api_key_here') {
-  console.log('[Main] Gemini API Key found, initializing GeminiPlayer')
+  console.log('[Main] Gemini API Key found, initializing GeminiPlayers')
   const geminiService = new GeminiService(apiKey)
-  defaultLlmPlayer = new GeminiPlayer(geminiService)
+  
+  const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3.0-flash')
+  const gemini25Player = new GeminiPlayer(geminiService, 'gemini-2.5-flash')
+  
+  defaultLlmPlayer = gemini30Player
+  gameManager.setPlayer(GEMINI_3_0_ID, gemini30Player)
+  gameManager.setPlayer(GEMINI_2_5_ID, gemini25Player)
 } else {
   console.warn('[Main] Gemini API Key not found or placeholder used. Falling back to RandomPlayer for LLM turns.')
+  gameManager.setPlayer(GEMINI_3_0_ID, randomPlayer)
+  gameManager.setPlayer(GEMINI_2_5_ID, randomPlayer)
 }
+
+// Ensure system players exist in DB
+async function ensureSystemPlayers() {
+  const existing = await db.select().from(players)
+  const existingIds = existing.map(p => p.id)
+
+  const systemPlayers = [
+    { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const },
+    { id: GEMINI_3_0_ID, name: 'Gemini 3.0 Flash', type: 'llm' as const },
+    { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const },
+    { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
+  ]
+
+  for (const p of systemPlayers) {
+    if (!existingIds.includes(p.id)) {
+      await db.insert(players).values(p)
+      console.log(`[Main] Created system player: ${p.name}`)
+    }
+  }
+}
+
+ensureSystemPlayers().catch(console.error)
 
 const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
 
@@ -61,6 +99,25 @@ app.get('/api/games/:id/moves', async (c) => {
   return c.json(gameMoves)
 })
 
+app.delete('/api/games', async (c) => {
+  try {
+    await gameService.clearHistory()
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500)
+  }
+})
+
+app.delete('/api/games/:id', async (c) => {
+  const id = c.req.param('id')
+  try {
+    await gameService.deleteGame(id)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500)
+  }
+})
+
 app.post('/api/games', async (c) => {
   const body = await c.req.json()
   const { whitePlayerId, blackPlayerId } = body
@@ -68,6 +125,19 @@ app.post('/api/games', async (c) => {
   try {
     const gameId = await gameService.createGame(whitePlayerId, blackPlayerId)
     return c.json({ id: gameId }, 201)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
+app.post('/api/games/:id/move', async (c) => {
+  const id = c.req.param('id')
+  const body = await c.req.json()
+  const { move, thinking } = body
+  
+  try {
+    const result = await gameService.makeMove(id, move, thinking)
+    return c.json(result)
   } catch (e) {
     return c.json({ error: (e as Error).message }, 400)
   }
