@@ -1,7 +1,7 @@
 # Development Plan: Project Foundation
 
 ## Phase 1: Environment & Scaffolding
-- [ ] Task: Initialize Monorepo structure with Vite (React) and Hono
+- [~] Task: Initialize Monorepo structure with Vite (React) and Hono
 - [ ] Task: Configure TypeScript across client and server
 - [ ] Task: Set up Drizzle ORM with SQLite (Better-SQLite3)
 - [ ] Task: Define initial database schema (players, games, moves)
