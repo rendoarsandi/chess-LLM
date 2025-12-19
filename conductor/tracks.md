@@ -1,7 +1,8 @@
 # Project Tracks
 
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
+
 ---
 
-## [x] Track: Advanced AI Thinking & Interactive Move History
-*Link: [./conductor/tracks/ai_thinking_20251219/](./conductor/tracks/ai_thinking_20251219/)*
+## [~] Track: Board doesnt move when bot is already input the move
+*Link: [./conductor/tracks/fix_board_sync_20251219/](./conductor/tracks/fix_board_sync_20251219/)*

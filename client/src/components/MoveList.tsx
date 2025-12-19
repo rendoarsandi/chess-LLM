@@ -4,9 +4,10 @@ interface MoveListProps {
   moves: Move[]
   onMoveClick: (index: number) => void
   selectedMoveIndex?: number
+  isLive?: boolean
 }
 
-export function MoveList({ moves, onMoveClick, selectedMoveIndex }: MoveListProps) {
+export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive }: MoveListProps) {
   // Sort moves by moveNumber ascending, but handle pairs (white then black)
   // The moves array from API is desc moveNumber currently, let's reverse it locally
   const sortedMoves = [...moves].sort((a, b) => {
@@ -34,8 +35,14 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex }: MoveListProp
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg flex flex-col h-[300px]">
-      <div className="p-3 border-b border-border bg-muted/50">
+      <div className="p-3 border-b border-border bg-muted/50 flex justify-between items-center">
         <h3 className="font-bold text-sm uppercase tracking-wider">Move History</h3>
+        {isLive && moves.length > 0 && (
+          <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500 animate-pulse bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            LIVE
+          </span>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         <table className="w-full text-sm border-separate border-spacing-y-1">

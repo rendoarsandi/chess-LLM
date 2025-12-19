@@ -11,6 +11,8 @@ export function ChessboardContainer({
   boardOrientation?: "white" | "black",
   highlightSquares?: { from: string, to: string }
 }) {
+  const currentFen = fen || DEFAULT_FEN;
+  
   const customSquareStyles = highlightSquares ? {
     [highlightSquares.from]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' },
     [highlightSquares.to]: { backgroundColor: 'rgba(255, 255, 0, 0.4)' }
@@ -19,12 +21,16 @@ export function ChessboardContainer({
   return (
     <div 
       data-testid="chess-board-container" 
-      className="w-full max-w-[600px] aspect-square shadow-2xl rounded-sm overflow-hidden border-8 border-slate-800"
+      className="w-full max-w-[500px] mx-auto shadow-2xl rounded-sm border-4 border-slate-800 bg-slate-900"
     >
       <Chessboard 
-        position={fen || DEFAULT_FEN}
-        boardOrientation={boardOrientation}
-        customSquareStyles={customSquareStyles}
+        key={`${currentFen}-${boardOrientation}`}
+        options={{
+          position: currentFen,
+          boardOrientation: boardOrientation,
+          squareStyles: customSquareStyles,
+          animationDurationInMs: 200
+        }}
       />
     </div>
   );

@@ -11,7 +11,6 @@ import { Chess } from "chess.js"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
-const GEMINI_2_5_ID = '00000000-0000-0000-0000-000000000004'
 
 function App() {
   const [games, setGames] = useState<Game[]>([])
@@ -47,18 +46,22 @@ function App() {
 
     async function pollSelectedGame() {
       if (!gameId) return
-      const [updated, gameMoves] = await Promise.all([
-        getGame(gameId),
-        getMoves(gameId)
-      ])
-      
-      const sortedMoves = [...gameMoves].sort((a, b) => {
-        if (a.moveNumber !== b.moveNumber) return a.moveNumber - b.moveNumber
-        return a.playerColor === 'white' ? -1 : 1
-      })
+      try {
+        const [updated, gameMoves] = await Promise.all([
+          getGame(gameId),
+          getMoves(gameId)
+        ])
+        
+        const sortedMoves = [...gameMoves].sort((a, b) => {
+          if (a.moveNumber !== b.moveNumber) return a.moveNumber - b.moveNumber
+          return a.playerColor === 'white' ? -1 : 1
+        })
 
-      setSelectedGame(updated)
-      setMoves(sortedMoves)
+        setSelectedGame(updated)
+        setMoves(sortedMoves)
+      } catch (e) {
+        console.error("Error polling game:", e)
+      }
     }
 
     pollSelectedGame()
@@ -72,10 +75,15 @@ function App() {
   }
 
   const handleCreateGame = async (whiteId: string, blackId: string) => {
-    const { id } = await createGame(whiteId, blackId)
-    const newGame = await getGame(id)
-    handleSelectGame(newGame)
-    fetchAllGames()
+    try {
+      const { id } = await createGame(whiteId, blackId)
+      const newGame = await getGame(id)
+      handleSelectGame(newGame)
+      fetchAllGames()
+    } catch (e) {
+      console.error("Error creating game:", e)
+      alert("Failed to create game. Check if the server is running.")
+    }
   }
 
   const handleDeleteGame = async (id: string) => {
@@ -98,7 +106,7 @@ function App() {
 
   const currentDisplayFen = activeMoveIndex !== null && moves[activeMoveIndex]
     ? moves[activeMoveIndex].fen
-    : selectedGame?.fen
+    : (moves.length > 0 ? moves[moves.length - 1].fen : selectedGame?.fen)
 
   const getPlayerThinking = (side: 'white' | 'black') => {
     if (!selectedGame || moves.length === 0) return undefined
@@ -308,10 +316,16 @@ function App() {
             moves={moves} 
             onMoveClick={setActiveMoveIndex} 
             selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+            isLive={isLive}
           />
 
           <div className="bg-card p-6 rounded-lg shadow-lg border border-border">
-            <h2 className="text-xl font-bold mb-1">Arena Controls</h2>
+            <div className="flex justify-between items-start mb-1">
+              <h2 className="text-xl font-bold">Arena Controls</h2>
+              <span className="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full border border-green-500/20 font-bold">
+                {games.filter(g => g.status === 'ongoing').length} ACTIVE
+              </span>
+            </div>
             <p className="text-xs text-muted-foreground mb-4">Select players and start a new match</p>
             <div className="space-y-4">
               <div className="space-y-2">
