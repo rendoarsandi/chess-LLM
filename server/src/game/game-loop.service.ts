@@ -32,6 +32,7 @@ export class GameLoopService {
     for (const game of ongoingGames) {
       const turn = game.fen.split(' ')[1]
       const currentPlayerType = turn === 'w' ? game.whitePlayerType : game.blackPlayerType
+      const currentPlayerId = turn === 'w' ? game.whitePlayerId : game.blackPlayerId
 
       if (currentPlayerType === 'llm') {
         // Fetch move history
@@ -42,7 +43,10 @@ export class GameLoopService {
         
         const history = gameMoves.map((m: any) => m.move)
 
-        const move = await this.player.makeMove(game.fen, history)
+        // Resolve player: registry first, then fallback to default
+        const player = this.gameService.getPlayer(currentPlayerId) || this.player
+        
+        const move = await player.makeMove(game.fen, history)
         if (move) {
           try {
             await this.gameService.makeMove(game.id, move)

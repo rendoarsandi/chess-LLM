@@ -1,4 +1,5 @@
 import { Chess } from 'chess.js'
+import { Player } from './player.interface'
 
 export interface GameState {
   whitePlayerId: string
@@ -8,6 +9,16 @@ export interface GameState {
 }
 
 export class GameManager {
+  private players: Map<string, Player> = new Map()
+
+  setPlayer(playerId: string, player: Player) {
+    this.players.set(playerId, player)
+  }
+
+  getPlayer(playerId: string): Player | undefined {
+    return this.players.get(playerId)
+  }
+
   createNewGame(whitePlayerId: string, blackPlayerId: string): GameState {
     const chess = new Chess()
     return {

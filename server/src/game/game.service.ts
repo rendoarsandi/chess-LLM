@@ -26,6 +26,10 @@ export class GameService {
     return result[0]
   }
 
+  getPlayer(playerId: string) {
+    return this.gm.getPlayer(playerId)
+  }
+
   async makeMove(gameId: string, move: string) {
     const game = await this.getGame(gameId)
     if (!game) throw new Error('Game not found')

@@ -6,6 +6,8 @@ import { db } from './db'
 import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
 import { RandomPlayer } from './game/random-player'
+import { GeminiService } from './game/gemini.service'
+import { GeminiPlayer } from './game/gemini-player'
 import { GameLoopService } from './game/game-loop.service'
 import { games, players, moves } from './db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -17,8 +19,21 @@ app.use('*', cors())
 // Initialize services
 const gameManager = new GameManager()
 const gameService = new GameService(db, gameManager)
+
+// Initialize players
 const randomPlayer = new RandomPlayer()
-const gameLoopService = new GameLoopService(db, gameService, randomPlayer)
+let defaultLlmPlayer: any = randomPlayer
+
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+if (apiKey && apiKey !== 'your_api_key_here') {
+  console.log('[Main] Gemini API Key found, initializing GeminiPlayer')
+  const geminiService = new GeminiService(apiKey)
+  defaultLlmPlayer = new GeminiPlayer(geminiService)
+} else {
+  console.warn('[Main] Gemini API Key not found or placeholder used. Falling back to RandomPlayer for LLM turns.')
+}
+
+const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
 
 // Start background loop
 gameLoopService.start(5000)

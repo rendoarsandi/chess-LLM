@@ -47,6 +47,7 @@ describe('GameLoopService', () => {
 
     gameService = {
       makeMove: vi.fn().mockResolvedValue({}),
+      getPlayer: vi.fn().mockReturnValue(null),
     }
     player = {
       makeMove: vi.fn().mockResolvedValue('e4'),
