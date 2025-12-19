@@ -1,11 +1,11 @@
 # Development Plan: Project Foundation
 
-## Phase 1: Environment & Scaffolding
+## Phase 1: Environment & Scaffolding [checkpoint: cbdee7f]
 - [x] Task: Initialize Monorepo structure with Vite (React) and Hono (1f00b6b)
 - [x] Task: Configure TypeScript across client and server (8898f79)
 - [x] Task: Set up Drizzle ORM with SQLite (Better-SQLite3) (6349381)
 - [x] Task: Define initial database schema (players, games, moves) (808248b)
-- [ ] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md) (cbdee7f)
 
 ## Phase 2: Core Game Logic (Server-Side)
 - [ ] Task: Integrate chess.js and implement Game Manager service
