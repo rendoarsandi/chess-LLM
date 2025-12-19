@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 
 interface ThinkingPanelProps {
   side: 'white' | 'black'

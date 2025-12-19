@@ -106,6 +106,8 @@ function App() {
     // In browsing mode, we show thinking for the specific move
     if (activeMoveIndex !== null) {
       const move = moves[activeMoveIndex]
+      if (!move) return undefined
+      
       if (move.playerColor === side) {
         let candidates: string[] = []
         try {
@@ -182,6 +184,9 @@ function App() {
     }
     return undefined;
   })();
+
+  const [whitePlayerId, setWhitePlayerId] = useState(RANDOM_BOT_ID)
+  const [blackPlayerId, setBlackPlayerId] = useState(GEMINI_3_0_ID)
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
@@ -294,14 +299,28 @@ function App() {
           <div className="bg-card p-6 rounded-lg shadow-lg border border-border">
             <h2 className="text-xl font-bold mb-4">Arena Controls</h2>
             <div className="space-y-4">
-              <Button className="w-full text-xs" size="sm" onClick={() => handleCreateGame(RANDOM_BOT_ID, GEMINI_3_0_ID)}>
-                Random vs Gemini 3.0
-              </Button>
-              <Button variant="outline" className="w-full text-xs" size="sm" onClick={() => handleCreateGame(RANDOM_BOT_ID, GEMINI_2_5_ID)}>
-                Random vs Gemini 2.5
-              </Button>
-              <Button variant="secondary" className="w-full text-xs" size="sm" onClick={() => handleCreateGame(GEMINI_2_5_ID, GEMINI_3_0_ID)}>
-                Gemini 2.5 vs 3.0
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase">White Player</label>
+                <select 
+                  value={whitePlayerId} 
+                  onChange={(e) => setWhitePlayerId(e.target.value)}
+                  className="w-full bg-muted text-foreground rounded border border-border px-2 py-1 text-sm"
+                >
+                  {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase">Black Player</label>
+                <select 
+                  value={blackPlayerId} 
+                  onChange={(e) => setBlackPlayerId(e.target.value)}
+                  className="w-full bg-muted text-foreground rounded border border-border px-2 py-1 text-sm"
+                >
+                  {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <Button className="w-full" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>
+                Start New Match
               </Button>
             </div>
           </div>

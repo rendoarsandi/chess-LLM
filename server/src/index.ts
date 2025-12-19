@@ -44,16 +44,13 @@ if (apiKey && apiKey !== 'your_api_key_here') {
   gameManager.setPlayer(GEMINI_3_0_ID, gemini30Player)
   gameManager.setPlayer(GEMINI_2_5_ID, gemini25Player)
 } else {
-  console.warn('[Main] Gemini API Key not found or placeholder used. Falling back to RandomPlayer for LLM turns.')
-  gameManager.setPlayer(GEMINI_3_0_ID, randomPlayer)
-  gameManager.setPlayer(GEMINI_2_5_ID, randomPlayer)
+  console.error('[CRITICAL] Gemini API Key NOT FOUND in .env. LLM players will not function.')
+  // Do NOT fall back to RandomPlayer for Gemini IDs to avoid confusion
+  // We throw here or handle it in the service
 }
 
-// Ensure system players exist in DB
+// Ensure system players exist in DB and remove others
 async function ensureSystemPlayers() {
-  const existing = await db.select().from(players)
-  const existingIds = existing.map(p => p.id)
-
   const systemPlayers = [
     { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const },
     { id: GEMINI_3_0_ID, name: 'Gemini 3.0 Flash', type: 'llm' as const },
@@ -61,10 +58,31 @@ async function ensureSystemPlayers() {
     { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
   ]
 
+  const systemIds = systemPlayers.map(p => p.id)
+
+  // Remove any players NOT in the system list (like test P1, P2)
+  const notIn = (id: string, ids: string[]) => {
+    return !ids.includes(id)
+  }
+  
+  const allPlayers = await db.select().from(players)
+  for (const p of allPlayers) {
+    if (!systemIds.includes(p.id)) {
+      await db.delete(players).where(eq(players.id, p.id))
+      console.log(`[Main] Deleted non-system player: ${p.name}`)
+    }
+  }
+
+  const existing = await db.select().from(players)
+  const existingIds = existing.map(p => p.id)
+
   for (const p of systemPlayers) {
     if (!existingIds.includes(p.id)) {
       await db.insert(players).values(p)
       console.log(`[Main] Created system player: ${p.name}`)
+    } else {
+      // Update name if it exists but differs
+      await db.update(players).set({ name: p.name }).where(eq(players.id, p.id))
     }
   }
 }

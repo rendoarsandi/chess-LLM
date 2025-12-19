@@ -18,4 +18,13 @@ describe('ChessboardContainer', () => {
     rerender(<ChessboardContainer boardOrientation="black" />)
     expect(screen.getByTestId('chess-board-container')).toBeInTheDocument()
   })
+
+  it('renders without crashing when highlightSquares is provided', () => {
+    render(
+      <ChessboardContainer 
+        highlightSquares={{ from: 'e2', to: 'e4' }} 
+      />
+    )
+    expect(screen.getByTestId('chess-board-container')).toBeInTheDocument()
+  })
 })
