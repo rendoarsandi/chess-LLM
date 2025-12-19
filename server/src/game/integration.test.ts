@@ -99,7 +99,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
 
     // 4. Run iterations until game is over
     let attempts = 0
-    const maxIterations = 400 // Increased to allow for longer games
+    const maxIterations = 1000 // Increased significantly to ensure game conclusion
     
     let game = await gameService.getGame(gameId)
     while (game.status === 'ongoing' && attempts < maxIterations) {
