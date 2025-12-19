@@ -12,7 +12,7 @@ Goal: Update the database schema and API to support storing and retrieving AI th
 ## Phase 2: Enhanced AI Prompting and Parsing
 Goal: Update the LLM player to provide structured thinking data in JSON format.
 
-- [ ] Task: Write tests for `GeminiPlayer` verifying it requests and parses structured JSON responses.
+- [x] Task: Write tests for `GeminiPlayer` verifying it requests and parses structured JSON responses. 462bdeb
 - [ ] Task: Update `GeminiPlayer` prompt to require the new thinking fields (opening, 3 candidates, reasoning).
 - [ ] Task: Implement robust JSON parsing and error handling for LLM responses in `GeminiPlayer`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Enhanced AI Prompting and Parsing' (Protocol in workflow.md)
