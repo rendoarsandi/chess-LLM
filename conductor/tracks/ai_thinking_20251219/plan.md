@@ -1,13 +1,13 @@
 # Implementation Plan - Advanced AI Thinking & Interactive Move History
 
-## Phase 1: Data Persistence and Backend API
+## Phase 1: Data Persistence and Backend API [checkpoint: 3b1540e]
 Goal: Update the database schema and API to support storing and retrieving AI thinking data.
 
 - [x] Task: Update Drizzle schema to include `opening`, `candidates`, and `reasoning` in the `moves` table. e9c7c80
 - [x] Task: Write tests for `GameService.makeMove` to verify it can save thinking data. f02463b
 - [x] Task: Update `GameService.makeMove` to store AI thoughts along with the move. a40a8c4
 - [x] Task: Update `GET /api/games/:id/moves` to return thinking data. a612f22
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Persistence and Backend API' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Data Persistence and Backend API' (Protocol in workflow.md) 3b1540e
 
 ## Phase 2: Enhanced AI Prompting and Parsing
 Goal: Update the LLM player to provide structured thinking data in JSON format.
