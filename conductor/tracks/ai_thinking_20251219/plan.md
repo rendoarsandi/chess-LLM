@@ -9,13 +9,13 @@ Goal: Update the database schema and API to support storing and retrieving AI th
 - [x] Task: Update `GET /api/games/:id/moves` to return thinking data. a612f22
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Data Persistence and Backend API' (Protocol in workflow.md) 3b1540e
 
-## Phase 2: Enhanced AI Prompting and Parsing
+## Phase 2: Enhanced AI Prompting and Parsing [checkpoint: 130ed50]
 Goal: Update the LLM player to provide structured thinking data in JSON format.
 
 - [x] Task: Write tests for `GeminiPlayer` verifying it requests and parses structured JSON responses. 462bdeb
 - [x] Task: Update `GeminiPlayer` prompt to require the new thinking fields (opening, 3 candidates, reasoning). fdb9dd3
 - [x] Task: Implement robust JSON parsing and error handling for LLM responses in `GeminiPlayer`. fdb9dd3
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Enhanced AI Prompting and Parsing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Enhanced AI Prompting and Parsing' (Protocol in workflow.md) 130ed50
 
 ## Phase 3: Thinking Panels and Board Rotation
 Goal: Implement the side panels and the ability to flip the board view.
