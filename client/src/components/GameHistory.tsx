@@ -1,9 +1,10 @@
 import type { Game } from "@/api";
 import { Button } from "@/components/ui/button";
 
-export function GameHistory({ games, onSelect, selectedGameId }: { 
+export function GameHistory({ games, onSelect, onDelete, selectedGameId }: { 
   games: Game[], 
   onSelect: (game: Game) => void,
+  onDelete: (id: string) => void,
   selectedGameId?: string 
 }) {
   return (
@@ -31,9 +32,14 @@ export function GameHistory({ games, onSelect, selectedGameId }: {
                 Status: <span className={game.status === 'ongoing' ? 'text-green-500' : 'text-blue-500'}>{game.status}</span>
               </p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => onSelect(game)}>
-              View
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => onSelect(game)}>
+                View
+              </Button>
+              <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
+                Delete
+              </Button>
+            </div>
           </div>
         ))}
       </div>
