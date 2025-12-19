@@ -10,7 +10,10 @@ describe('Database Schema', () => {
     expect(schema.games).toBeDefined()
   })
 
-  it('should have moves table defined', () => {
+  it('should have moves table defined with thinking columns', () => {
     expect(schema.moves).toBeDefined()
+    expect(schema.moves.opening).toBeDefined()
+    expect(schema.moves.candidates).toBeDefined()
+    expect(schema.moves.reasoning).toBeDefined()
   })
 })

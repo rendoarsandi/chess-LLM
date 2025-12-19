@@ -26,6 +26,9 @@ export const moves = sqliteTable('moves', {
   playerColor: text('player_color', { enum: ['white', 'black'] }).notNull(),
   move: text('move').notNull(), // SAN notation e.g. "e4"
   fen: text('fen').notNull(), // State AFTER move
+  opening: text('opening'),
+  candidates: text('candidates'), // JSON string of top 3 moves
+  reasoning: text('reasoning'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 }, (table) => ({
   gameIdx: index('game_idx').on(table.gameId),
