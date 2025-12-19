@@ -18,5 +18,5 @@
 - [x] Task: Setup Tailwind CSS and Shadcn UI (339d054)
 - [x] Task: Implement basic Chessboard component (react-chessboard) (20b92e9)
 - [x] Task: Fetch and display live game state from Hono API (0adc061)
-- [ ] Task: Implement simple Game History list
+- [x] Task: Implement simple Game History list (03014c1)
 - [ ] Task: Conductor - User Manual Verification 'Frontend MVP' (Protocol in workflow.md)
