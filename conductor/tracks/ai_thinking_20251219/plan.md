@@ -4,7 +4,7 @@
 Goal: Update the database schema and API to support storing and retrieving AI thinking data.
 
 - [x] Task: Update Drizzle schema to include `opening`, `candidates`, and `reasoning` in the `moves` table. e9c7c80
-- [ ] Task: Write tests for `GameService.makeMove` to verify it can save thinking data.
+- [x] Task: Write tests for `GameService.makeMove` to verify it can save thinking data. f02463b
 - [ ] Task: Update `GameService.makeMove` to store AI thoughts along with the move.
 - [ ] Task: Update `GET /api/games/:id/moves` to return thinking data.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Persistence and Backend API' (Protocol in workflow.md)
