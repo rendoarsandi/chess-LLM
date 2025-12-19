@@ -18,6 +18,16 @@ export interface Player {
   createdAt: string
 }
 
+export interface Move {
+  id: number
+  gameId: string
+  moveNumber: number
+  playerColor: 'white' | 'black'
+  move: string
+  fen: string
+  createdAt: string
+}
+
 export async function getGames(): Promise<Game[]> {
   const res = await fetch(`${API_URL}/games`)
   return res.json()
@@ -25,6 +35,11 @@ export async function getGames(): Promise<Game[]> {
 
 export async function getGame(id: string): Promise<Game> {
   const res = await fetch(`${API_URL}/games/${id}`)
+  return res.json()
+}
+
+export async function getMoves(gameId: string): Promise<Move[]> {
+  const res = await fetch(`${API_URL}/games/${gameId}/moves`)
   return res.json()
 }
 

@@ -6,8 +6,8 @@ import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
 import { RandomPlayer } from './game/random-player'
 import { GameLoopService } from './game/game-loop.service'
-import { games, players } from './db/schema'
-import { desc } from 'drizzle-orm'
+import { games, players, moves } from './db/schema'
+import { desc, eq } from 'drizzle-orm'
 
 const app = new Hono()
 
@@ -37,6 +37,12 @@ app.get('/api/games/:id', async (c) => {
   const game = await gameService.getGame(id)
   if (!game) return c.json({ error: 'Game not found' }, 404)
   return c.json(game)
+})
+
+app.get('/api/games/:id/moves', async (c) => {
+  const id = c.req.param('id')
+  const gameMoves = await db.select().from(moves).where(eq(moves.gameId, id)).orderBy(desc(moves.moveNumber))
+  return c.json(gameMoves)
 })
 
 app.post('/api/games', async (c) => {

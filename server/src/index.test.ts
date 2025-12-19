@@ -31,4 +31,11 @@ describe('API Endpoints', () => {
     })
     expect(res.status).toBe(201)
   })
+
+  it('GET /api/games/:id/moves should return moves for a game', async () => {
+    const res = await app.request('/api/games/test-game/moves')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
+  })
 })
