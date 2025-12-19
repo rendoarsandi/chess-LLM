@@ -43,12 +43,36 @@ describe('GeminiPlayer', () => {
     expect(prompt).toContain('Move history (PGN): e4 e5 Nf3')
   })
 
-  it('should call GeminiService and return a move', async () => {
-    mockGeminiService.generateMove.mockResolvedValue('e4')
+  it('should call GeminiService and return a move from JSON', async () => {
+    const jsonRes = JSON.stringify({
+      move: 'e4',
+      opening: 'King\'s Pawn Game',
+      candidates: ['e4', 'd4', 'Nf3'],
+      reasoning: 'Control center.'
+    })
+    mockGeminiService.generateMove.mockResolvedValue(jsonRes)
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, ['history'])
     expect(mockGeminiService.generateMove).toHaveBeenCalled()
     expect(move).toBe('e4')
+  })
+
+  it('should store thinking data after making a move', async () => {
+    const thinkingRes = {
+      move: 'e4',
+      opening: 'King\'s Pawn Game',
+      candidates: ['e4', 'd4', 'Nf3'],
+      reasoning: 'Control center.'
+    }
+    mockGeminiService.generateMove.mockResolvedValue(JSON.stringify(thinkingRes))
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    await player.makeMove(startFen, [])
+    
+    expect(player.getLastThinking()).toEqual({
+      opening: thinkingRes.opening,
+      candidates: JSON.stringify(thinkingRes.candidates),
+      reasoning: thinkingRes.reasoning
+    })
   })
 
   it('should return null and log error if GeminiService fails', async () => {
