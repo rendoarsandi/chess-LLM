@@ -2,12 +2,12 @@
 
 This plan outlines the steps to integrate a client-side Stockfish evaluation bar into the ChessLLM dashboard.
 
-## Phase 1: Stockfish Integration (Engine Layer)
+## Phase 1: Stockfish Integration (Engine Layer) [checkpoint: e32cbb7]
 - [x] Task: Research and download compatible Stockfish WASM/WebWorker assets.
 - [x] Task: Create `client/src/lib/stockfish/` directory for engine assets.
 - [x] Task: Implement `StockfishWorker` wrapper class to manage engine lifecycle (load, start, stop, message parsing).
 - [x] Task: Write tests for `StockfishWorker` to verify FEN parsing and evaluation output handling.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Stockfish Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Stockfish Integration' (Protocol in workflow.md)
 
 ## Phase 2: React State & Logic (Service Layer)
 - [ ] Task: Create `useStockfish` hook to manage engine state (evaluation, depth, mate status).
