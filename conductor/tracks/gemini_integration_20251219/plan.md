@@ -5,7 +5,7 @@
 - [x] Task: Create Gemini service utility for basic model interaction (c6ab8fd)
 - [ ] Task: Conductor - User Manual Verification 'Setup & API Infrastructure' (Protocol in workflow.md)
 
-## Phase 2: Gemini Player Core Implementation
+## Phase 2: Gemini Player Core Implementation [checkpoint: d3cb764]
 - [x] Task: Define `GeminiPlayer` class and interface (399294e)
 - [x] Task: Write Tests: Verify `GeminiPlayer` can initialize and format move history prompts (7de80e6)
 - [x] Task: Implement `GeminiPlayer` move generation with PGN + FEN context (4fd09c8)
