@@ -19,6 +19,6 @@
 - [ ] Task: Conductor - User Manual Verification 'Validation, Retries & Error Handling' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Live Testing
-- [~] Task: Update `GameManager` to support assigning `GeminiPlayer` to a game
-- [ ] Task: Run end-to-end integration test with a full game between Gemini and RandomPlayer
+- [x] Task: Update `GameManager` to support assigning `GeminiPlayer` to a game (6bc59a9)
+- [x] Task: Run end-to-end integration test with a full game between Gemini and RandomPlayer (6bc59a9)
 - [ ] Task: Conductor - User Manual Verification 'Integration & Live Testing' (Protocol in workflow.md)
