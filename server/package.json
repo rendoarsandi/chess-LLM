@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "dev": "tsx watch src/index.ts",
     "check": "tsc --noEmit"
   },
@@ -13,12 +13,17 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.4",
+    "drizzle-kit": "^0.31.8",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.7",
+    "better-sqlite3": "^12.5.0",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.11.1"
   }
 }
