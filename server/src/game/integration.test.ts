@@ -125,7 +125,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     expect(gameMoves.length).toBeGreaterThan(0)
     
     // Verify thinking data exists for Gemini moves
-    const geminiMoves = gameMoves.filter(m => m.playerColor === 'white') // White is Gemini (gId)
+    const geminiMoves = gameMoves.filter((m: any) => m.playerColor === 'white') // White is Gemini (gId)
     expect(geminiMoves.length).toBeGreaterThan(0)
     
     const sampleGeminiMove = geminiMoves[0]

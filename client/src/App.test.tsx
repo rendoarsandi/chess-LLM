@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
@@ -64,11 +64,9 @@ describe('App Integration', () => {
     // Update mock for the next poll
     ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
-    // Check if the board (or FEN display) reflects the new state
+    // Verify the move e4 appears in the move list
     await waitFor(() => {
-      // The FEN is displayed in a code tag in the Game info section
-      const fenElements = screen.getAllByText(moveFen, { exact: false })
-      expect(fenElements.length).toBeGreaterThan(0)
+      expect(screen.getByText('e4')).toBeInTheDocument()
     }, { timeout: 3000 })
   })
 

@@ -33,6 +33,8 @@ const gameService = new GameService(db, gameManager)
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 const GEMINI_2_5_ID = '00000000-0000-0000-0000-000000000004'
+const GEMMA_3_27B_ID = '00000000-0000-0000-0000-000000000005'
+const GEMMA_3_12B_ID = '00000000-0000-0000-0000-000000000006'
 const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
 
 // Initialize players
@@ -48,10 +50,14 @@ if (apiKey && apiKey !== 'your_api_key_here') {
   
   const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3-flash-preview')
   const gemini25Player = new GeminiPlayer(geminiService, 'gemini-2.5-flash')
+  const gemma27bPlayer = new GeminiPlayer(geminiService, 'gemma-3-27b-it')
+  const gemma12bPlayer = new GeminiPlayer(geminiService, 'gemma-3-12b-it')
   
   defaultLlmPlayer = gemini30Player
   gameManager.setPlayer(GEMINI_3_0_ID, gemini30Player)
   gameManager.setPlayer(GEMINI_2_5_ID, gemini25Player)
+  gameManager.setPlayer(GEMMA_3_27B_ID, gemma27bPlayer)
+  gameManager.setPlayer(GEMMA_3_12B_ID, gemma12bPlayer)
 } else {
   console.error('[CRITICAL] Gemini API Key NOT FOUND in .env. LLM players will not function.')
   // Do NOT fall back to RandomPlayer for Gemini IDs to avoid confusion
@@ -64,6 +70,8 @@ async function ensureSystemPlayers() {
     { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const },
     { id: GEMINI_3_0_ID, name: 'Gemini 3 Flash', type: 'llm' as const },
     { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const },
+    { id: GEMMA_3_27B_ID, name: 'Gemma 3 27B', type: 'llm' as const },
+    { id: GEMMA_3_12B_ID, name: 'Gemma 3 12B', type: 'llm' as const },
     { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
   ]
 

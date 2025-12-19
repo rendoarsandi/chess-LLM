@@ -17,7 +17,8 @@ export class GeminiPlayer implements Player {
 
   async makeMove(fen: string, history: string[] = []): Promise<string | null> {
     const chess = new Chess(fen)
-    let currentPrompt = this.constructPrompt(fen, history)
+    const legalMoves = chess.moves()
+    let currentPrompt = this.constructPrompt(fen, history, legalMoves)
     let attempts = 0
     const maxRetries = 3
 
@@ -77,11 +78,13 @@ Please provide your response in the EXACT JSON format requested:
             }
             return move
           }
+          // If chess.move returns null (some versions do this instead of throwing)
+          throw new Error('Invalid move')
         } catch (e) {
           // Invalid move, prepare feedback prompt
-          const legalMoves = chess.moves().join(', ')
+          const currentLegalMoves = chess.moves().join(', ')
           currentPrompt = `The move "${move}" was illegal. 
-Please choose a move from the following legal moves: ${legalMoves}
+Please choose a move ONLY from the following legal moves: ${currentLegalMoves}
 Return your response in the EXACT JSON format requested.`
           attempts++
         }
@@ -95,25 +98,37 @@ Return your response in the EXACT JSON format requested.`
     return null
   }
 
-  protected constructPrompt(fen: string, history: string[]): string {
+  protected constructPrompt(fen: string, history: string[], legalMoves: string[]): string {
+    const chess = new Chess(fen)
+    const turn = chess.turn() === 'w' ? 'White' : 'Black'
+    const asciiBoard = chess.ascii()
+    
     const historyText = history.length > 0 
       ? `Move history (PGN): ${history.join(' ')}` 
       : 'No moves have been made yet.'
     
     return `You are a professional chess player.
-Current board state (FEN): ${fen}
+You are playing as ${turn}.
+
+Current board state:
+${asciiBoard}
+
+Current FEN: ${fen}
 ${historyText}
 
+LEGAL MOVES for ${turn}: ${legalMoves.join(', ')}
+
 Analyze the position and provide your next move.
-You MUST identify the current opening or variation based on the history and state.
-You MUST evaluate at least 3 candidate moves.
+1. Identify the current opening, variation, or mid-game structure.
+2. Evaluate at least 3 candidate moves from the LEGAL MOVES list.
+3. You MUST choose a "move" that is EXACTLY as written in the LEGAL MOVES list.
 
 Return your response in the following JSON format:
 {
-  "opening": "Full name of the opening/variation",
+  "opening": "Opening name or mid-game description",
   "candidates": ["move1", "move2", "move3"],
   "reasoning": "Strategic reasoning for the chosen move",
-  "move": "The final chosen move in Standard Algebraic Notation (SAN)"
+  "move": "The chosen move (MUST be from the legal moves list)"
 }`
   }
 }

@@ -54,7 +54,7 @@ export class GameLoopService {
             await this.gameService.makeMove(game.id, move, thinking)
             console.log(`[GameLoop] Made move ${move} in game ${game.id}`)
           } catch (e) {
-            console.error(`[GameLoop] Error applying move in game ${game.id}:`, e)
+            console.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
           }
         } else {
           console.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)

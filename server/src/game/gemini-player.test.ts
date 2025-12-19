@@ -14,8 +14,8 @@ vi.mock('./gemini.service', () => {
 
 // Subclass for testing protected method
 class TestGeminiPlayer extends GeminiPlayer {
-  public testConstructPrompt(fen: string, history: string[]): string {
-    return this.constructPrompt(fen, history)
+  public testConstructPrompt(fen: string, history: string[], legalMoves: string[]): string {
+    return this.constructPrompt(fen, history, legalMoves)
   }
 }
 
@@ -29,18 +29,25 @@ describe('GeminiPlayer', () => {
   })
 
   it('should format a prompt with FEN and no history', () => {
-    const fen = 'start-fen'
-    const prompt = player.testConstructPrompt(fen, [])
-    expect(prompt).toContain('Current board state (FEN): start-fen')
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const legalMoves = ['e4', 'd4']
+    const prompt = player.testConstructPrompt(startFen, [], legalMoves)
+    expect(prompt).toContain('Current FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
     expect(prompt).toContain('No moves have been made yet.')
+    expect(prompt).toContain('LEGAL MOVES for White: e4, d4')
+    expect(prompt).toContain('You are playing as White')
+    expect(prompt).toContain('a  b  c  d  e  f  g  h') // Part of ASCII board
   })
 
   it('should format a prompt with FEN and move history', () => {
-    const fen = 'current-fen'
-    const history = ['e4', 'e5', 'Nf3']
-    const prompt = player.testConstructPrompt(fen, history)
-    expect(prompt).toContain('Current board state (FEN): current-fen')
-    expect(prompt).toContain('Move history (PGN): e4 e5 Nf3')
+    const fen = 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2'
+    const history = ['e4', 'e5']
+    const legalMoves = ['Nf3', 'Nc3']
+    const prompt = player.testConstructPrompt(fen, history, legalMoves)
+    expect(prompt).toContain('Current FEN: rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2')
+    expect(prompt).toContain('Move history (PGN): e4 e5')
+    expect(prompt).toContain('LEGAL MOVES for White: Nf3, Nc3')
+    expect(prompt).toContain('You are playing as White')
   })
 
   it('should call GeminiService and return a move from JSON', async () => {

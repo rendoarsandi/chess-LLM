@@ -178,6 +178,19 @@ function App() {
 
   const isLive = activeMoveIndex === null
 
+  const currentPgn = (() => {
+    if (moves.length === 0) return ""
+    try {
+      const chess = new Chess()
+      for (const m of moves) {
+        chess.move(m.move)
+      }
+      return chess.pgn()
+    } catch {
+      return ""
+    }
+  })()
+
   const lastMoveSquares = (() => {
     const moveIdx = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
     if (moveIdx < 0 || !moves[moveIdx]) return undefined;
@@ -247,6 +260,8 @@ function App() {
               fen={currentDisplayFen} 
               boardOrientation={boardOrientation}
               highlightSquares={lastMoveSquares}
+              gameId={selectedGame?.id}
+              pgn={currentPgn}
             />
             {!isLive && (
               <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
@@ -271,24 +286,14 @@ function App() {
 
             {selectedGame && (
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-lg">Game {selectedGame.id.slice(0, 8)}</span>
-                  <div className="flex gap-2">
-                    {!isLive && (
-                      <Button size="sm" variant="secondary" onClick={() => setActiveMoveIndex(null)}>
-                        Return to Live
-                      </Button>
-                    )}
-                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                      selectedGame.status === 'ongoing' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
-                    }`}>
-                      {selectedGame.status}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-sm">Status: <span className="text-primary">{selectedGame.status.toUpperCase()}</span></span>
+                  {!isLive && (
+                    <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => setActiveMoveIndex(null)}>
+                      Return to Live
+                    </Button>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  FEN: <code className="bg-muted px-1 py-0.5 rounded text-xs truncate block mt-1">{currentDisplayFen}</code>
-                </p>
               </div>
             )}
           </div>
