@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
@@ -32,10 +32,14 @@ describe('App Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(api.getPlayers as any).mockResolvedValue(mockPlayers)
-    ;(api.getGames as any).mockResolvedValue([mockGame])
-    ;(api.getGame as any).mockResolvedValue(mockGame)
-    ;(api.getMoves as any).mockResolvedValue([])
+    ;(api.getPlayers as Mock).mockResolvedValue(mockPlayers)
+    ;(api.getGames as Mock).mockResolvedValue([mockGame])
+    ;(api.getGame as Mock).mockResolvedValue(mockGame)
+    ;(api.getMoves as Mock).mockResolvedValue([])
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('updates board FEN when moves are fetched', async () => {
@@ -58,7 +62,7 @@ describe('App Integration', () => {
     }
 
     // Update mock for the next poll
-    ;(api.getMoves as any).mockResolvedValue([mockMove])
+    ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
     // Check if the board (or FEN display) reflects the new state
     await waitFor(() => {
@@ -80,7 +84,7 @@ describe('App Integration', () => {
       createdAt: new Date().toISOString(),
     }
     
-    ;(api.getMoves as any).mockResolvedValue([mockMove])
+    ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
     render(<App />)
 

@@ -4,7 +4,7 @@ import { GameHistory } from "@/components/GameHistory"
 import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
@@ -20,59 +20,18 @@ function App() {
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null) // null means "Live"
 
-  const fetchAllGames = async () => {
+  const handleSelectGame = useCallback((game: Game) => {
+    setSelectedGame(game)
+    setActiveMoveIndex(null) // Reset to live
+  }, [])
+
+  const fetchAllGames = useCallback(async () => {
     const allGames = await getGames()
     setGames(allGames)
     if (!selectedGame && allGames.length > 0) {
       handleSelectGame(allGames[0])
     }
-  }
-
-  const fetchPlayers = async () => {
-    const allPlayers = await getPlayers()
-    setPlayers(allPlayers)
-  }
-
-  useEffect(() => {
-    fetchAllGames()
-    fetchPlayers()
-    const listInterval = setInterval(fetchAllGames, 10000)
-    return () => clearInterval(listInterval)
-  }, [selectedGame?.id])
-
-  useEffect(() => {
-    const gameId = selectedGame?.id
-    if (!gameId) return
-
-    async function pollSelectedGame() {
-      if (!gameId) return
-      try {
-        const [updated, gameMoves] = await Promise.all([
-          getGame(gameId),
-          getMoves(gameId)
-        ])
-        
-        const sortedMoves = [...gameMoves].sort((a, b) => {
-          if (a.moveNumber !== b.moveNumber) return a.moveNumber - b.moveNumber
-          return a.playerColor === 'white' ? -1 : 1
-        })
-
-        setSelectedGame(updated)
-        setMoves(sortedMoves)
-      } catch (e) {
-        console.error("Error polling game:", e)
-      }
-    }
-
-    pollSelectedGame()
-    const gameInterval = setInterval(pollSelectedGame, 2000)
-    return () => clearInterval(gameInterval)
-  }, [selectedGame?.id])
-
-  const handleSelectGame = (game: Game) => {
-    setSelectedGame(game)
-    setActiveMoveIndex(null) // Reset to live
-  }
+  }, [selectedGame, handleSelectGame])
 
   const handleCreateGame = async (whiteId: string, blackId: string) => {
     try {
@@ -80,8 +39,8 @@ function App() {
       const newGame = await getGame(id)
       handleSelectGame(newGame)
       fetchAllGames()
-    } catch (e) {
-      console.error("Error creating game:", e)
+    } catch {
+      console.error("Error creating game")
       alert("Failed to create game. Check if the server is running.")
     }
   }
@@ -104,6 +63,47 @@ function App() {
     }
   }
 
+  const fetchPlayers = useCallback(async () => {
+    const allPlayers = await getPlayers()
+    setPlayers(allPlayers)
+  }, [])
+
+  useEffect(() => {
+    fetchAllGames() // eslint-disable-line react-hooks/set-state-in-effect
+    fetchPlayers() // eslint-disable-line react-hooks/set-state-in-effect
+    const listInterval = setInterval(fetchAllGames, 10000)
+    return () => clearInterval(listInterval)
+  }, [fetchAllGames, fetchPlayers])
+
+  useEffect(() => {
+    const gameId = selectedGame?.id
+    if (!gameId) return
+
+    async function pollSelectedGame() {
+      if (!gameId) return
+      try {
+        const [updated, gameMoves] = await Promise.all([
+          getGame(gameId),
+          getMoves(gameId)
+        ])
+        
+        const sortedMoves = [...gameMoves].sort((a, b) => {
+          if (a.moveNumber !== b.moveNumber) return a.moveNumber - b.moveNumber
+          return a.playerColor === 'white' ? -1 : 1
+        })
+
+        setSelectedGame(updated)
+        setMoves(sortedMoves)
+      } catch {
+        console.error("Error polling game")
+      }
+    }
+
+    pollSelectedGame()
+    const gameInterval = setInterval(pollSelectedGame, 2000)
+    return () => clearInterval(gameInterval)
+  }, [selectedGame?.id])
+
   const currentDisplayFen = activeMoveIndex !== null && moves[activeMoveIndex]
     ? moves[activeMoveIndex].fen
     : (moves.length > 0 ? moves[moves.length - 1].fen : selectedGame?.fen)
@@ -120,7 +120,9 @@ function App() {
         let candidates: string[] = []
         try {
           if (move.candidates) candidates = JSON.parse(move.candidates)
-        } catch (e) {}
+        } catch {
+          console.warn("Failed to parse candidates")
+        }
         return {
           opening: move.opening || undefined,
           candidates: candidates.length > 0 ? candidates : undefined,
@@ -136,7 +138,9 @@ function App() {
       let candidates: string[] = []
       try {
         if (prevMove.candidates) candidates = JSON.parse(prevMove.candidates)
-      } catch (e) {}
+      } catch {
+        console.warn("Failed to parse previous candidates")
+      }
       return {
         opening: prevMove.opening || undefined,
         candidates: candidates.length > 0 ? candidates : undefined,
@@ -156,7 +160,9 @@ function App() {
       if (lastMove.candidates) {
         candidates = JSON.parse(lastMove.candidates)
       }
-    } catch (e) {}
+    } catch {
+      console.warn("Failed to parse last move candidates")
+    }
 
     return {
       opening: lastMove.opening || undefined,
@@ -187,8 +193,8 @@ function App() {
       if (m) {
         return { from: m.from, to: m.to };
       }
-    } catch (e) {
-      console.error("Error parsing move for highlight:", e);
+    } catch {
+      console.error("Error parsing move for highlight");
     }
     return undefined;
   })();
