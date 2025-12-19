@@ -88,8 +88,8 @@ describe('GeminiPlayer', () => {
   it('should retry if the model returns an invalid SAN move', async () => {
     // 1st call: invalid move, 2nd call: valid move
     mockGeminiService.generateMove
-      .mockResolvedValueOnce('not-a-move')
-      .mockResolvedValueOnce('e4')
+      .mockResolvedValueOnce(JSON.stringify({ move: 'not-a-move', opening: '?', reasoning: 'test', candidates: [] }))
+      .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'King\'s Pawn', reasoning: 'test', candidates: ['e4'] }))
     
     // We need a real board to validate moves
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -100,7 +100,7 @@ describe('GeminiPlayer', () => {
   })
 
   it('should stop retrying after 3 attempts and return null', async () => {
-    mockGeminiService.generateMove.mockResolvedValue('invalid')
+    mockGeminiService.generateMove.mockResolvedValue(JSON.stringify({ move: 'invalid', opening: '?', reasoning: 'test', candidates: [] }))
     
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
@@ -112,7 +112,7 @@ describe('GeminiPlayer', () => {
   it('should retry if Gemini returns an empty response', async () => {
     mockGeminiService.generateMove
       .mockResolvedValueOnce('')
-      .mockResolvedValueOnce('e4')
+      .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'King\'s Pawn', reasoning: 'test', candidates: ['e4'] }))
     
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
