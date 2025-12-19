@@ -20,7 +20,7 @@ Goal: Update the LLM player to provide structured thinking data in JSON format.
 ## Phase 3: Thinking Panels and Board Rotation
 Goal: Implement the side panels and the ability to flip the board view.
 
-- [ ] Task: Write unit tests for a new `ThinkingPanel` component.
+- [x] Task: Write unit tests for a new `ThinkingPanel` component. f6a97a3
 - [ ] Task: Create the `ThinkingPanel` component to display model name, opening, candidates, and reasoning.
 - [ ] Task: Update `App.tsx` layout to include White and Black thinking panels flanking the board.
 - [ ] Task: Implement "Rotate Board" state and toggle button in the UI.
