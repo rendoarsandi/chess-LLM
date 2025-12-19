@@ -29,7 +29,7 @@ Goal: Implement the side panels and the ability to flip the board view.
 ## Phase 4: Interactive Move History and Navigation
 Goal: Build a feature-rich move history list with playback controls.
 
-- [ ] Task: Write unit tests for the history navigation logic (jumping between positions).
+- [x] Task: Write unit tests for the history navigation logic (jumping between positions). f1b9dd0
 - [ ] Task: Update `GameHistory` to make move items clickable.
 - [ ] Task: Implement the `PlaybackControls` component (First, Previous, Next, Last).
 - [ ] Task: Update `App.tsx` state to handle "Browsing Mode" vs "Live Mode".
