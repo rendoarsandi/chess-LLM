@@ -1,4 +1,13 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Load .env from project root (two levels up from server/src/)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
@@ -37,7 +46,7 @@ if (apiKey && apiKey !== 'your_api_key_here') {
   console.log('[Main] Gemini API Key found, initializing GeminiPlayers')
   const geminiService = new GeminiService(apiKey)
   
-  const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3.0-flash')
+  const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3-flash-preview')
   const gemini25Player = new GeminiPlayer(geminiService, 'gemini-2.5-flash')
   
   defaultLlmPlayer = gemini30Player
@@ -53,7 +62,7 @@ if (apiKey && apiKey !== 'your_api_key_here') {
 async function ensureSystemPlayers() {
   const systemPlayers = [
     { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const },
-    { id: GEMINI_3_0_ID, name: 'Gemini 3.0 Flash', type: 'llm' as const },
+    { id: GEMINI_3_0_ID, name: 'Gemini 3 Flash', type: 'llm' as const },
     { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const },
     { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
   ]

@@ -7,7 +7,7 @@ export class GeminiPlayer implements Player {
 
   constructor(
     private geminiService: GeminiService,
-    private modelName: string = 'gemini-3.0-flash',
+    private modelName: string = 'gemini-3-flash-preview',
     private timeoutMs: number = 30000 // Default 30s timeout
   ) {}
 
