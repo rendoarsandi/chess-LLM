@@ -7,7 +7,7 @@
 - [x] Task: Define initial database schema (players, games, moves) (808248b)
 - [x] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md) (cbdee7f)
 
-## Phase 2: Core Game Logic (Server-Side)
+## Phase 2: Core Game Logic (Server-Side) [checkpoint: d397b62]
 - [x] Task: Integrate chess.js and implement Game Manager service (53975bf)
 - [x] Task: Write Unit Tests for Game Manager (Move validation, state updates) (53975bf)
 - [x] Task: Implement "Random Player" bot logic (076a546)
