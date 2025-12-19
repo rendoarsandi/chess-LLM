@@ -12,7 +12,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Gemini Player Core Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Validation, Retries & Error Handling
-- [ ] Task: Write Tests: Verify retry logic triggers on invalid SAN responses
+- [~] Task: Write Tests: Verify retry logic triggers on invalid SAN responses
 - [ ] Task: Implement retry mechanism (up to 3 times) with feedback loop (error + legal moves)
 - [ ] Task: Write Tests: Verify timeout and network error handling
 - [ ] Task: Implement graceful failure for the game loop

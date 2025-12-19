@@ -45,7 +45,8 @@ describe('GeminiPlayer', () => {
 
   it('should call GeminiService and return a move', async () => {
     mockGeminiService.generateMove.mockResolvedValue('e4')
-    const move = await player.makeMove('fen', ['history'])
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await player.makeMove(startFen, ['history'])
     expect(mockGeminiService.generateMove).toHaveBeenCalled()
     expect(move).toBe('e4')
   })
@@ -53,9 +54,46 @@ describe('GeminiPlayer', () => {
   it('should return null and log error if GeminiService fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockGeminiService.generateMove.mockRejectedValue(new Error('API Error'))
-    const move = await player.makeMove('fen', [])
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await player.makeMove(startFen, [])
     expect(move).toBeNull()
     expect(consoleSpy).toHaveBeenCalled()
     consoleSpy.mockRestore()
+  })
+
+  it('should retry if the model returns an invalid SAN move', async () => {
+    // 1st call: invalid move, 2nd call: valid move
+    mockGeminiService.generateMove
+      .mockResolvedValueOnce('not-a-move')
+      .mockResolvedValueOnce('e4')
+    
+    // We need a real board to validate moves
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await player.makeMove(startFen, [])
+    
+    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(2)
+    expect(move).toBe('e4')
+  })
+
+  it('should stop retrying after 3 attempts and return null', async () => {
+    mockGeminiService.generateMove.mockResolvedValue('invalid')
+    
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await player.makeMove(startFen, [])
+    
+    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(4) // Initial + 3 retries
+    expect(move).toBeNull()
+  })
+
+  it('should retry if Gemini returns an empty response', async () => {
+    mockGeminiService.generateMove
+      .mockResolvedValueOnce('')
+      .mockResolvedValueOnce('e4')
+    
+    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    const move = await player.makeMove(startFen, [])
+    
+    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(2)
+    expect(move).toBe('e4')
   })
 })

@@ -1,5 +1,6 @@
 import { Player } from './player.interface'
 import { GeminiService } from './gemini.service'
+import { Chess } from 'chess.js'
 
 export class GeminiPlayer implements Player {
   constructor(
@@ -8,14 +9,42 @@ export class GeminiPlayer implements Player {
   ) {}
 
   async makeMove(fen: string, history: string[] = []): Promise<string | null> {
-    const prompt = this.constructPrompt(fen, history)
-    try {
-      const move = await this.geminiService.generateMove(this.modelName, prompt)
-      return move || null
-    } catch (e) {
-      console.error(`[GeminiPlayer] Error generating move:`, e)
-      return null
+    const chess = new Chess(fen)
+    let currentPrompt = this.constructPrompt(fen, history)
+    let attempts = 0
+    const maxRetries = 3
+
+    while (attempts <= maxRetries) {
+      try {
+        const move = await this.geminiService.generateMove(this.modelName, currentPrompt)
+        
+        if (!move) {
+          attempts++
+          continue
+        }
+
+        // Validate move
+        try {
+          const validMove = chess.move(move)
+          if (validMove) {
+            return move
+          }
+        } catch (e) {
+          // Invalid move, prepare feedback prompt
+          const legalMoves = chess.moves().join(', ')
+          currentPrompt = `The previous move "${move}" was illegal. 
+Please provide a valid move from the following legal moves: ${legalMoves}
+Return ONLY the move string in Standard Algebraic Notation (SAN).`
+          attempts++
+        }
+      } catch (e) {
+        console.error(`[GeminiPlayer] Error generating move (attempt ${attempts + 1}):`, e)
+        attempts++
+      }
     }
+
+    console.error(`[GeminiPlayer] Failed to generate a valid move after ${maxRetries + 1} attempts.`)
+    return null
   }
 
   protected constructPrompt(fen: string, history: string[]): string {
