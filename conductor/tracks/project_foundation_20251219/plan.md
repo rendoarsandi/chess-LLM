@@ -4,7 +4,7 @@
 - [x] Task: Initialize Monorepo structure with Vite (React) and Hono (1f00b6b)
 - [x] Task: Configure TypeScript across client and server (8898f79)
 - [x] Task: Set up Drizzle ORM with SQLite (Better-SQLite3) (6349381)
-- [ ] Task: Define initial database schema (players, games, moves)
+- [x] Task: Define initial database schema (players, games, moves) (808248b)
 - [ ] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md)
 
 ## Phase 2: Core Game Logic (Server-Side)
