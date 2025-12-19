@@ -14,7 +14,7 @@ Goal: Update the LLM player to provide structured thinking data in JSON format.
 
 - [x] Task: Write tests for `GeminiPlayer` verifying it requests and parses structured JSON responses. 462bdeb
 - [x] Task: Update `GeminiPlayer` prompt to require the new thinking fields (opening, 3 candidates, reasoning). fdb9dd3
-- [ ] Task: Implement robust JSON parsing and error handling for LLM responses in `GeminiPlayer`.
+- [x] Task: Implement robust JSON parsing and error handling for LLM responses in `GeminiPlayer`. fdb9dd3
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Enhanced AI Prompting and Parsing' (Protocol in workflow.md)
 
 ## Phase 3: Thinking Panels and Board Rotation
