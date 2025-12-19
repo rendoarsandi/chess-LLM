@@ -18,7 +18,7 @@
 - [x] Task: Implement graceful failure for the game loop (e4a7aa0)
 - [ ] Task: Conductor - User Manual Verification 'Validation, Retries & Error Handling' (Protocol in workflow.md)
 
-## Phase 4: Integration & Live Testing
+## Phase 4: Integration & Live Testing [checkpoint: b8aa98e]
 - [x] Task: Update `GameManager` to support assigning `GeminiPlayer` to a game (6bc59a9)
 - [x] Task: Run end-to-end integration test with a full game between Gemini and RandomPlayer (6bc59a9)
 - [ ] Task: Conductor - User Manual Verification 'Integration & Live Testing' (Protocol in workflow.md)
