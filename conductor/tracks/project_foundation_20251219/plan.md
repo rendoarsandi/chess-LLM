@@ -14,9 +14,9 @@
 - [x] Task: Create background loop to advance games automatically (6bd5898)
 - [x] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md) (f2813e6)
 
-## Phase 3: Frontend MVP
+## Phase 3: Frontend MVP [checkpoint: 51f8386]
 - [x] Task: Setup Tailwind CSS and Shadcn UI (339d054)
 - [x] Task: Implement basic Chessboard component (react-chessboard) (20b92e9)
 - [x] Task: Fetch and display live game state from Hono API (0adc061)
 - [x] Task: Implement simple Game History list (03014c1)
-- [ ] Task: Conductor - User Manual Verification 'Frontend MVP' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Frontend MVP' (Protocol in workflow.md) (51f8386)
