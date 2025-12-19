@@ -15,7 +15,7 @@
 - [x] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md) (f2813e6)
 
 ## Phase 3: Frontend MVP
-- [ ] Task: Setup Tailwind CSS and Shadcn UI
+- [x] Task: Setup Tailwind CSS and Shadcn UI (339d054)
 - [ ] Task: Implement basic Chessboard component (react-chessboard)
 - [ ] Task: Fetch and display live game state from Hono API
 - [ ] Task: Implement simple Game History list
