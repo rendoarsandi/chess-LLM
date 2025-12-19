@@ -1,6 +1,7 @@
 import { Chess } from 'chess.js'
+import { Player } from './player.interface'
 
-export class RandomPlayer {
+export class RandomPlayer implements Player {
   makeMove(fen: string): string | null {
     const chess = new Chess(fen)
     const moves = chess.moves()

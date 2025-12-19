@@ -6,7 +6,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Setup & API Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Gemini Player Core Implementation
-- [ ] Task: Define `GeminiPlayer` class and interface
+- [~] Task: Define `GeminiPlayer` class and interface
 - [ ] Task: Write Tests: Verify `GeminiPlayer` can initialize and format move history prompts
 - [ ] Task: Implement `GeminiPlayer` move generation with PGN + FEN context
 - [ ] Task: Conductor - User Manual Verification 'Gemini Player Core Implementation' (Protocol in workflow.md)
