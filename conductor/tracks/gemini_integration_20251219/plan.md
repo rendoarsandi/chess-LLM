@@ -8,7 +8,7 @@
 ## Phase 2: Gemini Player Core Implementation
 - [x] Task: Define `GeminiPlayer` class and interface (399294e)
 - [x] Task: Write Tests: Verify `GeminiPlayer` can initialize and format move history prompts (7de80e6)
-- [~] Task: Implement `GeminiPlayer` move generation with PGN + FEN context
+- [x] Task: Implement `GeminiPlayer` move generation with PGN + FEN context (4fd09c8)
 - [ ] Task: Conductor - User Manual Verification 'Gemini Player Core Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Validation, Retries & Error Handling
