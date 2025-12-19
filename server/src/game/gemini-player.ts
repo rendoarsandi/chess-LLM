@@ -8,8 +8,14 @@ export class GeminiPlayer implements Player {
   ) {}
 
   async makeMove(fen: string, history: string[] = []): Promise<string | null> {
-    // Implementation will follow in the next tasks
-    return null
+    const prompt = this.constructPrompt(fen, history)
+    try {
+      const move = await this.geminiService.generateMove(this.modelName, prompt)
+      return move || null
+    } catch (e) {
+      console.error(`[GeminiPlayer] Error generating move:`, e)
+      return null
+    }
   }
 
   protected constructPrompt(fen: string, history: string[]): string {

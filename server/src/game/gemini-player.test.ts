@@ -42,4 +42,20 @@ describe('GeminiPlayer', () => {
     expect(prompt).toContain('Current board state (FEN): current-fen')
     expect(prompt).toContain('Move history (PGN): e4 e5 Nf3')
   })
+
+  it('should call GeminiService and return a move', async () => {
+    mockGeminiService.generateMove.mockResolvedValue('e4')
+    const move = await player.makeMove('fen', ['history'])
+    expect(mockGeminiService.generateMove).toHaveBeenCalled()
+    expect(move).toBe('e4')
+  })
+
+  it('should return null and log error if GeminiService fails', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockGeminiService.generateMove.mockRejectedValue(new Error('API Error'))
+    const move = await player.makeMove('fen', [])
+    expect(move).toBeNull()
+    expect(consoleSpy).toHaveBeenCalled()
+    consoleSpy.mockRestore()
+  })
 })
