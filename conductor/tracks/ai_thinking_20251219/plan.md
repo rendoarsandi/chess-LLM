@@ -36,9 +36,9 @@ Goal: Build a feature-rich move history list with playback controls.
 - [x] Task: Sync the chessboard to display the move highlight for the selected historical position. ff30e89
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Interactive Move History and Navigation' (Protocol in workflow.md) 41420e2
 
-## Phase 5: Final Integration and Polishing
+## Phase 5: Final Integration and Polishing [checkpoint: 29b0108]
 Goal: Ensure everything works together smoothly and meets the visual standards.
 
-- [~] Task: Run end-to-end integration tests for a full game with thinking data.
-- [ ] Task: Refine UI styling, responsiveness, and dark mode consistency.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Integration and Polishing' (Protocol in workflow.md)
+- [x] Task: Run end-to-end integration tests for a full game with thinking data. 57c20ab
+- [x] Task: Refine UI styling, responsiveness, and dark mode consistency. 57c20ab
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Final Integration and Polishing' (Protocol in workflow.md) 29b0108
