@@ -25,6 +25,9 @@ export interface Move {
   playerColor: 'white' | 'black'
   move: string
   fen: string
+  opening?: string
+  candidates?: string
+  reasoning?: string
   createdAt: string
 }
 
@@ -48,6 +51,20 @@ export async function createGame(whitePlayerId: string, blackPlayerId: string): 
     method: 'POST',
     body: JSON.stringify({ whitePlayerId, blackPlayerId }),
     headers: { 'Content-Type': 'application/json' }
+  })
+  return res.json()
+}
+
+export async function deleteGame(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games/${id}`, {
+    method: 'DELETE'
+  })
+  return res.json()
+}
+
+export async function clearHistory(): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games`, {
+    method: 'DELETE'
   })
   return res.json()
 }
