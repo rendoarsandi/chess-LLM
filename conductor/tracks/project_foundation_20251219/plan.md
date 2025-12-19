@@ -11,7 +11,7 @@
 - [x] Task: Integrate chess.js and implement Game Manager service (53975bf)
 - [x] Task: Write Unit Tests for Game Manager (Move validation, state updates) (53975bf)
 - [x] Task: Implement "Random Player" bot logic (076a546)
-- [ ] Task: Create background loop to advance games automatically
+- [x] Task: Create background loop to advance games automatically (6bd5898)
 - [ ] Task: Conductor - User Manual Verification 'Core Game Logic' (Protocol in workflow.md)
 
 ## Phase 3: Frontend MVP
