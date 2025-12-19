@@ -3,7 +3,7 @@
 ## Phase 1: Environment & Scaffolding
 - [x] Task: Initialize Monorepo structure with Vite (React) and Hono (1f00b6b)
 - [x] Task: Configure TypeScript across client and server (8898f79)
-- [ ] Task: Set up Drizzle ORM with SQLite (Better-SQLite3)
+- [x] Task: Set up Drizzle ORM with SQLite (Better-SQLite3) (6349381)
 - [ ] Task: Define initial database schema (players, games, moves)
 - [ ] Task: Conductor - User Manual Verification 'Environment & Scaffolding' (Protocol in workflow.md)
 
