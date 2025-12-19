@@ -26,11 +26,23 @@ export class GameService {
     return result[0]
   }
 
+  async deleteGame(gameId: string) {
+    // Delete associated moves first
+    await this.db.delete(moves).where(eq(moves.gameId, gameId))
+    // Delete the game
+    await this.db.delete(games).where(eq(games.id, gameId))
+  }
+
+  async clearHistory() {
+    await this.db.delete(moves)
+    await this.db.delete(games)
+  }
+
   getPlayer(playerId: string) {
     return this.gm.getPlayer(playerId)
   }
 
-  async makeMove(gameId: string, move: string) {
+  async makeMove(gameId: string, move: string, thinking?: { opening?: string, candidates?: string, reasoning?: string }) {
     const game = await this.getGame(gameId)
     if (!game) throw new Error('Game not found')
     if (game.status !== 'ongoing') throw new Error('Game is already finished')
@@ -60,6 +72,9 @@ export class GameService {
       playerColor,
       move,
       fen: nextFen,
+      opening: thinking?.opening,
+      candidates: thinking?.candidates,
+      reasoning: thinking?.reasoning,
     })
 
     let status = 'ongoing'
