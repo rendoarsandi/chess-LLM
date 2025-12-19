@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Board doesnt move when bot is already input the move
+## [x] Track: Board doesnt move when bot is already input the move
 *Link: [./conductor/tracks/fix_board_sync_20251219/](./conductor/tracks/fix_board_sync_20251219/)*
