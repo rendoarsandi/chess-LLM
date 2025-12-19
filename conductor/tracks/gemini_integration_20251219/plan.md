@@ -1,7 +1,7 @@
 # Implementation Plan: Gemini LLM Integration
 
 ## Phase 1: Setup & API Infrastructure
-- [~] Task: Install `@google/generative-ai` SDK and configure environment variables
+- [x] Task: Install `@google/generative-ai` SDK and configure environment variables (c70e5ab)
 - [ ] Task: Create Gemini service utility for basic model interaction
 - [ ] Task: Conductor - User Manual Verification 'Setup & API Infrastructure' (Protocol in workflow.md)
 
