@@ -55,15 +55,9 @@ export class GameService {
     const isGameOver = this.gm.isGameOver(nextFen)
     const winner = this.gm.getWinner(nextFen)
 
-    // Get current move count
-    const lastMoves = await this.db.select()
-      .from(moves)
-      .where(eq(moves.gameId, gameId))
-      .orderBy(desc(moves.moveNumber))
-      .limit(1)
-    
-    const moveNumber = lastMoves.length > 0 ? lastMoves[0].moveNumber + 1 : 1
-    const playerColor = game.fen.split(' ')[1] === 'w' ? 'white' : 'black'
+    const fenParts = game.fen.split(' ')
+    const playerColor = fenParts[1] === 'w' ? 'white' : 'black'
+    const moveNumber = parseInt(fenParts[5], 10)
 
     // Use a transaction if possible, but for simplicity now just sequential
     await this.db.insert(moves).values({

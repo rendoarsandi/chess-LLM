@@ -79,7 +79,7 @@ describe('GameLoopService', () => {
 
     await loopService.runIteration()
     
-    expect(gameService.makeMove).toHaveBeenCalledWith('game1', 'e4')
+    expect(gameService.makeMove).toHaveBeenCalledWith('game1', 'e4', undefined)
   })
 
   it('should log a warning if player fails to provide a move', async () => {

@@ -127,4 +127,26 @@ describe('GameService', () => {
     expect(game.status).toBe('completed')
     expect(game.winnerId).toBe('p2')
   })
+
+  it('should maintain the same moveNumber for White and Black moves in a turn', async () => {
+    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    const gameId = await service.createGame('p1', 'p2')
+
+    await service.makeMove(gameId, 'e4') // White move 1
+    await service.makeMove(gameId, 'e5') // Black move 1
+    await service.makeMove(gameId, 'Nf3') // White move 2
+
+    const dbMoves = await db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
+    expect(dbMoves).toHaveLength(3)
+    
+    expect(dbMoves[0].move).toBe('e4')
+    expect(dbMoves[0].moveNumber).toBe(1)
+    
+    expect(dbMoves[1].move).toBe('e5')
+    expect(dbMoves[1].moveNumber).toBe(1)
+    
+    expect(dbMoves[2].move).toBe('Nf3')
+    expect(dbMoves[2].moveNumber).toBe(2)
+  })
 })
