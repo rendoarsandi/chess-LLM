@@ -15,6 +15,7 @@ function App() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
   const [players, setPlayers] = useState<Player[]>([])
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
 
   const fetchAllGames = async () => {
     const allGames = await getGames()
@@ -113,7 +114,10 @@ function App() {
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
       <header className="max-w-7xl mx-auto flex items-center justify-between mb-8">
         <h1 className="text-4xl font-bold tracking-tight">ChessLLM</h1>
-        <div className="space-x-2">
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setBoardOrientation(prev => prev === 'white' ? 'black' : 'white')}>
+            Rotate Board
+          </Button>
           <Button variant="outline" onClick={handleClearHistory} className="text-destructive border-destructive hover:bg-destructive/10">
             Clear History
           </Button>
@@ -132,7 +136,10 @@ function App() {
 
         {/* Center - Board */}
         <div className="xl:col-span-2 flex flex-col items-center">
-          <ChessboardContainer fen={selectedGame?.fen} />
+          <ChessboardContainer 
+            fen={selectedGame?.fen} 
+            boardOrientation={boardOrientation}
+          />
           
           {/* Mobile Thinking Panels */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full xl:hidden">

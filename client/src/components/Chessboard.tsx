@@ -2,7 +2,10 @@ import { Chessboard } from "react-chessboard";
 
 const DEFAULT_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-export function ChessboardContainer({ fen }: { fen?: string }) {
+export function ChessboardContainer({ fen, boardOrientation = "white" }: { 
+  fen?: string, 
+  boardOrientation?: "white" | "black" 
+}) {
   return (
     <div 
       data-testid="chess-board-container" 
@@ -11,7 +14,7 @@ export function ChessboardContainer({ fen }: { fen?: string }) {
       <Chessboard 
         options={{
           position: fen || DEFAULT_FEN,
-          boardOrientation: "white"
+          boardOrientation: boardOrientation
         }}
       />
     </div>

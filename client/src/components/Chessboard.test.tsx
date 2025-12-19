@@ -5,9 +5,17 @@ import { ChessboardContainer } from './Chessboard'
 describe('ChessboardContainer', () => {
   it('renders the chessboard', () => {
     render(<ChessboardContainer />)
-    // react-chessboard usually renders an element with a specific role or data-testid
-    // for now we just check if the container renders
-    const board = screen.getByTestId('chess-board-container')
-    expect(board).toBeInTheDocument()
+    const container = screen.getByTestId('chess-board-container')
+    expect(container).toBeInTheDocument()
+  })
+
+  it('passes boardOrientation to internal Chessboard', () => {
+    // We can't easily inspect internal props of react-chessboard without more setup,
+    // but we can verify it renders with the prop without crashing.
+    const { rerender } = render(<ChessboardContainer boardOrientation="white" />)
+    expect(screen.getByTestId('chess-board-container')).toBeInTheDocument()
+    
+    rerender(<ChessboardContainer boardOrientation="black" />)
+    expect(screen.getByTestId('chess-board-container')).toBeInTheDocument()
   })
 })
