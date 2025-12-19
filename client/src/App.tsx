@@ -202,9 +202,9 @@ function App() {
         </div>
       </header>
       
-      <main className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Left Sidebar - White Thinking */}
-        <div className="hidden xl:block h-fit">
+      <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Left Sidebar - White Thinking - Hidden on mobile/tablet, shown on lg+ */}
+        <div className="hidden lg:block h-fit">
           <ThinkingPanel 
             side="white" 
             modelName={whitePlayer?.name || 'Loading...'}
@@ -213,7 +213,21 @@ function App() {
         </div>
 
         {/* Center - Board */}
-        <div className="xl:col-span-2 flex flex-col items-center">
+        <div className="lg:col-span-2 flex flex-col items-center">
+          {/* Tablet Thinking Panels (Shown only on md to lg) */}
+          <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
+            <ThinkingPanel 
+              side="white" 
+              modelName={whitePlayer?.name || 'Loading...'}
+              {...whiteThinking}
+            />
+            <ThinkingPanel 
+              side="black" 
+              modelName={blackPlayer?.name || 'Loading...'}
+              {...blackThinking}
+            />
+          </div>
+
           <div className="relative group">
             <ChessboardContainer 
               fen={currentDisplayFen} 
@@ -265,8 +279,8 @@ function App() {
             )}
           </div>
           
-          {/* Mobile Thinking Panels */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full xl:hidden">
+          {/* Mobile Thinking Panels (Shown only on < md) */}
+          <div className="grid grid-cols-1 gap-4 mt-8 w-full md:hidden">
             <ThinkingPanel 
               side="white" 
               modelName={whitePlayer?.name || 'Loading...'}
@@ -282,7 +296,7 @@ function App() {
 
         {/* Right Sidebar - Black Thinking & Arena Controls */}
         <div className="space-y-8 h-fit">
-          <div className="hidden xl:block">
+          <div className="hidden lg:block">
             <ThinkingPanel 
               side="black" 
               modelName={blackPlayer?.name || 'Loading...'}
@@ -297,7 +311,8 @@ function App() {
           />
 
           <div className="bg-card p-6 rounded-lg shadow-lg border border-border">
-            <h2 className="text-xl font-bold mb-4">Arena Controls</h2>
+            <h2 className="text-xl font-bold mb-1">Arena Controls</h2>
+            <p className="text-xs text-muted-foreground mb-4">Select players and start a new match</p>
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-muted-foreground uppercase">White Player</label>

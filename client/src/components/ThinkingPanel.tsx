@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button"
-
 interface ThinkingPanelProps {
   side: 'white' | 'black'
   modelName: string

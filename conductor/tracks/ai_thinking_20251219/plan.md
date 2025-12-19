@@ -39,6 +39,6 @@ Goal: Build a feature-rich move history list with playback controls.
 ## Phase 5: Final Integration and Polishing
 Goal: Ensure everything works together smoothly and meets the visual standards.
 
-- [ ] Task: Run end-to-end integration tests for a full game with thinking data.
+- [~] Task: Run end-to-end integration tests for a full game with thinking data.
 - [ ] Task: Refine UI styling, responsiveness, and dark mode consistency.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Integration and Polishing' (Protocol in workflow.md)

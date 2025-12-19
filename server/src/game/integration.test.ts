@@ -124,6 +124,15 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     const gameMoves = await db.select().from(moves).where(eq(moves.gameId, gameId))
     expect(gameMoves.length).toBeGreaterThan(0)
     
+    // Verify thinking data exists for Gemini moves
+    const geminiMoves = gameMoves.filter(m => m.playerColor === 'white') // White is Gemini (gId)
+    expect(geminiMoves.length).toBeGreaterThan(0)
+    
+    const sampleGeminiMove = geminiMoves[0]
+    expect(sampleGeminiMove.opening).toBe('Test Opening')
+    expect(sampleGeminiMove.reasoning).toBe('Test reasoning')
+    expect(JSON.parse(sampleGeminiMove.candidates!)).toHaveLength(3)
+
     console.log(`[IntegrationTest] Game finished in ${attempts} iterations with status ${game.status}`)
   })
 })

@@ -49,7 +49,9 @@ export class GameLoopService {
         const move = await player.makeMove(game.fen, history)
         if (move) {
           try {
-            await this.gameService.makeMove(game.id, move)
+            // Check if player provides thinking data (e.g. GeminiPlayer)
+            const thinking = (player as any).getLastThinking ? (player as any).getLastThinking() : undefined
+            await this.gameService.makeMove(game.id, move, thinking)
             console.log(`[GameLoop] Made move ${move} in game ${game.id}`)
           } catch (e) {
             console.error(`[GameLoop] Error applying move in game ${game.id}:`, e)
