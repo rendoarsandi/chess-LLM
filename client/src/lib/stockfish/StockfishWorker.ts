@@ -5,6 +5,7 @@ export interface EngineEvaluation {
   depth: number;
   multipv?: number;
   pv?: string;
+  sideToMove?: 'w' | 'b';
 }
 
 export type EngineCallback = (evaluation: EngineEvaluation) => void;

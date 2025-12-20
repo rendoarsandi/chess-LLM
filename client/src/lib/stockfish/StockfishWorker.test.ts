@@ -38,24 +38,24 @@ describe('StockfishWorker', () => {
     const infoMessage = 'info depth 10 seldepth 12 multipv 1 score cp 13 nodes 14041 nps 1404100 hashfull 0 tbhits 0 time 10 pv e2e4';
     activeWorker.simulateMessage(infoMessage);
 
-    expect(mockCallback).toHaveBeenCalledWith({
+    expect(mockCallback).toHaveBeenCalledWith(expect.objectContaining({
       score: 13,
       isMate: false,
       mateIn: undefined,
       depth: 10,
-    });
+    }));
   });
 
   it('should parse mate scores correctly', () => {
     const infoMessage = 'info depth 5 score mate 3 nodes 100 pv e2e4';
     activeWorker.simulateMessage(infoMessage);
 
-    expect(mockCallback).toHaveBeenCalledWith({
+    expect(mockCallback).toHaveBeenCalledWith(expect.objectContaining({
       score: 0,
       isMate: true,
       mateIn: 3,
       depth: 5,
-    });
+    }));
   });
 
   it('should send analyze commands correctly', () => {
