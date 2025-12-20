@@ -14,6 +14,7 @@ import { cors } from 'hono/cors'
 import { db } from './db'
 import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
+import { PlayerService } from './game/player.service'
 import { RandomPlayer } from './game/random-player'
 import { GeminiService } from './game/gemini.service'
 import { GeminiPlayer } from './game/gemini-player'
@@ -28,6 +29,7 @@ app.use('*', cors())
 // Initialize services
 const gameManager = new GameManager()
 const gameService = new GameService(db, gameManager)
+const playerService = new PlayerService(db)
 
 // System Player IDs
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
@@ -230,6 +232,38 @@ app.get('/api/players/:id/stats', async (c) => {
     return c.json(stats)
   } catch (e) {
     return c.json({ error: (e as Error).message }, 404)
+  }
+})
+
+app.get('/api/players/:id/profile', async (c) => {
+  const id = c.req.param('id')
+  try {
+    const profile = await playerService.getPlayerProfile(id)
+    if (!profile) return c.json({ error: 'Player not found' }, 404)
+    return c.json(profile)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500)
+  }
+})
+
+app.get('/api/players/:id/elo-history', async (c) => {
+  const id = c.req.param('id')
+  const period = c.req.query('period') || 'all'
+  try {
+    const history = await playerService.getEloHistory(id, period)
+    return c.json(history)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500)
+  }
+})
+
+app.get('/api/players/:id/head-to-head', async (c) => {
+  const id = c.req.param('id')
+  try {
+    const records = await playerService.getHeadToHead(id)
+    return c.json(records)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 500)
   }
 })
 

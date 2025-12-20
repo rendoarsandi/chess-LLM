@@ -107,4 +107,38 @@ describe('API Endpoints', () => {
     expect(data[0]).toHaveProperty('wins')
     expect(data[0]).toHaveProperty('peakRating')
   })
+
+  it('GET /api/players/:id/profile should return player profile', async () => {
+    const playerId = 'profile-test-1'
+    await db.insert(players).values({
+      id: playerId,
+      name: 'Gemini Profile',
+      type: 'llm',
+      version: '1.5',
+      provider: 'Google',
+      bio: 'Test bio',
+      rating: 1200,
+      createdAt: new Date()
+    }).onConflictDoNothing()
+
+    const res = await app.request(`/api/players/${playerId}/profile`)
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.name).toBe('Gemini Profile')
+    expect(data.version).toBe('1.5')
+  })
+
+  it('GET /api/players/:id/elo-history should return rating history', async () => {
+    const res = await app.request('/api/players/profile-test-1/elo-history')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
+  })
+
+  it('GET /api/players/:id/head-to-head should return head-to-head records', async () => {
+    const res = await app.request('/api/players/profile-test-1/head-to-head')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
+  })
 })
