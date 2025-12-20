@@ -1,3 +1,5 @@
+import { Sidebar } from "@/components/Sidebar"
+import type { View } from "@/components/Sidebar"
 import { Button } from "@/components/ui/button"
 import { ChessboardContainer } from "@/components/Chessboard"
 import { GameHistory } from "@/components/GameHistory"
@@ -13,17 +15,27 @@ import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLea
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
-import { Trophy, LayoutDashboard, History, RotateCcw, Pause, Play, UserCircle } from "lucide-react"
+import { RotateCcw, Pause, Play } from "lucide-react"
 import { cn } from "./lib/utils"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 
-type View = 'arena' | 'leaderboard' | 'profiles' | 'history';
-
 function App() {
   const [view, setView] = useState<View>('arena');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  // Sync sidebar state on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
@@ -214,56 +226,12 @@ function App() {
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
-      {/* Slim Navigation Sidebar */}
-      <nav className="flex flex-col w-20 border-r border-border bg-muted/20 items-center py-8 gap-8 shrink-0">
-        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
-          <span className="text-primary-foreground font-black text-xl italic">C</span>
-        </div>
-        
-        <button 
-          onClick={() => setView('arena')}
-          className={cn(
-            "p-3 rounded-xl transition-all duration-200 group relative",
-            view === 'arena' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <LayoutDashboard className="h-6 w-6" />
-          <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">ARENA</span>
-        </button>
-
-        <button 
-          onClick={() => setView('leaderboard')}
-          className={cn(
-            "p-3 rounded-xl transition-all duration-200 group relative",
-            view === 'leaderboard' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <Trophy className="h-6 w-6" />
-          <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">LEADERBOARD</span>
-        </button>
-
-        <button 
-          onClick={() => setView('profiles')}
-          className={cn(
-            "p-3 rounded-xl transition-all duration-200 group relative",
-            view === 'profiles' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <UserCircle className="h-6 w-6" />
-          <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">PROFILES</span>
-        </button>
-
-        <button 
-          onClick={() => setView('history')}
-          className={cn(
-            "p-3 rounded-xl transition-all duration-200 group relative",
-            view === 'history' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <History className="h-6 w-6" />
-          <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">HISTORY</span>
-        </button>
-      </nav>
+      <Sidebar 
+        view={view} 
+        setView={setView} 
+        isCollapsed={isSidebarCollapsed} 
+        setIsCollapsed={setIsSidebarCollapsed} 
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
