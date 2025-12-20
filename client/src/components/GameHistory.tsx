@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function GameHistory({ 
   games, 
@@ -84,47 +85,53 @@ export function GameHistory({
             {games.length === 0 ? "No games found." : "No games match your filters."}
           </div>
         )}
-        {filteredGames.map((game) => {
-          const whitePlayer = players.find(p => p.id === game.whitePlayerId);
-          const blackPlayer = players.find(p => p.id === game.blackPlayerId);
+        <AnimatePresence initial={false}>
+          {filteredGames.map((game) => {
+            const whitePlayer = players.find(p => p.id === game.whitePlayerId);
+            const blackPlayer = players.find(p => p.id === game.blackPlayerId);
 
-          return (
-            <div 
-              key={game.id} 
-              className={`p-4 flex items-center justify-between hover:bg-muted/30 transition-colors ${selectedGameId === game.id ? 'bg-muted/50 border-l-4 border-l-primary' : ''}`}
-            >
-              <div className="flex-1 min-w-0 mr-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-sm truncate">
-                    {whitePlayer?.name || '...'} vs {blackPlayer?.name || '...'}
-                  </span>
+            return (
+              <motion.div 
+                key={game.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className={`p-4 flex items-center justify-between hover:bg-muted/30 transition-colors ${selectedGameId === game.id ? 'bg-muted/50 border-l-4 border-l-primary' : ''}`}
+              >
+                <div className="flex-1 min-w-0 mr-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm truncate">
+                      {whitePlayer?.name || '...'} vs {blackPlayer?.name || '...'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="font-mono">{game.id.slice(0, 8)}</span>
+                    <span>•</span>
+                    <span>{new Date(game.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase border ${
+                      game.status === 'ongoing' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+                      game.status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 
+                      'bg-muted text-muted-foreground border-border'
+                    }`}>
+                      {game.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                  <span className="font-mono">{game.id.slice(0, 8)}</span>
-                  <span>•</span>
-                  <span>{new Date(game.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={() => onSelect(game)}>
+                    View
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-[10px] text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
+                    Delete
+                  </Button>
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase border ${
-                     game.status === 'ongoing' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
-                     game.status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 
-                     'bg-muted text-muted-foreground border-border'
-                   }`}>
-                     {game.status}
-                   </span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={() => onSelect(game)}>
-                  View
-                </Button>
-                <Button variant="ghost" size="sm" className="h-7 text-[10px] text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
-                  Delete
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );

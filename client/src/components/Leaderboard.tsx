@@ -9,6 +9,7 @@ import {
 import type { Player } from "@/api"
 import { useState } from "react"
 import { PlayerProfile } from "./PlayerProfile"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface LeaderboardProps {
   players: Player[]
@@ -46,25 +47,32 @@ export function Leaderboard({ players }: LeaderboardProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedPlayers.map((player, index) => (
-            <TableRow 
-              key={player.id} 
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => handlePlayerClick(player)}
-            >
-              <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>
-                <div className="font-medium">{player.name}</div>
-                <div className="text-xs text-muted-foreground capitalize">
-                  {player.type}
-                </div>
-              </TableCell>
-              <TableCell className="text-right">{player.rating}</TableCell>
-              <TableCell className="text-right font-mono text-xs">
-                {player.wins}/{player.losses}/{player.draws}
-              </TableCell>
-            </TableRow>
-          ))}
+          <AnimatePresence initial={false}>
+            {sortedPlayers.map((player, index) => (
+              <motion.tr
+                key={player.id}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="cursor-pointer hover:bg-muted/50 transition-colors border-b last:border-0"
+                onClick={() => handlePlayerClick(player)}
+              >
+                <TableCell className="font-medium py-3">{index + 1}</TableCell>
+                <TableCell className="py-3">
+                  <div className="font-medium">{player.name}</div>
+                  <div className="text-xs text-muted-foreground capitalize">
+                    {player.type}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right py-3 font-bold text-primary">{player.rating}</TableCell>
+                <TableCell className="text-right font-mono text-xs py-3">
+                  {player.wins}/{player.losses}/{player.draws}
+                </TableCell>
+              </motion.tr>
+            ))}
+          </AnimatePresence>
         </TableBody>
       </Table>
 
