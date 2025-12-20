@@ -18,7 +18,7 @@ This plan covers the backend ELO logic and the frontend components for the leade
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Leaderboard UI' (Protocol in workflow.md) [6ec33e8]
 
 ## Phase 3: UI Enhancements & Filtering (Feature Layer)
-- [ ] Task: Implement filtering logic in `GameHistory` component.
+- [x] Task: Implement filtering logic in `GameHistory` component. [7b19636]
 - [ ] Task: Create `PlayerProfile` modal/view for detailed stats (favorite openings, move time).
 - [ ] Task: Add "Visual Polish" (animations for match starts, score transitions).
 - [ ] Task: Write tests for history filtering and profile data display.
