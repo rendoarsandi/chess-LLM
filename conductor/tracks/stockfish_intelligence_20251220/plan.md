@@ -4,7 +4,7 @@
 Fix the fundamental coordinate/perspective errors where evaluations and mates are attributed to the wrong player.
 
 - [x] Task: Update `EngineEvaluation` interface to include `sideToMove` context. 68cfccc
-- [ ] Task: Modify `StockfishWorker.ts` to parse the side to move from FEN and normalize scores to "White-relative" (CP > 0 = White advantage).
+- [x] Task: Modify `StockfishWorker.ts` to parse the side to move from FEN and normalize scores to "White-relative" (CP > 0 = White advantage). 3d6f41b
 - [ ] Task: Update `AdvantageBar.tsx` to handle normalized scores and fix the mate display logic.
 - [ ] Task: Write unit tests in `StockfishWorker.test.ts` to verify polarity for specific FENs (e.g., Black winning positions).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Polarity' (Protocol in workflow.md)
