@@ -1,5 +1,6 @@
 import type { Player } from "@/api"
 import { Trophy, XCircle, MinusCircle, TrendingUp, Target } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface StatCardsProps {
   player: Player
@@ -55,15 +56,15 @@ export function StatCards({ player }: StatCardsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
       {stats.map((stat, idx) => (
-        <div key={idx} className="bg-card border border-border p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-2 shadow-sm">
-          <div className={`p-2 rounded-lg ${stat.bg}`}>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
+        <div key={idx} className="bg-card border border-border p-3 md:p-4 rounded-xl flex flex-col items-center justify-center text-center space-y-2 shadow-sm">
+          <div className={cn("p-1.5 md:p-2 rounded-lg", stat.bg)}>
+            <stat.icon className={cn("h-4 w-4 md:h-5 md:w-5", stat.color)} />
           </div>
           <div className="space-y-0.5">
-            <div className="text-2xl font-black tracking-tighter">{stat.value}</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</div>
+            <div className="text-xl md:text-2xl font-black tracking-tighter">{stat.value}</div>
+            <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</div>
           </div>
         </div>
       ))}

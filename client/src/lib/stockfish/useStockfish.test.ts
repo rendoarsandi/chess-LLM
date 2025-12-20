@@ -36,6 +36,10 @@ describe('useStockfish', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const { result } = renderHook(() => useStockfish(fen));
 
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
     expect(result.current.isThinking).toBe(true);
 
     act(() => {

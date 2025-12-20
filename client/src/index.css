@@ -114,10 +114,51 @@
 }
 
 @layer base {
+
   * {
+
     @apply border-border outline-ring/50;
+
   }
+
   body {
-    @apply bg-background text-foreground;
+
+    @apply bg-background text-foreground antialiased;
+
+    /* Prevent pull-to-refresh on mobile */
+
+    overscroll-behavior-y: none;
+
   }
+
+}
+
+
+
+@layer utilities {
+
+  .custom-scrollbar::-webkit-scrollbar {
+
+    width: 6px;
+
+    height: 6px;
+
+  }
+
+
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+
+    @apply bg-transparent;
+
+  }
+
+
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+
+  }
+
 }

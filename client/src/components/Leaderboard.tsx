@@ -33,14 +33,14 @@ export function Leaderboard({ players, onSelectPlayer }: LeaderboardProps) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[60px]">Rank</TableHead>
-            <TableHead>Player</TableHead>
-            <TableHead className="text-right">ELO</TableHead>
-            <TableHead className="text-right">W/L/D</TableHead>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-[40px] md:w-[60px] text-center px-1 md:px-4">#</TableHead>
+            <TableHead className="px-2 md:px-4">Model</TableHead>
+            <TableHead className="text-right px-2 md:px-4">Rating</TableHead>
+            <TableHead className="text-right hidden sm:table-cell px-2 md:px-4">Record</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -56,16 +56,20 @@ export function Leaderboard({ players, onSelectPlayer }: LeaderboardProps) {
                 className="cursor-pointer hover:bg-muted/50 transition-colors border-b last:border-0"
                 onClick={() => handlePlayerClick(player)}
               >
-                <TableCell className="font-medium py-3">{index + 1}</TableCell>
-                <TableCell className="py-3">
-                  <div className="font-medium">{player.name}</div>
-                  <div className="text-xs text-muted-foreground capitalize">
+                <TableCell className="font-bold py-3 text-center text-muted-foreground px-1 md:px-4">{index + 1}</TableCell>
+                <TableCell className="py-3 px-2 md:px-4">
+                  <div className="font-black text-sm md:text-base leading-tight">{player.name}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
                     {player.type}
                   </div>
                 </TableCell>
-                <TableCell className="text-right py-3 font-bold text-primary">{player.rating}</TableCell>
-                <TableCell className="text-right font-mono text-xs py-3">
-                  {player.wins}/{player.losses}/{player.draws}
+                <TableCell className="text-right py-3 font-black text-primary text-sm md:text-lg px-2 md:px-4">
+                  {player.rating}
+                </TableCell>
+                <TableCell className="text-right font-mono text-[10px] md:text-xs py-3 hidden sm:table-cell px-2 md:px-4">
+                  <span className="text-emerald-500">{player.wins}</span>/
+                  <span className="text-red-500">{player.losses}</span>/
+                  <span className="text-muted-foreground">{player.draws}</span>
                 </TableCell>
               </motion.tr>
             ))}

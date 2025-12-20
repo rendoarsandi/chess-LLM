@@ -2,14 +2,9 @@ import { useState, useMemo } from "react";
 import type { Game, Player } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export function GameHistory({ 
   games, 
@@ -97,35 +92,39 @@ export function GameHistory({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className={`p-4 flex items-center justify-between hover:bg-muted/30 transition-colors ${selectedGameId === game.id ? 'bg-muted/50 border-l-4 border-l-primary' : ''}`}
+                className={cn(
+                  "p-3 md:p-4 flex items-center justify-between hover:bg-muted/30 transition-colors",
+                  selectedGameId === game.id ? 'bg-muted/50 border-l-4 border-l-primary' : ''
+                )}
               >
                 <div className="flex-1 min-w-0 mr-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm truncate">
-                      {whitePlayer?.name || '...'} vs {blackPlayer?.name || '...'}
+                  <div className="flex items-center gap-2 mb-0.5 md:mb-1">
+                    <span className="font-bold text-xs md:text-sm truncate">
+                      {whitePlayer?.name || '...'} <span className="text-muted-foreground font-normal">vs</span> {blackPlayer?.name || '...'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span className="font-mono">{game.id.slice(0, 8)}</span>
-                    <span>•</span>
-                    <span>{new Date(game.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="flex items-center gap-2 text-[9px] md:text-[10px] text-muted-foreground">
+                    <span className="font-mono bg-muted px-1 rounded">{game.id.slice(0, 8)}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline">{new Date(game.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase border ${
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className={cn(
+                      "text-[9px] md:text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase border",
                       game.status === 'ongoing' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
                       game.status === 'completed' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 
                       'bg-muted text-muted-foreground border-border'
-                    }`}>
+                    )}>
                       {game.status}
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="h-9 px-4 text-xs" onClick={() => onSelect(game)}>
-                    View
+                <div className="flex flex-col sm:flex-row gap-1 md:gap-2">
+                  <Button variant="outline" size="sm" className="h-7 md:h-9 px-2 md:px-4 text-[10px] md:text-xs font-black" onClick={() => onSelect(game)}>
+                    VIEW
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-9 px-4 text-xs text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
-                    Delete
+                  <Button variant="ghost" size="sm" className="h-7 md:h-9 px-2 md:px-4 text-[10px] md:text-xs text-destructive hover:bg-destructive/10 font-black" onClick={() => onDelete(game.id)}>
+                    DEL
                   </Button>
                 </div>
               </motion.div>

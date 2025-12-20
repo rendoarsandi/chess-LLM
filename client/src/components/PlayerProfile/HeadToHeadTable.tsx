@@ -46,12 +46,12 @@ export function HeadToHeadTable({ playerId }: HeadToHeadTableProps) {
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest">Opponent</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Wins</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Losses</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Draws</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest">Win Rate</TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest px-2 md:px-4">Opponent</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-1 md:px-4">W</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-1 md:px-4">L</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-1 md:px-4 hidden sm:table-cell">D</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-2 md:px-4">Win %</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -61,13 +61,13 @@ export function HeadToHeadTable({ playerId }: HeadToHeadTableProps) {
               
               return (
                 <TableRow key={record.opponentId} className="hover:bg-muted/30 transition-colors">
-                  <TableCell className="font-bold py-4">
+                  <TableCell className="font-bold py-3 md:py-4 px-2 md:px-4 text-xs md:text-sm">
                     {record.opponentName}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-emerald-500 font-bold">{record.wins}</TableCell>
-                  <TableCell className="text-right font-mono text-red-500 font-bold">{record.losses}</TableCell>
-                  <TableCell className="text-right font-mono text-muted-foreground font-bold">{record.draws}</TableCell>
-                  <TableCell className="text-right font-mono font-black">{winRate}%</TableCell>
+                  <TableCell className="text-right font-mono text-emerald-500 font-bold px-1 md:px-4 text-xs md:text-sm">{record.wins}</TableCell>
+                  <TableCell className="text-right font-mono text-red-500 font-bold px-1 md:px-4 text-xs md:text-sm">{record.losses}</TableCell>
+                  <TableCell className="text-right font-mono text-muted-foreground font-bold px-1 md:px-4 hidden sm:table-cell text-xs md:text-sm">{record.draws}</TableCell>
+                  <TableCell className="text-right font-mono font-black px-2 md:px-4 text-xs md:text-sm">{winRate}%</TableCell>
                 </TableRow>
               )
             })}

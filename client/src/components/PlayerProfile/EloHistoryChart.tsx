@@ -51,10 +51,10 @@ export function EloHistoryChart({ playerId }: EloHistoryChartProps) {
   }))
 
   return (
-    <div className="bg-card border border-border p-6 rounded-xl shadow-sm space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-card border border-border p-4 md:p-6 rounded-xl shadow-sm space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground italic">Rating Progression</h3>
-        <div className="flex gap-1 bg-muted p-1 rounded-lg">
+        <div className="flex gap-1 bg-muted p-1 rounded-lg self-end sm:self-auto">
           {[
             { label: '7D', value: '7' },
             { label: '30D', value: '30' },
@@ -66,7 +66,7 @@ export function EloHistoryChart({ playerId }: EloHistoryChartProps) {
               variant={period === p.value ? "secondary" : "ghost"}
               size="sm"
               onClick={() => setPeriod(p.value as Period)}
-              className="h-7 text-[10px] font-black px-3"
+              className="h-7 text-[9px] md:text-[10px] font-black px-2 md:px-3"
             >
               {p.label}
             </Button>

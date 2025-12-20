@@ -68,7 +68,7 @@ describe('App Integration', () => {
 
     // Verify the move e4 appears in the move list
     await waitFor(() => {
-      expect(screen.getByText('e4')).toBeInTheDocument()
+      expect(screen.getAllByText('e4').length).toBeGreaterThan(0)
     }, { timeout: 8000 })
   }, 10000)
 
@@ -98,35 +98,27 @@ describe('App Integration', () => {
 
     render(<App />)
 
-    await waitFor(() => expect(screen.getByText('e5')).toBeInTheDocument(), { timeout: 8000 })
+    await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 8000 })
 
     // Click the first move (e4) to enter browsing mode
-    const moveButton = screen.getByText('e4')
-        fireEvent.click(moveButton)
-    
-        expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
-      }, 10000)
-    
-        it('navigates to profiles view when sidebar button is clicked', async () => {
-    
-          render(<App />)
-    
-          
-    
-          const profilesButton = screen.getAllByText('PROFILES')[0]
-    
-          expect(profilesButton).toBeInTheDocument()
-    
-          
-    
-          fireEvent.click(profilesButton)
-    
-          // After click, we expect the header to show PROFILES too
-    
-          expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2)
-    
-        })
-    
-      
+    const moveButton = screen.getAllByText('e4')[0]
+    fireEvent.click(moveButton)
+
+    expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
+  }, 10000)
+
+  it('navigates to profiles view when sidebar button is clicked', async () => {
+    render(<App />)
+
+    const profilesButton = screen.getAllByText('PROFILES')[0]
+    expect(profilesButton).toBeInTheDocument()
+
+    fireEvent.click(profilesButton)
+
+    // After click, we expect the header to show PROFILES too
+    await waitFor(() => {
+      expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2)
     })
+  })
+})
     
