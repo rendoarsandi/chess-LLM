@@ -52,4 +52,18 @@ describe('AdvantageBar', () => {
     whiteBar = container.querySelector('.bg-white');
     expect(whiteBar).toHaveStyle({ height: '0%' });
   });
+
+  it('renders horizontal orientation correctly', () => {
+    const evalData = { score: 100, isMate: false, depth: 10 }; // +1.0
+    const { container } = render(<AdvantageBar evaluation={evalData} orientation="horizontal" />);
+    
+    const nav = container.querySelector('.flex-row'); // Expect flex-row for horizontal
+    expect(nav).toBeInTheDocument();
+    
+    const whiteBar = container.querySelector('.bg-white');
+    // For horizontal, white is usually on the right or left. 
+    // Let's decide: left is black (0%), right is white (100%).
+    // So +1.0 (60% white) should have width 60%.
+    expect(whiteBar).toHaveStyle({ width: '59%' }); // (5 + 60*0.9 = 59)
+  });
 });

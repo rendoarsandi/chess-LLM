@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 interface AdvantageBarProps {
   evaluation: EngineEvaluation | null;
   variations?: EngineEvaluation[];
-  orientation?: 'white' | 'black';
+  orientation?: 'vertical' | 'horizontal';
   isThinking?: boolean;
   gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
   winnerId?: string | null;
@@ -15,6 +15,7 @@ interface AdvantageBarProps {
 export const AdvantageBar: React.FC<AdvantageBarProps> = ({ 
   evaluation, 
   variations, 
+  orientation = 'vertical',
   isThinking, 
   gameStatus,
   winnerId,
@@ -56,6 +57,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
   };
 
   const percentage = getPercentage();
+  const isHorizontal = orientation === 'horizontal';
 
   const formatScore = () => {
     if (gameStatus === 'completed') {
@@ -80,29 +82,45 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center h-full relative group/bar">
+    <div className={cn(
+      "flex items-center relative group/bar",
+      isHorizontal ? "flex-row w-full h-8" : "flex-col h-full"
+    )}>
       <div className={cn(
-        "relative w-10 md:w-12 h-full bg-neutral-900 overflow-hidden rounded-sm border-2 transition-all duration-300",
+        "relative bg-neutral-900 overflow-hidden rounded-sm border-2 transition-all duration-300",
+        isHorizontal ? "w-full h-full" : "w-10 md:w-12 h-full",
         !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]",
         isThinking && "border-primary/50 animate-pulse ring-1 ring-primary/20"
       )}>
-        {/* White portion (Bottom up) */}
+        {/* White portion (Bottom up for vertical, Left to Right for horizontal) */}
         <div 
-          className="absolute bottom-0 w-full bg-white transition-all duration-700 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]"
-          style={{ height: `${percentage}%` }}
+          className={cn(
+            "absolute bg-white transition-all duration-700 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]",
+            isHorizontal ? "right-0 h-full" : "bottom-0 w-full"
+          )}
+          style={isHorizontal ? { width: `${percentage}%` } : { height: `${percentage}%` }}
         />
         
-        {/* Score overlay (Black on white, White on black) */}
+        {/* Score overlay */}
         <div className={cn(
-          "absolute w-full text-[10px] md:text-[11px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
-          percentage > 50 ? "bottom-2 text-black" : "top-2 text-white"
+          "absolute text-[10px] md:text-[11px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
+          isHorizontal 
+            ? "top-1/2 -translate-y-1/2 w-full flex justify-between px-2 items-center" 
+            : (percentage > 50 ? "bottom-2 w-full" : "top-2 w-full")
         )}>
-          {formatScore()}
+          {isHorizontal ? (
+            <>
+              <span className={percentage <= 50 ? "text-white" : "text-transparent"}>{percentage <= 50 ? formatScore() : ''}</span>
+              <span className={percentage > 50 ? "text-black" : "text-transparent"}>{percentage > 50 ? formatScore() : ''}</span>
+            </>
+          ) : (
+            <span className={percentage > 50 ? "text-black" : "text-white"}>{formatScore()}</span>
+          )}
         </div>
       </div>
       
-      {/* Top Variations Tooltip-style info */}
-      {variations && variations.length > 1 && (
+      {/* Variations Tooltip - only for vertical */}
+      {!isHorizontal && variations && variations.length > 1 && (
         <div className="absolute left-full ml-4 top-0 bg-neutral-900/90 backdrop-blur-md border border-white/10 p-3 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none z-50 w-48 shadow-2xl">
           <div className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-1">Top Lines</div>
           <div className="space-y-2">
@@ -125,7 +143,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
         </div>
       )}
       
-      {evaluation && (
+      {evaluation && !isHorizontal && (
         <div className="absolute -bottom-6 text-[8px] text-neutral-500 font-mono flex flex-col items-center">
           <span>D{evaluation.depth}</span>
         </div>

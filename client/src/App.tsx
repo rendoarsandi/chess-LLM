@@ -24,11 +24,14 @@ const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 function App() {
   const [view, setView] = useState<View>('arena');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  // ... existing states ...
 
-  // Sync sidebar state on resize
+  // Sync states on resize
   useEffect(() => {
     const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
       if (window.innerWidth < 1024) {
         setIsSidebarCollapsed(true);
       }
@@ -288,12 +291,19 @@ function App() {
                   />
                 </div>
 
-                <div className="flex gap-2 md:gap-4 w-full justify-center items-start">
-                  <div className="h-[300px] md:h-[400px] lg:h-[500px] py-1">
+                <div className={cn(
+                  "flex w-full justify-center items-start gap-2 md:gap-4",
+                  isMobile ? "flex-col items-center" : "flex-row"
+                )}>
+                  <div className={cn(
+                    "py-1",
+                    isMobile ? "w-full max-w-[300px] h-6 mb-2" : "h-[300px] md:h-[400px] lg:h-[500px]"
+                  )}>
                     <AdvantageBar 
                       evaluation={evaluation} 
                       variations={variations} 
                       isThinking={isThinking} 
+                      orientation={isMobile ? 'horizontal' : 'vertical'}
                       // Only show terminal states (1-0, etc.) if we are at the LIVE (current) position
                       gameStatus={isLive ? selectedGame?.status : 'ongoing'}
                       winnerId={selectedGame?.winnerId}
