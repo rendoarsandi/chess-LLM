@@ -1,7 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router'
 import './index.css'
 import App from './App.tsx'
+import { DevConsole } from './components/DevConsole'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Global error handler for mobile debugging
 window.onerror = function(message, source, lineno, colno) {
@@ -12,16 +15,27 @@ window.onerror = function(message, source, lineno, colno) {
     return true; // Prevents the error from showing the default alert/log
   }
   
-  alert(`Error: ${message}\nAt: ${source}:${lineno}:${colno}`);
+  console.error(`Error: ${message}\nAt: ${source}:${lineno}:${colno}`);
   return false;
 };
 
 window.onunhandledrejection = function(event) {
-  alert(`Unhandled Rejection: ${event.reason}`);
+  console.error(`Unhandled Rejection: ${event.reason}`);
 };
 
+// Render main app
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
+
+// Render DevConsole in a separate root for resilience against main app crashes
+const devRoot = document.createElement('div');
+devRoot.id = 'dev-root';
+document.body.appendChild(devRoot);
+createRoot(devRoot).render(<DevConsole />);
