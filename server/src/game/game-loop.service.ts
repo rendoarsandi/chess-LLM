@@ -34,7 +34,8 @@ export class GameLoopService {
       const currentPlayerType = turn === 'w' ? game.whitePlayerType : game.blackPlayerType
       const currentPlayerId = turn === 'w' ? game.whitePlayerId : game.blackPlayerId
 
-      if (currentPlayerType === 'llm') {
+      // Allow any player that is NOT human to make a move automatically
+      if (currentPlayerType !== 'human') {
         // Fetch move history
         const gameMoves = await this.db.select()
           .from(movesTable)
