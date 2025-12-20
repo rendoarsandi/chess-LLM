@@ -18,10 +18,18 @@ Improve the intelligence and speed of the `StockfishPlayer` bot by managing stat
 - [ ] Task: Add logging to `StockfishPlayer.ts` to monitor engine depth and search time in real-time.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Bot Intelligence' (Protocol in workflow.md)
 
-## Phase 3: UI/UX & Reliability
+## Phase 3: Frontend Stability & WASM Reliability
+Address the "function signature mismatch" and improve evaluation responsiveness.
+
+- [~] Task: Refactor `StockfishWorker.ts` to implement a "Busy/Ready" state machine that waits for `bestmove` after `stop` before sending new commands.
+- [ ] Task: Implement a cancellation token or "Generation ID" in `StockfishWorker.ts` to ignore stale evaluation messages from previous FENs.
+- [ ] Task: Increase debounce and add a "Loading/Thinking" indicator to the UI to prevent rapid re-triggering.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: WASM Stability' (Protocol in workflow.md)
+
+## Phase 4: UI/UX & Reliability (Merged)
 Ensure the frontend evaluation is stable and reflects the true engine state without ghosting.
 
 - [ ] Task: Refactor `useStockfish.ts` to properly clear stale variations and handle engine restarts gracefully.
 - [ ] Task: Optimize the debounce timing in `useStockfish.ts` to balance responsiveness and CPU usage.
 - [ ] Task: Verify that "free piece" captures are correctly reflected in the `AdvantageBar` after the move is made.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Stability' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Stability' (Protocol in workflow.md)
