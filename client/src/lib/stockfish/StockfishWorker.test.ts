@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { StockfishWorker } from './StockfishWorker';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { StockfishWorker, type EngineEvaluation } from './StockfishWorker';
 
 // Mock Worker
 class MockWorker {
@@ -20,13 +20,13 @@ vi.stubGlobal('Worker', MockWorker);
 
 describe('StockfishWorker', () => {
   let worker: StockfishWorker;
-  let mockCallback: any;
+  let mockCallback: Mock<(evaluation: EngineEvaluation) => void>;
   let activeWorker: MockWorker;
 
   beforeEach(() => {
     mockCallback = vi.fn();
     worker = new StockfishWorker(mockCallback);
-    activeWorker = (worker as any).worker;
+    activeWorker = (worker as unknown as { worker: MockWorker }).worker;
   });
 
   it('should initialize with UCI commands', () => {

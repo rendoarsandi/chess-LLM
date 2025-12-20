@@ -10,5 +10,5 @@ if (typeof window !== 'undefined' && !window.Worker) {
     addEventListener = vi.fn();
     removeEventListener = vi.fn();
     dispatchEvent = vi.fn();
-  } as any;
+  } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }

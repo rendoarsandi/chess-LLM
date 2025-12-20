@@ -11,6 +11,7 @@ import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getP
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
+import { Trophy } from "lucide-react"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -254,7 +255,16 @@ function App() {
         </div>
       </header>
       
-      <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <main className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        {/* Far Left Sidebar - Leaderboard - Hidden on mobile/tablet, shown on xl+ */}
+        <div className="hidden xl:block h-fit space-y-4">
+          <h2 className="text-xl font-bold px-1 flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            Leaderboard
+          </h2>
+          <Leaderboard players={leaderboard} />
+        </div>
+
         {/* Left Sidebar - White Thinking - Hidden on mobile/tablet, shown on lg+ */}
         <div className="hidden lg:block h-fit">
           <ThinkingPanel 
@@ -262,6 +272,14 @@ function App() {
             modelName={whitePlayer?.name || 'Loading...'}
             {...whiteThinking}
           />
+          {/* On lg screens (not xl), show leaderboard here under White Thinking */}
+          <div className="xl:hidden mt-8 space-y-4">
+            <h2 className="text-xl font-bold px-1 flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Leaderboard
+            </h2>
+            <Leaderboard players={leaderboard} />
+          </div>
         </div>
 
         {/* Center - Board */}
@@ -329,18 +347,27 @@ function App() {
             )}
           </div>
           
-          {/* Mobile Thinking Panels (Shown only on < md) */}
-          <div className="grid grid-cols-1 gap-4 mt-8 w-full md:hidden">
-            <ThinkingPanel 
-              side="white" 
-              modelName={whitePlayer?.name || 'Loading...'}
-              {...whiteThinking}
-            />
-            <ThinkingPanel 
-              side="black" 
-              modelName={blackPlayer?.name || 'Loading...'}
-              {...blackThinking}
-            />
+          {/* Mobile thinking and leaderboard (Shown only on < md) */}
+          <div className="grid grid-cols-1 gap-8 mt-8 w-full md:hidden">
+            <div className="space-y-4">
+              <ThinkingPanel 
+                side="white" 
+                modelName={whitePlayer?.name || 'Loading...'}
+                {...whiteThinking}
+              />
+              <ThinkingPanel 
+                side="black" 
+                modelName={blackPlayer?.name || 'Loading...'}
+                {...blackThinking}
+              />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold px-1 flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                Leaderboard
+              </h2>
+              <Leaderboard players={leaderboard} />
+            </div>
           </div>
         </div>
 
@@ -403,11 +430,6 @@ function App() {
             onSelect={handleSelectGame} 
             onDelete={handleDeleteGame}
           />
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold px-1">Leaderboard</h2>
-            <Leaderboard players={leaderboard} />
-          </div>
         </div>
       </main>
     </div>

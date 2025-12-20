@@ -22,7 +22,7 @@ export function useStockfish(fen: string | null) {
         engineRef.current = null;
       }
     };
-  }, []); // Only run once on mount
+  }, [onEngineMessage]); // Only run once on mount (onEngineMessage is stable due to useCallback)
 
   useEffect(() => {
     if (fen && engineRef.current && fen !== lastFenRef.current) {

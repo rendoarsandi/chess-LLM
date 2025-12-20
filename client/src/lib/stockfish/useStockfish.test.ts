@@ -1,16 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStockfish } from './useStockfish';
+import type { EngineEvaluation } from './StockfishWorker';
 
 // Mock StockfishWorker
 const mockAnalyze = vi.fn();
 const mockTerminate = vi.fn();
-let mockCallback: any = null;
+let mockCallback: ((evaluation: EngineEvaluation) => void) | null = null;
 
 vi.mock('./StockfishWorker', () => {
   return {
     StockfishWorker: class {
-      constructor(callback: any) {
+      constructor(callback: (evaluation: EngineEvaluation) => void) {
         mockCallback = callback;
       }
       analyze = mockAnalyze;
@@ -39,7 +40,7 @@ describe('useStockfish', () => {
     const mockEval = { score: 50, isMate: false, depth: 10 };
 
     act(() => {
-      mockCallback(mockEval);
+      if (mockCallback) mockCallback(mockEval);
     });
 
     expect(result.current.evaluation).toEqual(mockEval);
