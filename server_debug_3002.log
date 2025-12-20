@@ -2,7 +2,7 @@
 > server@1.0.0 dev
 > tsx watch src/index.ts
 
-[dotenv@17.2.3] injecting env (0) from ../.env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.3] injecting env (0) from ../.env -- tip: ⚙️  suppress all logs with { quiet: true }
 [Stockfish IN] uci
 [Stockfish IN] setoption name Skill Level value 10
 [Stockfish IN] setoption name UCI_LimitStrength value true
@@ -45,4 +45,3 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v24.11.1
-npm error Lifecycle script `dev` failed with error:

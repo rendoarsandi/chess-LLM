@@ -34,6 +34,9 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         losses INTEGER NOT NULL DEFAULT 0,
         draws INTEGER NOT NULL DEFAULT 0,
         peak_rating INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (
@@ -47,6 +50,15 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),
         FOREIGN KEY(black_player_id) REFERENCES players(id)
+      );
+      CREATE TABLE rating_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        game_id TEXT,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY(player_id) REFERENCES players(id),
+        FOREIGN KEY(game_id) REFERENCES games(id)
       );
       CREATE TABLE moves (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

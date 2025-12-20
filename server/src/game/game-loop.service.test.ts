@@ -24,6 +24,9 @@ describe('GameLoopService', () => {
         losses INTEGER NOT NULL DEFAULT 0,
         draws INTEGER NOT NULL DEFAULT 0,
         peak_rating INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (
