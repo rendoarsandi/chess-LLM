@@ -40,10 +40,16 @@ export class StockfishPlayer implements Player {
 
     this.sendCommand('uci');
     this.sendCommand(`setoption name Skill Level value ${this.skillLevel}`);
+    this.sendCommand('setoption name Hash value 128');
+    this.sendCommand('setoption name Threads value 2');
+    
     if (this.targetElo) {
       this.sendCommand('setoption name UCI_LimitStrength value true');
       this.sendCommand(`setoption name UCI_Elo value ${this.targetElo}`);
     }
+    
+    // We send ucinewgame once at startup to prepare the engine
+    this.sendCommand('ucinewgame');
     this.sendCommand('isready');
   }
 
@@ -64,6 +70,13 @@ export class StockfishPlayer implements Player {
         this.resolveMove(move === '(none)' ? null : move);
         this.resolveMove = undefined;
       }
+    } else if (trimmed.startsWith('info depth')) {
+      // Optional: Log search progress for debugging "dumb" moves
+      const depthMatch = trimmed.match(/depth (\d+)/);
+      const scoreMatch = trimmed.match(/score cp (-?\d+)/);
+      if (depthMatch && scoreMatch) {
+        // console.log(`[Stockfish] Searching: Depth ${depthMatch[1]}, Score ${scoreMatch[1]}`);
+      }
     }
   }
 
@@ -82,16 +95,19 @@ export class StockfishPlayer implements Player {
           this.resolveMove = undefined;
           resolve(null);
         }
-      }, 30000); // 30 second timeout
+      }, 40000); // Increased timeout
 
       this.resolveMove = (move) => {
         clearTimeout(timeout);
         resolve(move);
       };
 
-      this.sendCommand('ucinewgame');
+      // Removed ucinewgame here to preserve hash/history between moves
       this.sendCommand(`position fen ${fen}`);
-      this.sendCommand(`go depth ${this.depth}`);
+      
+      // Use both depth AND movetime (it will stop at whichever comes first)
+      // 5 seconds max per move is usually plenty for depth 15-18 with 2 threads
+      this.sendCommand(`go depth ${this.depth} movetime 8000`);
     });
   }
 }
