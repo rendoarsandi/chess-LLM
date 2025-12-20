@@ -53,6 +53,8 @@ interface ArenaContentProps {
   showResultOverlay: boolean;
   whitePlayerId: string;
   blackPlayerId: string;
+  setWhitePlayerId: (id: string) => void;
+  setBlackPlayerId: (id: string) => void;
   isCreatingGame: boolean;
   hasOngoingGame: boolean;
   handleCreateGame: (whiteId: string, blackId: string) => Promise<void>;
@@ -68,7 +70,8 @@ interface ArenaContentProps {
 function ArenaContent({ 
   whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, 
   isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
-  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, isCreatingGame, hasOngoingGame, 
+  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
+  isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
   moves, players, setBoardOrientation
 }: ArenaContentProps) {
@@ -193,13 +196,13 @@ function ArenaContent({
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                    <select value={whitePlayerId} onChange={() => setBoardOrientation('white')} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                       {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                    <select value={blackPlayerId} onChange={() => setBoardOrientation('white')} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                       {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
@@ -223,13 +226,13 @@ function ArenaContent({
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                  <select value={whitePlayerId} onChange={() => {}} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                     {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                  <select value={blackPlayerId} onChange={() => {}} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                     {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
@@ -546,6 +549,7 @@ function App() {
             boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
             currentPgn={currentPgn} showResultOverlay={showResultOverlay}
             whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+            setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
             isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
@@ -562,6 +566,7 @@ function App() {
             boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
             currentPgn={currentPgn} showResultOverlay={showResultOverlay}
             whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+            setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
             isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
