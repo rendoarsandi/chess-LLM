@@ -3,6 +3,7 @@ import { GameLoopService } from './game-loop.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { games, players, moves } from '../db/schema'
+import { logger } from './logger'
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
@@ -94,7 +95,7 @@ describe('GameLoopService', () => {
   })
 
   it('should log a warning if player fails to provide a move', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
     player.makeMove.mockResolvedValue(null)
 
     await db.insert(players).values([
@@ -119,7 +120,7 @@ describe('GameLoopService', () => {
   })
 
   it('should log an error if applying move fails', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     gameService.makeMove.mockRejectedValue(new Error('DB Error'))
 
     await db.insert(players).values([

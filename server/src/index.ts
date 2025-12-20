@@ -18,6 +18,8 @@ import { PlayerService } from './game/player.service'
 import { RandomPlayer } from './game/random-player'
 import { GeminiService } from './game/gemini.service'
 import { GeminiPlayer } from './game/gemini-player'
+import { GroqService } from './game/groq.service'
+import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
 import { games, players, moves } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
@@ -41,6 +43,9 @@ const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
 const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
 const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
 const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
+const KIMI_ID = '00000000-0000-0000-0000-000000000020'
+const GPT_OSS_ID = '00000000-0000-0000-0000-000000000021'
+const QWEN_ID = '00000000-0000-0000-0000-000000000022'
 
 // Initialize players
 const randomPlayer = new RandomPlayer()
@@ -57,10 +62,10 @@ gameManager.setPlayer(STOCKFISH_HIGH_ID, stockfishHigh)
 
 let defaultLlmPlayer: any = randomPlayer
 
-const apiKey = process.env.GEMINI_API_KEY
-if (apiKey && apiKey !== 'your_api_key_here') {
+const geminiApiKey = process.env.GEMINI_API_KEY
+if (geminiApiKey && geminiApiKey !== 'your_api_key_here') {
   console.log('[Main] Gemini API Key found, initializing GeminiPlayers')
-  const geminiService = new GeminiService(apiKey)
+  const geminiService = new GeminiService(geminiApiKey)
   
   const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3-flash-preview')
   const gemini25Player = new GeminiPlayer(geminiService, 'gemini-2.5-flash')
@@ -73,9 +78,23 @@ if (apiKey && apiKey !== 'your_api_key_here') {
   gameManager.setPlayer(GEMMA_3_27B_ID, gemma27bPlayer)
   gameManager.setPlayer(GEMMA_3_12B_ID, gemma12bPlayer)
 } else {
-  console.error('[CRITICAL] Gemini API Key NOT FOUND in .env. LLM players will not function.')
-  // Do NOT fall back to RandomPlayer for Gemini IDs to avoid confusion
-  // We throw here or handle it in the service
+  console.error('[CRITICAL] Gemini API Key NOT FOUND in .env')
+}
+
+const groqApiKey = process.env.GROQ_API_KEY
+if (groqApiKey && groqApiKey !== 'your_api_key_here') {
+  console.log('[Main] Groq API Key found, initializing GroqPlayers')
+  const groqService = new GroqService(groqApiKey)
+  
+  const kimiPlayer = new GroqPlayer(groqService, 'moonshotai/kimi-k2-instruct-0905')
+  const gptOssPlayer = new GroqPlayer(groqService, 'openai/gpt-oss-120b')
+  const qwenPlayer = new GroqPlayer(groqService, 'qwen/qwen3-32b')
+  
+  gameManager.setPlayer(KIMI_ID, kimiPlayer)
+  gameManager.setPlayer(GPT_OSS_ID, gptOssPlayer)
+  gameManager.setPlayer(QWEN_ID, qwenPlayer)
+} else {
+  console.log('[Main] Groq API Key NOT FOUND in .env')
 }
 
 // Ensure system players exist in DB and remove others
@@ -90,6 +109,9 @@ async function ensureSystemPlayers() {
     { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500 },
     { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const, rating: 2000 },
     { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 3000 },
+    { id: KIMI_ID, name: 'Kimi k2', type: 'llm' as const, rating: 2600 },
+    { id: GPT_OSS_ID, name: 'GPT-OSS 120B', type: 'llm' as const, rating: 2700 },
+    { id: QWEN_ID, name: 'Qwen 3 32B', type: 'llm' as const, rating: 2550 },
   ]
 
   const systemIds = systemPlayers.map(p => p.id)

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GeminiPlayer } from './gemini-player'
 import { GeminiService } from './gemini.service'
+import { logger } from './logger'
 
 // Mock GeminiService
 vi.mock('./gemini.service', () => {
@@ -83,13 +84,13 @@ describe('GeminiPlayer', () => {
   })
 
   it('should return null and log error if GeminiService fails', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     mockGeminiService.generateMove.mockRejectedValue(new Error('API Error'))
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
     expect(move).toBeNull()
-    expect(consoleSpy).toHaveBeenCalled()
-    consoleSpy.mockRestore()
+    expect(errorSpy).toHaveBeenCalled()
+    errorSpy.mockRestore()
   })
 
   it('should retry if the model returns an invalid SAN move', async () => {
@@ -129,7 +130,7 @@ describe('GeminiPlayer', () => {
   })
 
   it('should timeout if GeminiService takes too long', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     
     // Create player with very short timeout (1ms) for testing
     const timeoutPlayer = new TestGeminiPlayer(mockGeminiService, 'model', 1)
@@ -141,8 +142,8 @@ describe('GeminiPlayer', () => {
     const move = await timeoutPlayer.makeMove(startFen, [])
     
     expect(move).toBeNull()
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Error generating move (attempt 1):'), expect.any(Error))
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Error generating move (attempt 1):'), expect.anything())
     
-    consoleSpy.mockRestore()
+    errorSpy.mockRestore()
   })
 })

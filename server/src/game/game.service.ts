@@ -4,6 +4,7 @@ import { eq, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
 import { Chess } from 'chess.js'
+import { logger } from './logger'
 
 export class GameService {
   constructor(private db: any, private gm: GameManager) {}
@@ -64,7 +65,7 @@ export class GameService {
     // We look for moves made by this player (or in games they participated in as White) 
     // where an opening was detected.
     const playerOpenings = await this.db
-      .select({ 
+      .select({
         opening: moves.opening,
         thinkingMs: moves.thinkingMs,
       })
@@ -112,7 +113,7 @@ export class GameService {
     const isGameOver = chess.isGameOver()
     const winner = this.gm.getWinner(nextFen)
 
-    console.log(`[GameService] Move applied: ${move}. isGameOver: ${isGameOver}, winner: ${winner}`)
+    logger.info(`[GameService] Move applied: ${move}. isGameOver: ${isGameOver}, winner: ${winner}`)
 
     const fenParts = game.fen.split(' ')
     const playerColor = fenParts[1] === 'w' ? 'white' : 'black'
@@ -162,17 +163,16 @@ export class GameService {
         try {
           pgnChess.move(m.move)
         } catch (inner_e) {
-          console.warn(`[GameService] Skipping invalid move in PGN history for game ${gameId}: ${m.move}`);
+          logger.warn(`[GameService] Skipping invalid move in PGN history for game ${gameId}: ${m.move}`);
         }
       }
       pgnChess.move(moveResult.san)
       pgn = pgnChess.pgn()
     } catch (e) {
-      console.error(`[GameService] Error generating PGN for game ${gameId}:`, e);
+      logger.debug(`[GameService] Error generating PGN for game ${gameId}:`, e);
     }
 
-    await this.db.update(games)
-      .set({ 
+    await this.db.update(games)      .set({ 
         fen: nextFen, 
         status: status as any, 
         winnerId,

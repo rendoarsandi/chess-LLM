@@ -13,7 +13,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Groq Player Implementation (TDD)' (Protocol in workflow.md)
 
 ## Phase 3: System Integration and Seeding
-- [ ] Task: Register new models in `server/src/index.ts` by defining unique IDs, instantiating `GroqPlayer` instances, and updating `ensureSystemPlayers`.
+- [~] Task: Register new models in `server/src/index.ts` by defining unique IDs, instantiating `GroqPlayer` instances, and updating `ensureSystemPlayers`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: System Integration and Seeding' (Protocol in workflow.md)
 
 ## Phase 4: Final Verification

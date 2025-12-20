@@ -3,6 +3,7 @@ import { eq, desc } from 'drizzle-orm'
 import { GameService } from './game.service'
 import { Player } from './player.interface'
 import { alias } from 'drizzle-orm/sqlite-core'
+import { logger } from './logger'
 
 export class GameLoopService {
   constructor(
@@ -56,12 +57,12 @@ export class GameLoopService {
             // Check if player provides thinking data (e.g. GeminiPlayer)
             const thinking = (player as any).getLastThinking ? (player as any).getLastThinking() : {}
             await this.gameService.makeMove(game.id, move, { ...thinking, thinkingMs })
-            console.log(`[GameLoop] Made move ${move} in game ${game.id} (${thinkingMs}ms)`)
+            logger.info(`[GameLoop] Made move ${move} in game ${game.id} (${thinkingMs}ms)`)
           } catch (e) {
-            console.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
+            logger.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
           }
         } else {
-          console.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)
+          logger.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)
         }
       }
     }
@@ -72,14 +73,14 @@ export class GameLoopService {
   start(intervalMs: number = 5000) {
     if (this.isRunning) return;
     this.isRunning = true;
-    console.log(`[GameLoop] Starting background loop with interval ${intervalMs}ms`)
+    logger.info(`[GameLoop] Starting background loop with interval ${intervalMs}ms`)
     
     const loop = async () => {
       if (!this.isRunning) return;
       try {
         await this.runIteration()
       } catch (e) {
-        console.error('[GameLoop] Error in iteration:', e)
+        logger.error('[GameLoop] Error in iteration:', e)
       } finally {
         setTimeout(loop, intervalMs)
       }

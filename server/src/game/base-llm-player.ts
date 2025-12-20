@@ -1,5 +1,6 @@
 import { Player } from './player.interface'
 import { Chess } from 'chess.js'
+import { logger } from './logger'
 
 export interface LlmService {
   generateMove(modelName: string, prompt: string): Promise<string>
@@ -55,7 +56,7 @@ export abstract class BaseLlmPlayer implements Player {
           const cleanJson = jsonMatch ? jsonMatch[0] : responseText
           parsed = JSON.parse(cleanJson)
         } catch (e) {
-          console.warn(`[${this.constructor.name}] Failed to parse JSON response: ${responseText}`)
+          logger.warn(`[${this.constructor.name}] Failed to parse JSON response: ${responseText}`)
           currentPrompt = `Your previous response was not valid JSON. 
 Please provide your response in the EXACT JSON format requested:
 {
@@ -91,12 +92,12 @@ Return your response in the EXACT JSON format requested.`
           attempts++
         }
       } catch (e) {
-        console.error(`[${this.constructor.name}] Error generating move (attempt ${attempts + 1}):`, e)
+        logger.error(`[${this.constructor.name}] Error generating move (attempt ${attempts + 1}):`, e)
         attempts++
       }
     }
 
-    console.error(`[${this.constructor.name}] Failed to generate a valid move after ${maxRetries + 1} attempts.`)
+    logger.error(`[${this.constructor.name}] Failed to generate a valid move after ${maxRetries + 1} attempts.`)
     return null
   }
 
