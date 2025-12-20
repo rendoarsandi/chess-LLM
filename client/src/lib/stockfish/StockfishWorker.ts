@@ -80,14 +80,14 @@ export class StockfishWorker {
     };
   }
 
-  public analyze(fen: string, timeLimitMs: number = 2000) {
+  public analyze(fen: string, depth: number = 18) {
     if (!this.worker || this.isTerminated) {
       return;
     }
 
     this.sendMessage('stop');
     this.sendMessage(`position fen ${fen}`);
-    this.sendMessage(`go movetime ${timeLimitMs}`);
+    this.sendMessage(`go depth ${depth}`);
   }
 
   private sendMessage(command: string) {

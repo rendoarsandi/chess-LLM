@@ -19,7 +19,7 @@ import { GeminiService } from './game/gemini.service'
 import { GeminiPlayer } from './game/gemini-player'
 import { GameLoopService } from './game/game-loop.service'
 import { games, players, moves } from './db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 
 const app = new Hono()
 
@@ -45,9 +45,9 @@ const randomPlayer = new RandomPlayer()
 gameManager.setPlayer(RANDOM_BOT_ID, randomPlayer)
 
 import { StockfishPlayer } from './game/stockfish-player'
-const stockfishLow = new StockfishPlayer(0) // Skill Level 0
-const stockfishMed = new StockfishPlayer(10) // Skill Level 10
-const stockfishHigh = new StockfishPlayer(20, 2000) // Skill Level 20, 2000 ELO
+const stockfishLow = new StockfishPlayer(10, 1500, 10) // Skill Level 10, 1500 ELO, Depth 10
+const stockfishMed = new StockfishPlayer(20, 2000, 14) // Skill Level 20, 2000 ELO, Depth 14
+const stockfishHigh = new StockfishPlayer(20, 3000, 17) // Skill Level 20, 3000 ELO, Depth 17
 
 gameManager.setPlayer(STOCKFISH_LOW_ID, stockfishLow)
 gameManager.setPlayer(STOCKFISH_MED_ID, stockfishMed)
@@ -79,24 +79,20 @@ if (apiKey && apiKey !== 'your_api_key_here') {
 // Ensure system players exist in DB and remove others
 async function ensureSystemPlayers() {
   const systemPlayers = [
-    { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const },
-    { id: GEMINI_3_0_ID, name: 'Gemini 3 Flash', type: 'llm' as const },
-    { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const },
-    { id: GEMMA_3_27B_ID, name: 'Gemma 3 27B', type: 'llm' as const },
-    { id: GEMMA_3_12B_ID, name: 'Gemma 3 12B', type: 'llm' as const },
-    { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
-    { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const },
-    { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const },
-    { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const },
+    { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const, rating: 800 },
+    { id: GEMINI_3_0_ID, name: 'Gemini 3 Flash', type: 'llm' as const, rating: 2500 },
+    { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const, rating: 2300 },
+    { id: GEMMA_3_27B_ID, name: 'Gemma 3 27B', type: 'llm' as const, rating: 2400 },
+    { id: GEMMA_3_12B_ID, name: 'Gemma 3 12B', type: 'llm' as const, rating: 2100 },
+    { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const, rating: 1200 },
+    { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500 },
+    { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const, rating: 2000 },
+    { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 3000 },
   ]
 
   const systemIds = systemPlayers.map(p => p.id)
 
   // Remove any players NOT in the system list (like test P1, P2)
-  const notIn = (id: string, ids: string[]) => {
-    return !ids.includes(id)
-  }
-  
   const allPlayers = await db.select().from(players)
   for (const p of allPlayers) {
     if (!systemIds.includes(p.id)) {
@@ -110,11 +106,15 @@ async function ensureSystemPlayers() {
 
   for (const p of systemPlayers) {
     if (!existingIds.includes(p.id)) {
-      await db.insert(players).values(p)
+      await db.insert(players).values({ ...p, peakRating: p.rating })
       console.log(`[Main] Created system player: ${p.name}`)
     } else {
-      // Update name if it exists but differs
-      await db.update(players).set({ name: p.name }).where(eq(players.id, p.id))
+      // Update name and rating if it exists but differs
+      await db.update(players).set({ 
+        name: p.name,
+        rating: p.rating,
+        peakRating: sql`MAX(peak_rating, ${p.rating})`
+      }).where(eq(players.id, p.id))
     }
   }
 }
@@ -233,7 +233,7 @@ app.get('/api/players/:id/stats', async (c) => {
   }
 })
 
-const port = 3001
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 console.log(`Server is running on port ${port}`)
 
 if (process.env.NODE_ENV !== 'test') {
