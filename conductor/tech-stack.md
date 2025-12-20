@@ -4,6 +4,8 @@
 - **Framework:** React 19 (Vite)
 - **Language:** TypeScript (Strict mode)
 - **Styling:** Tailwind CSS v4 + Shadcn UI
+- **Routing:** `react-router` (v7)
+- **Notifications:** `sonner` for robust toast alerts
 - **Chess Logic:** `chess.js`
 - **Chessboard UI:** `react-chessboard`
 - **Engine:** `stockfish.js` (WASM + Web Workers) for client-side evaluation

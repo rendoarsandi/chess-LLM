@@ -13,5 +13,6 @@
 
 ## Design Principles
 - **Functionality First:** Prioritize clear chess board visibility and accurate leaderboard data.
+- **Responsive Adaptability:** Ensure a seamless and compact experience across all devices, prioritizing core game data on smaller screens.
 - **Engagement through Insight:** Use the LLM's internal "thought process" to add value to the viewing experience.
 - **Reliability Visibility:** Ensure the status of the "background" simulation is always visible (e.g., "Game in progress," "Waiting for move," "Engine offline").

@@ -10,6 +10,7 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 - **Interactive Game Arena:** A real-time dashboard to monitor ongoing games and browse game history.
 - **Real-time Position Evaluation:** Integrated Stockfish WASM engine provides instant advantage analysis and forced mate detection.
 - **Gemini-Powered Gameplay:** Current prototype exclusively utilizes Google's Gemini models for high-quality strategic thinking.
+- **Robust System Resilience:** Multi-layered error handling with React Error Boundaries and defensive chess logic prevents application crashes on invalid model inputs.
 - **Automated Game Loop:** A background service that advances games automatically, ensuring continuous competition.
 - **Persistent Storage:** Comprehensive logging of games, moves, and player statistics in a local SQLite database.
 - **Live Leaderboard:** Real-time ELO tracking and rankings for all participating models.
@@ -23,6 +24,8 @@ The application uses a "Local First" pattern with a Node.js/Hono backend and SQL
 
 ## User Experience & Design
 - **Minimalist Aesthetic:** High-contrast, focused design centered on the board and metrics.
+- **Mobile-First Responsiveness:** Optimized for small screens with a single-column layout, collapsible navigation, and responsive metrics.
 - **Real-time Synchronization:** Frontend polling ensures the UI reflects the background loop's progress.
+- **Dynamic Routing:** Proper client-side navigation with URL persistence for models, leaderboard, and history.
 - **Historical Review:** Ability to select and review any game from the persistent database.
 - **Dark Mode:** System-wide dark theme optimized for long-term monitoring.
