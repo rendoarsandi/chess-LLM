@@ -82,7 +82,7 @@ function ArenaContent({
             <RotateCcw className="h-3 w-3 mr-2" />
             ROTATE
           </Button>
-          {(selectedGame?.status === 'ongoing' || selectedGame?.status === 'paused') && (
+          {selectedGame && (selectedGame.status === 'ongoing' || selectedGame.status === 'paused') && (
             <Button variant="outline" size="sm" className="h-8 text-[10px] font-black" onClick={handleTogglePause}>
               {selectedGame.status === 'ongoing' ? (
                 <><Pause className="h-3 w-3 mr-2" />PAUSE</>
@@ -97,56 +97,83 @@ function ArenaContent({
       <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
         <div className="max-w-[1600px] mx-auto flex flex-col lg:grid lg:grid-cols-4 gap-8">
           <div className="hidden lg:block h-fit">
-            <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
+            <ThinkingPanel side="white" modelName={selectedGame ? (whitePlayer?.name || 'Loading...') : 'Inactive'} isMobile={isMobile} {...whiteThinking} />
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center">
-            <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
-              <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
-              <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
-            </div>
-
-            <div className={cn("flex w-full justify-center items-start gap-2 md:gap-4", isMobile ? "flex-col items-center" : "flex-row")}>
-              <div className={cn("py-1", isMobile ? "w-full max-w-[300px] h-6 mb-2" : "h-[300px] md:h-[400px] lg:h-[500px]")}>
-                <AdvantageBar evaluation={evaluation} variations={variations} isThinking={isThinking} orientation={isMobile ? 'horizontal' : 'vertical'} gameStatus={isLive ? selectedGame?.status : 'ongoing'} winnerId={selectedGame?.winnerId} whitePlayerId={selectedGame?.whitePlayerId} />
+            {!selectedGame ? (
+              <div className="w-full flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-border rounded-2xl bg-muted/10 p-12 text-center space-y-6">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-2">
+                  <Play className="w-10 h-10 fill-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-black uppercase tracking-tighter italic">Ready for Battle?</h2>
+                  <p className="text-muted-foreground font-medium max-w-md mx-auto">
+                    Select two engines from the controls or visit the History tab to resume a previous encounter.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                   <Button size="lg" className="font-black tracking-widest px-8" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>
+                     START NEW MATCH
+                   </Button>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
+                  <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
+                  <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
+                </div>
 
-              <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                <ErrorBoundary fallback={<div className="aspect-square w-full bg-muted flex items-center justify-center border border-destructive/20 rounded-lg text-[10px] font-black uppercase text-destructive tracking-widest p-4 text-center">Chessboard Error - Reload Recommended</div>}>
-                  <ChessboardContainer fen={currentDisplayFen} boardOrientation={boardOrientation} highlightSquares={lastMoveSquares} gameId={selectedGame?.id} pgn={currentPgn} />
-                </ErrorBoundary>
-                {selectedGame && showResultOverlay && (
-                  <GameResultOverlay status={selectedGame.status} winnerId={selectedGame.winnerId} whitePlayerId={selectedGame.whitePlayerId} whitePlayerName={whitePlayer?.name} blackPlayerName={blackPlayer?.name} reason={selectedGame.gameOverReason} onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} onClose={() => setShowResultOverlay(false)} />
-                )}
-                {!isLive && <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-black shadow-lg animate-pulse">HISTORY MODE</div>}
-              </div>
-            </div>
-
-            <div className="mt-6 w-full max-w-[600px] space-y-4">
-              <PlaybackControls 
-                onFirst={() => setActiveMoveIndex(0)} 
-                onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? moves.length - 1 : Math.max(0, activeMoveIndex - 1))} 
-                onNext={() => { if (activeMoveIndex !== null) { if (activeMoveIndex === moves.length - 1) setActiveMoveIndex(null); else setActiveMoveIndex(activeMoveIndex + 1); } }} 
-                onLast={() => setActiveMoveIndex(null)} 
-                prevDisabled={moves.length === 0 || activeMoveIndex === 0} 
-                nextDisabled={isLive} 
-              />
-              {selectedGame && (
-                <div className="p-4 bg-muted/30 rounded-lg border border-border">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <span className="font-semibold text-sm">Status: <span className="text-primary font-black uppercase tracking-tighter ml-1">{selectedGame.status}</span></span>
-                      {(selectedGame.status === 'ongoing' || selectedGame.status === 'paused') && (
-                        <Button size="sm" variant="outline" className="h-7 text-[10px] font-black" onClick={handleTogglePause}>
-                          {selectedGame.status === 'ongoing' ? <><Pause className="h-3 w-3 mr-1" /> PAUSE</> : <><Play className="h-3 w-3 mr-1" /> RESUME</>}
-                        </Button>
-                      )}
-                    </div>
-                    {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
+                <div className={cn("flex w-full justify-center items-start gap-2 md:gap-4", isMobile ? "flex-col items-center" : "flex-row")}>
+                                <div className={cn("py-1", isMobile ? "w-full max-w-[300px] h-6 mb-2" : "h-[300px] md:h-[400px] lg:h-[500px]")}>
+                                  <AdvantageBar 
+                                    evaluation={evaluation} 
+                                    variations={variations} 
+                                    isThinking={isThinking} 
+                                    orientation={isMobile ? 'horizontal' : 'vertical'} 
+                                    gameStatus={isLive ? selectedGame?.status : 'ongoing'} 
+                                    winnerId={selectedGame?.winnerId} 
+                                    whitePlayerId={selectedGame?.whitePlayerId}
+                                    boardOrientation={boardOrientation}
+                                  />
+                                </div>
+                                    <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+                    <ErrorBoundary fallback={<div className="aspect-square w-full bg-muted flex items-center justify-center border border-destructive/20 rounded-lg text-[10px] font-black uppercase text-destructive tracking-widest p-4 text-center">Chessboard Error - Reload Recommended</div>}>
+                      <ChessboardContainer fen={currentDisplayFen} boardOrientation={boardOrientation} highlightSquares={lastMoveSquares} gameId={selectedGame?.id} pgn={currentPgn} />
+                    </ErrorBoundary>
+                    {selectedGame && showResultOverlay && (
+                      <GameResultOverlay status={selectedGame.status} winnerId={selectedGame.winnerId} whitePlayerId={selectedGame.whitePlayerId} whitePlayerName={whitePlayer?.name} blackPlayerName={blackPlayer?.name} reason={selectedGame.gameOverReason} onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} onClose={() => setShowResultOverlay(false)} />
+                    )}
+                    {!isLive && <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-black shadow-lg animate-pulse">HISTORY MODE</div>}
                   </div>
                 </div>
-              )}
-            </div>
+
+                <div className="mt-6 w-full max-w-[600px] space-y-4">
+                  <PlaybackControls 
+                    onFirst={() => setActiveMoveIndex(0)} 
+                    onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? moves.length - 1 : Math.max(0, activeMoveIndex - 1))} 
+                    onNext={() => { if (activeMoveIndex !== null) { if (activeMoveIndex === moves.length - 1) setActiveMoveIndex(null); else setActiveMoveIndex(activeMoveIndex + 1); } }} 
+                    onLast={() => setActiveMoveIndex(null)} 
+                    prevDisabled={moves.length === 0 || activeMoveIndex === 0} 
+                    nextDisabled={isLive} 
+                  />
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <span className="font-semibold text-sm">Status: <span className="text-primary font-black uppercase tracking-tighter ml-1">{selectedGame.status}</span></span>
+                        {(selectedGame.status === 'ongoing' || selectedGame.status === 'paused') && (
+                          <Button size="sm" variant="outline" className="h-7 text-[10px] font-black" onClick={handleTogglePause}>
+                            {selectedGame.status === 'ongoing' ? <><Pause className="h-3 w-3 mr-1" /> PAUSE</> : <><Play className="h-3 w-3 mr-1" /> RESUME</>}
+                          </Button>
+                        )}
+                      </div>
+                      {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="mt-8 w-full lg:hidden space-y-4">
               <CollapsibleSection title="White Thinking" className="md:hidden">
@@ -181,10 +208,12 @@ function ArenaContent({
           </div>
 
           <div className="hidden lg:block space-y-8 h-fit lg:col-span-1">
-            <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
-            <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-              <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
-            </ErrorBoundary>
+            <ThinkingPanel side="black" modelName={selectedGame ? (blackPlayer?.name || 'Loading...') : 'Inactive'} isMobile={isMobile} {...blackThinking} />
+            {selectedGame && (
+              <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
+                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+              </ErrorBoundary>
+            )}
             <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
               <h2 className="text-xl font-bold uppercase tracking-tighter mb-4">Arena Controls</h2>
               <div className="space-y-4">
@@ -297,7 +326,7 @@ function App() {
     const interval = setInterval(() => {
       fetchAllGames();
       fetchLeaderboard();
-    }, 5000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [fetchAllGames, fetchPlayers, fetchLeaderboard]);
 
@@ -411,28 +440,49 @@ function App() {
     const segments = location.pathname.split('/').filter(Boolean);
     const path = segments[0] || 'arena';
 
-    if (path === 'arena' && segments[1]) {
-      if (selectedGame?.id !== segments[1]) {
-        getGame(segments[1]).then(game => {
-          if (game) {
-            setSelectedGame(game);
-            setMoves([]);
-            setActiveMoveIndex(null);
-          }
-        }).catch(() => navigate('/arena'));
+    if (path === 'arena') {
+      if (segments[1]) {
+        // We have an ID
+        if (selectedGame?.id !== segments[1]) {
+          getGame(segments[1]).then(game => {
+            if (game) {
+              setSelectedGame(game);
+              setMoves([]);
+              setActiveMoveIndex(null);
+            }
+          }).catch(() => navigate('/arena'));
+        }
+      } else {
+        // No ID, clear state for a 'clean' view
+        if (selectedGame !== null) {
+          setSelectedGame(null);
+          setMoves([]);
+          setActiveMoveIndex(null);
+        }
       }
     }
   }, [location.pathname, selectedGame?.id, navigate]);
 
+  // Sync selectedGame with periodically fetched games list to catch status changes
+  useEffect(() => {
+    if (selectedGame) {
+      const updated = games.find(g => g.id === selectedGame.id);
+      if (updated && (
+        updated.status !== selectedGame.status || 
+        updated.winnerId !== selectedGame.winnerId ||
+        updated.gameOverReason !== selectedGame.gameOverReason
+      )) {
+        setSelectedGame(updated);
+      }
+    }
+  }, [games, selectedGame]);
+
   // Default game selection logic
   useEffect(() => {
-    if (location.pathname === '/arena' && !selectedGame && games.length > 0) {
-      const firstGame = games[0];
-      Promise.resolve().then(() => handleSelectGame(firstGame));
-    } else if (location.pathname === '/') {
+    if (location.pathname === '/') {
       navigate('/arena', { replace: true });
     }
-  }, [location.pathname, selectedGame, games, handleSelectGame, navigate]);
+  }, [location.pathname, navigate]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">

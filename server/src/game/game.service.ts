@@ -112,6 +112,8 @@ export class GameService {
     const isGameOver = chess.isGameOver()
     const winner = this.gm.getWinner(nextFen)
 
+    console.log(`[GameService] Move applied: ${move}. isGameOver: ${isGameOver}, winner: ${winner}`)
+
     const fenParts = game.fen.split(' ')
     const playerColor = fenParts[1] === 'w' ? 'white' : 'black'
     const moveNumber = parseInt(fenParts[5], 10)

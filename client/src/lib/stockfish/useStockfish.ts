@@ -49,10 +49,7 @@ export function useStockfish(fen: string | null) {
       // 250ms is safer for WASM stability during rapid history browsing
       const timeoutId = setTimeout(() => {
         if (engineRef.current) {
-          engineRef.current.analyze(fen, 18, () => {
-            setEvaluation(null);
-            setVariations({});
-          });
+          engineRef.current.analyze(fen, 18);
         }
       }, 250);
 

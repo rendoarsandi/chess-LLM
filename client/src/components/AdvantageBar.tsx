@@ -10,6 +10,7 @@ interface AdvantageBarProps {
   gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
   winnerId?: string | null;
   whitePlayerId?: string;
+  boardOrientation?: 'white' | 'black';
 }
 
 export const AdvantageBar: React.FC<AdvantageBarProps> = ({ 
@@ -19,7 +20,8 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
   isThinking, 
   gameStatus,
   winnerId,
-  whitePlayerId
+  whitePlayerId,
+  boardOrientation = 'white'
 }) => {
   // Normalize score to percentage (0 to 100)
   // +5.0 or more is 100% white, -5.0 or less is 0% white (100% black)
@@ -38,7 +40,10 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
     
     if (evaluation.isMate) {
       const mateIn = evaluation.mateIn || 0;
-      if (mateIn === 0) return 50;
+      if (mateIn === 0) {
+        // If mateIn is 0, the current side to move is checkmated
+        return evaluation.sideToMove === 'w' ? 0 : 100;
+      }
       // mateIn > 0 means White is mating (100% white), < 0 means Black is mating (0% white)
       return mateIn > 0 ? 100 : 0;
     }
@@ -89,14 +94,15 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
       <div className={cn(
         "relative bg-neutral-900 overflow-hidden rounded-sm border-2 transition-all duration-300",
         isHorizontal ? "w-full h-full" : "w-10 md:w-12 h-full",
-        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]",
-        isThinking && "border-primary/50 animate-pulse ring-1 ring-primary/20"
+        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
       )}>
-        {/* White portion (Bottom up for vertical, Left to Right for horizontal) */}
+        {/* White portion */}
         <div 
           className={cn(
-            "absolute bg-white transition-all duration-700 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]",
-            isHorizontal ? "right-0 h-full" : "bottom-0 w-full"
+            "absolute bg-white transition-all duration-400 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]",
+            isHorizontal 
+              ? (boardOrientation === 'white' ? "right-0 h-full" : "left-0 h-full") 
+              : (boardOrientation === 'white' ? "bottom-0 w-full" : "top-0 w-full")
           )}
           style={isHorizontal ? { width: `${percentage}%` } : { height: `${percentage}%` }}
         />
@@ -106,7 +112,10 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
           "absolute text-[10px] md:text-[11px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
           isHorizontal 
             ? "top-1/2 -translate-y-1/2 w-full flex justify-between px-2 items-center" 
-            : (percentage > 50 ? "bottom-2 w-full" : "top-2 w-full")
+            : (boardOrientation === 'white' 
+                ? (percentage > 50 ? "bottom-2 w-full" : "top-2 w-full")
+                : (percentage > 50 ? "top-2 w-full" : "bottom-2 w-full")
+              )
         )}>
           {isHorizontal ? (
             <>

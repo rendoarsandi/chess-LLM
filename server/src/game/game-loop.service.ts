@@ -67,14 +67,28 @@ export class GameLoopService {
     }
   }
 
+  private isRunning: boolean = false;
+
   start(intervalMs: number = 5000) {
+    if (this.isRunning) return;
+    this.isRunning = true;
     console.log(`[GameLoop] Starting background loop with interval ${intervalMs}ms`)
-    setInterval(async () => {
+    
+    const loop = async () => {
+      if (!this.isRunning) return;
       try {
         await this.runIteration()
       } catch (e) {
         console.error('[GameLoop] Error in iteration:', e)
+      } finally {
+        setTimeout(loop, intervalMs)
       }
-    }, intervalMs)
+    }
+    
+    loop()
+  }
+
+  stop() {
+    this.isRunning = false;
   }
 }
