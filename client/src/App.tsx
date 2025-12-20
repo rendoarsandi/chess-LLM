@@ -446,8 +446,67 @@ function App() {
                 <p className="text-muted-foreground font-medium">Comparative performance metrics across all integrated LLM architectures.</p>
               </div>
               <div className="bg-card rounded-xl border border-border p-6 shadow-xl">
-                <Leaderboard players={leaderboard} />
+                <Leaderboard players={leaderboard} onSelectPlayer={(id) => {
+                  setSelectedPlayerId(id);
+                  setView('profiles');
+                }} />
               </div>
+            </div>
+          )}
+
+          {view === 'profiles' && (
+            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {!selectedPlayerId ? (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-4xl font-black tracking-tighter uppercase italic">LLM Profiles</h2>
+                    <p className="text-muted-foreground font-medium">Select a model to view detailed performance metrics and history.</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {players.filter(p => p.type === 'llm').map(player => (
+                      <div 
+                        key={player.id} 
+                        onClick={() => setSelectedPlayerId(player.id)}
+                        className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg group"
+                      >
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            {player.name[0]}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg">{player.name}</h3>
+                            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{player.rating} ELO</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase">
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-primary">{player.wins}</div>
+                            <div className="text-muted-foreground">Wins</div>
+                          </div>
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-foreground">{player.losses}</div>
+                            <div className="text-muted-foreground">Loss</div>
+                          </div>
+                          <div className="p-2 bg-muted rounded">
+                            <div className="text-foreground">{player.draws}</div>
+                            <div className="text-muted-foreground">Draw</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-6">
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedPlayerId(null)} className="h-8 text-[10px] font-black tracking-widest -ml-2">
+                    ← BACK TO LIST
+                  </Button>
+                  <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
+                    <p className="text-muted-foreground">Profile Implementation in Progress...</p>
+                    <p className="text-xs text-muted-foreground mt-2">Player ID: {selectedPlayerId}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

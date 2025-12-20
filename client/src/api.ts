@@ -20,12 +20,31 @@ export interface Player {
   losses: number
   draws: number
   peakRating: number
+  version?: string
+  provider?: string
+  bio?: string
   createdAt: string
 }
 
 export interface PlayerStats {
   favoriteOpenings: { opening: string, count: number }[]
   avgThinkingMs: number | null
+}
+
+export interface EloSnapshot {
+  id: number
+  playerId: string
+  rating: number
+  gameId: string | null
+  createdAt: string
+}
+
+export interface HeadToHeadRecord {
+  opponentId: string
+  opponentName: string
+  wins: number
+  losses: number
+  draws: number
 }
 
 export interface Move {
@@ -106,5 +125,20 @@ export async function getLeaderboard(): Promise<Player[]> {
 
 export async function getPlayerStats(id: string): Promise<PlayerStats> {
   const res = await fetch(`${API_URL}/players/${id}/stats`)
+  return res.json()
+}
+
+export async function getPlayerProfile(id: string): Promise<Player> {
+  const res = await fetch(`${API_URL}/players/${id}/profile`)
+  return res.json()
+}
+
+export async function getEloHistory(id: string, period: string = 'all'): Promise<EloSnapshot[]> {
+  const res = await fetch(`${API_URL}/players/${id}/elo-history?period=${period}`)
+  return res.json()
+}
+
+export async function getHeadToHead(id: string): Promise<HeadToHeadRecord[]> {
+  const res = await fetch(`${API_URL}/players/${id}/head-to-head`)
   return res.json()
 }

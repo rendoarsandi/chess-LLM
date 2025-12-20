@@ -7,18 +7,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Player } from "@/api"
-import { useState } from "react"
-import { PlayerProfile } from "./PlayerProfile"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface LeaderboardProps {
   players: Player[]
+  onSelectPlayer?: (id: string) => void
 }
 
-export function Leaderboard({ players }: LeaderboardProps) {
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-
+export function Leaderboard({ players, onSelectPlayer }: LeaderboardProps) {
   // Sort players by rating descending
   const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating)
 
@@ -31,8 +27,9 @@ export function Leaderboard({ players }: LeaderboardProps) {
   }
 
   const handlePlayerClick = (player: Player) => {
-    setSelectedPlayer(player)
-    setIsProfileOpen(true)
+    if (onSelectPlayer) {
+      onSelectPlayer(player.id)
+    }
   }
 
   return (
@@ -75,12 +72,6 @@ export function Leaderboard({ players }: LeaderboardProps) {
           </AnimatePresence>
         </TableBody>
       </Table>
-
-      <PlayerProfile 
-        player={selectedPlayer}
-        open={isProfileOpen}
-        onOpenChange={setIsProfileOpen}
-      />
     </div>
   )
 }
