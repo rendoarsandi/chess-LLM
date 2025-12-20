@@ -1,96 +1,91 @@
-# ChessLLM
+# ChessLLM Arena
 
-A full-stack chess application where users can play against an AI powered by Google's Gemini 2.5 Flash model. The project is built as a monorepo using modern web technologies.
+A high-performance monorepo for benchmarking and evaluating Large Language Models (LLMs) through automated, background-driven chess matches.
 
-## 🚀 Tech Stack
+## 🚀 Project Overview
 
-### Client
+ChessLLM Arena is a local-first platform designed to observe and analyze strategic decision-making across various AI architectures. It features a persistent background game loop, a real-time evaluation engine, and detailed performance tracking via a live ELO leaderboard.
+
+### Key Features
+- **Background Game Loop:** Matches progress automatically in the background using a Node.js/Hono service.
+- **Multi-Model Support:** Integrated support for Google Gemini (3.0/2.5 Flash), Groq (Kimi, GPT-OSS, Qwen), and Stockfish (WASM).
+- **Advanced Arena UI:** Real-time position evaluation, advantage bar, and move-by-move AI thinking history.
+- **Robust Routing:** Persistent state and navigation using React Router 7.
+- **Detailed Analytics:** Model-specific profiles with ELO history charts and head-to-head records.
+- **Defensive Resilience:** Multi-layered error handling with React Error Boundaries.
+
+## 🛠️ Tech Stack
+
+### Core
+- **Monorepo:** npm Workspaces
+- **Language:** TypeScript
+- **State Management:** Local SQLite (Better SQLite3) + Drizzle ORM
+
+### Client (React)
 - **Framework:** React 19
 - **Build Tool:** Vite
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS 4
-- **Chess Logic:** chess.js, react-chessboard
+- **Styling:** Tailwind CSS 4 + Shadcn UI
+- **Chess Logic:** chess.js + react-chessboard
 - **Routing:** React Router 7
 
-### Server
-- **Runtime:** Node.js
+### Server (Node.js)
 - **Framework:** Hono
-- **Database:** SQLite (via Better SQLite3)
-- **ORM:** Drizzle ORM
-- **AI Integration:** Google Generative AI (Gemini 2.5 Flash)
-- **Testing:** Vitest
+- **Runtime:** Node.js
+- **Testing:** Vitest + Drizzle Integration
 
-## 🛠️ Prerequisites
+## 📦 Getting Started
 
-- Node.js (v20 or later recommended)
-- npm (v10 or later)
-- A Google Gemini API Key
+### Prerequisites
+- Node.js (v20+)
+- Gemini API Key (Required for Gemini models)
+- Groq API Key (Optional)
 
-## 📦 Installation
-
+### Installation
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/rendoarsandi/chess-LLM.git
     cd chess-LLM
     ```
-
 2.  **Install dependencies:**
-    This project is configured with workspaces, so running `npm install` in the root will install dependencies for both client and server.
     ```bash
     npm install
     ```
-
 3.  **Environment Setup:**
-    Create a `.env` file in the `server` directory (`server/.env`) and add your Google Gemini API Key:
+    Configure `.env` in the project root:
     ```env
-    GEMINI_API_KEY=your_actual_api_key_here
+    GEMINI_API_KEY=your_key
+    GROQ_API_KEY=your_key
+    PORT=3001
     ```
-
-4.  **Database Setup:**
-    Initialize the SQLite database.
+4.  **Database Initialization:**
     ```bash
-    npm run db:push
+    npm run db:push --workspace=server
     ```
 
-## 🏃‍♂️ Running the Application
-
-You can run both the client and server concurrently from the root directory:
-
+### Execution
+Run both frontend and backend in development mode:
 ```bash
 npm run dev
 ```
 
-- **Client:** http://localhost:5173
-- **Server:** http://localhost:3000
-
 ## 📂 Project Structure
+- `client/`: React frontend with arena and analytics dashboards.
+- `server/`: Hono backend managing the game loop and AI players.
+- `conductor/`: System-wide specifications and development tracks.
 
-```
-chessllm/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── components/     # React components (Chessboard, GameHistory, etc.)
-│   │   ├── lib/            # Utilities
-│   │   └── ...
-│   └── ...
-├── server/                 # Hono backend
-│   ├── src/
-│   │   ├── db/             # Database schema and configuration
-│   │   ├── game/           # Game logic and AI integration
-│   │   └── ...
-│   └── drizzle/            # Drizzle migrations
-├── conductor/              # Project documentation and planning
-└── ...
-```
-
-## 🧪 Testing
-
-To run backend tests:
-
+## 🧪 Verification
+Execute the full verification suite (Lint, Typecheck, Test):
 ```bash
-npm test -w server
+# Linting
+npm run lint --workspaces
+
+# Typechecking
+npm run check --workspace=server
+cd client && npm run build
+
+# Backend Tests
+npm test --workspace=server
 ```
 
 ## 📝 License
-
-This project is licensed under the ISC License.
+ISC License

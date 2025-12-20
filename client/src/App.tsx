@@ -44,7 +44,6 @@ interface ArenaContentProps {
   blackThinking: ThinkingData;
   evaluation: EngineEvaluation | null;
   variations: EngineEvaluation[];
-  isThinking: boolean;
   isLive: boolean;
   selectedGame: Game | null;
   currentDisplayFen: string;
@@ -54,6 +53,8 @@ interface ArenaContentProps {
   showResultOverlay: boolean;
   whitePlayerId: string;
   blackPlayerId: string;
+  isCreatingGame: boolean;
+  hasOngoingGame: boolean;
   handleCreateGame: (whiteId: string, blackId: string) => Promise<void>;
   handleTogglePause: () => Promise<void>;
   setShowResultOverlay: (show: boolean) => void;
@@ -66,9 +67,9 @@ interface ArenaContentProps {
 
 function ArenaContent({ 
   whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, 
-  isThinking, isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
-  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, handleCreateGame, 
-  handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
+  isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
+  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, isCreatingGame, hasOngoingGame, 
+  handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
   moves, players, setBoardOrientation
 }: ArenaContentProps) {
   return (
@@ -109,12 +110,14 @@ function ArenaContent({
                 <div className="space-y-2">
                   <h2 className="text-3xl font-black uppercase tracking-tighter italic">Ready for Battle?</h2>
                   <p className="text-muted-foreground font-medium max-w-md mx-auto">
-                    Select two engines from the controls or visit the History tab to resume a previous encounter.
+                    {hasOngoingGame 
+                      ? "A match is currently in progress. You can view it in the arena or history." 
+                      : "Select two engines from the controls or visit the History tab to resume a previous encounter."}
                   </p>
                 </div>
                 <div className="flex gap-4">
-                   <Button size="lg" className="font-black tracking-widest px-8" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>
-                     START NEW MATCH
+                   <Button size="lg" className="font-black tracking-widest px-8" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
+                     {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'START NEW MATCH'}
                    </Button>
                 </div>
               </div>
@@ -130,7 +133,6 @@ function ArenaContent({
                                   <AdvantageBar 
                                     evaluation={evaluation} 
                                     variations={variations} 
-                                    isThinking={isThinking} 
                                     orientation={isMobile ? 'horizontal' : 'vertical'} 
                                     gameStatus={isLive ? selectedGame?.status : 'ongoing'} 
                                     winnerId={selectedGame?.winnerId} 
@@ -150,14 +152,6 @@ function ArenaContent({
                 </div>
 
                 <div className="mt-6 w-full max-w-[600px] space-y-4">
-                  <PlaybackControls 
-                    onFirst={() => setActiveMoveIndex(0)} 
-                    onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? moves.length - 1 : Math.max(0, activeMoveIndex - 1))} 
-                    onNext={() => { if (activeMoveIndex !== null) { if (activeMoveIndex === moves.length - 1) setActiveMoveIndex(null); else setActiveMoveIndex(activeMoveIndex + 1); } }} 
-                    onLast={() => setActiveMoveIndex(null)} 
-                    prevDisabled={moves.length === 0 || activeMoveIndex === 0} 
-                    nextDisabled={isLive} 
-                  />
                   <div className="p-4 bg-muted/30 rounded-lg border border-border">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
@@ -171,6 +165,14 @@ function ArenaContent({
                       {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
                     </div>
                   </div>
+                  <PlaybackControls 
+                    onFirst={() => setActiveMoveIndex(0)} 
+                    onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? Math.max(0, moves.length - 2) : Math.max(0, activeMoveIndex - 1))} 
+                    onNext={() => { if (activeMoveIndex !== null) { if (activeMoveIndex === moves.length - 1) setActiveMoveIndex(null); else setActiveMoveIndex(activeMoveIndex + 1); } }} 
+                    onLast={() => setActiveMoveIndex(null)} 
+                    prevDisabled={moves.length === 0 || activeMoveIndex === 0} 
+                    nextDisabled={isLive} 
+                  />
                 </div>
               </>
             )}
@@ -191,17 +193,19 @@ function ArenaContent({
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                    <select value={whitePlayerId} onChange={(e) => handleCreateGame(e.target.value, blackPlayerId)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <select value={whitePlayerId} onChange={() => setBoardOrientation('white')} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                       {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                    <select value={blackPlayerId} onChange={(e) => handleCreateGame(whitePlayerId, e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <select value={blackPlayerId} onChange={() => setBoardOrientation('white')} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                       {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
-                  <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>LAUNCH MATCH</Button>
+                  <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
+                    {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
+                  </Button>
                 </div>
               </CollapsibleSection>
             </div>
@@ -219,17 +223,19 @@ function ArenaContent({
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                  <select value={whitePlayerId} onChange={(e) => handleCreateGame(e.target.value, blackPlayerId)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <select value={whitePlayerId} onChange={() => {}} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                     {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                  <select value={blackPlayerId} onChange={(e) => handleCreateGame(whitePlayerId, e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                  <select value={blackPlayerId} onChange={() => {}} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
                     {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
-                <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>LAUNCH MATCH</Button>
+                <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
+                  {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
+                </Button>
               </div>
             </div>
           </div>
@@ -256,6 +262,7 @@ function App() {
 
   const [whitePlayerId, setWhitePlayerId] = useState(GEMINI_3_0_ID)
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
+  const [isCreatingGame, setIsCreatingGame] = useState(false)
 
   const handleSelectGame = useCallback((game: Game) => {
     setSelectedGame(game);
@@ -285,16 +292,29 @@ function App() {
   }, []);
 
   const handleCreateGame = async (whiteId: string, blackId: string) => {
+    if (isCreatingGame) return;
+    if (hasOngoingGame) {
+      toast.error("A match is already in progress.", {
+        description: "Please complete or delete the current match before starting a new one."
+      });
+      return;
+    }
+    setIsCreatingGame(true);
     setWhitePlayerId(whiteId);
     setBlackPlayerId(blackId);
     try {
       const { id } = await createGame(whiteId, blackId);
       const newGame = await getGame(id);
       handleSelectGame(newGame);
-      fetchAllGames();
-      fetchLeaderboard();
+      await fetchAllGames();
+      await fetchLeaderboard();
+      // Collapse sidebar on game start
+      setIsSidebarCollapsed(true);
     } catch {
       console.error("Error creating game");
+      toast.error("Failed to start match. Please try again.");
+    } finally {
+      setIsCreatingGame(false);
     }
   };
 
@@ -386,37 +406,62 @@ function App() {
   }, [moves, activeMoveIndex]);
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1;
-  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen);
+  const { evaluation, variations } = useStockfish(currentDisplayFen);
   const whitePlayer = players.find(p => p.id === selectedGame?.whitePlayerId);
   const blackPlayer = players.find(p => p.id === selectedGame?.blackPlayerId);
+  const hasOngoingGame = games.some(g => g.status === 'ongoing' || g.status === 'paused');
 
   const whiteThinking = useMemo(() => {
     if (!selectedGame) return {};
-    const lastMove = moves[moves.length - 1];
-    const isWhiteThinking = (moves.length === 0 && selectedGame.status === 'ongoing') || (lastMove?.playerColor === 'black' && selectedGame.status === 'ongoing');
-    if (isWhiteThinking) return {};
-    const whiteLastMove = [...moves].reverse().find(m => m.playerColor === 'white');
+    const effectiveMoves = activeMoveIndex === null ? moves : moves.slice(0, activeMoveIndex + 1);
+    
+    // In live mode, check if currently thinking
+    if (activeMoveIndex === null) {
+      const lastMove = moves[moves.length - 1];
+      const isWhiteThinking = (moves.length === 0 && selectedGame.status === 'ongoing') || (lastMove?.playerColor === 'black' && selectedGame.status === 'ongoing');
+      if (isWhiteThinking) return {};
+    }
+
+    const whiteLastMove = [...effectiveMoves].reverse().find(m => m.playerColor === 'white');
     if (whiteLastMove) {
       let candidates = undefined;
       try { candidates = whiteLastMove.candidates ? JSON.parse(whiteLastMove.candidates) : undefined; } catch { /* ignore */ }
-      return { opening: whiteLastMove.opening, candidates, reasoning: whiteLastMove.reasoning };
+      return { 
+        opening: whiteLastMove.opening, 
+        candidates, 
+        reasoning: whiteLastMove.reasoning,
+        moveNumber: whiteLastMove.moveNumber,
+        moveSAN: whiteLastMove.move
+      };
     }
     return {};
-  }, [moves, selectedGame]);
+  }, [moves, selectedGame, activeMoveIndex]);
 
   const blackThinking = useMemo(() => {
     if (!selectedGame) return {};
-    const lastMove = moves[moves.length - 1];
-    const isBlackThinking = lastMove?.playerColor === 'white' && selectedGame.status === 'ongoing';
-    if (isBlackThinking) return {};
-    const blackLastMove = [...moves].reverse().find(m => m.playerColor === 'black');
+    const effectiveMoves = activeMoveIndex === null ? moves : moves.slice(0, activeMoveIndex + 1);
+
+    // In live mode, check if currently thinking
+    if (activeMoveIndex === null) {
+      const lastMove = moves[moves.length - 1];
+      const isBlackThinking = lastMove?.playerColor === 'white' && selectedGame.status === 'ongoing';
+      if (isBlackThinking) return {};
+    }
+
+    const blackLastMove = [...effectiveMoves].reverse().find(m => m.playerColor === 'black');
     if (blackLastMove) {
       let candidates = undefined;
       try { candidates = blackLastMove.candidates ? JSON.parse(blackLastMove.candidates) : undefined; } catch { /* ignore */ }
-      return { opening: blackLastMove.opening, candidates, reasoning: blackLastMove.reasoning };
+      return { 
+        opening: blackLastMove.opening, 
+        candidates, 
+        reasoning: blackLastMove.reasoning,
+        moveNumber: blackLastMove.moveNumber,
+        moveSAN: blackLastMove.move
+      };
     }
     return {};
-  }, [moves, selectedGame]);
+  }, [moves, selectedGame, activeMoveIndex]);
 
   useEffect(() => {
     if (moves.length === 0) return;
@@ -461,7 +506,7 @@ function App() {
         }
       }
     }
-  }, [location.pathname, selectedGame?.id, navigate]);
+  }, [location.pathname, selectedGame?.id, selectedGame, navigate]);
 
   // Sync selectedGame with periodically fetched games list to catch status changes
   useEffect(() => {
@@ -496,11 +541,12 @@ function App() {
           <ArenaContent 
             whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
             whiteThinking={whiteThinking} blackThinking={blackThinking}
-            evaluation={evaluation} variations={variations} isThinking={isThinking}
+            evaluation={evaluation} variations={variations}
             isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
             boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
             currentPgn={currentPgn} showResultOverlay={showResultOverlay}
             whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+            isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
@@ -511,11 +557,12 @@ function App() {
           <ArenaContent 
             whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
             whiteThinking={whiteThinking} blackThinking={blackThinking}
-            evaluation={evaluation} variations={variations} isThinking={isThinking}
+            evaluation={evaluation} variations={variations}
             isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
             boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
             currentPgn={currentPgn} showResultOverlay={showResultOverlay}
             whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+            isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}

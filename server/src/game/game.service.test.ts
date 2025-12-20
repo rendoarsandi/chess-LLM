@@ -213,14 +213,17 @@ describe('GameService', () => {
     await service.makeMove(g1, 'Nf3')
     await service.makeMove(g1, 'Nc6')
     await service.makeMove(g1, 'Bb5') // Ruy Lopez
+    await db.update(games).set({ status: 'completed' }).where(eq(games.id, g1))
     
     // Game 2: p1 white, Ruy Lopez again
     const g2 = await service.createGame('p1', 'p2')
     await service.makeMove(g2, 'e4', { opening: 'Ruy Lopez' })
+    await db.update(games).set({ status: 'completed' }).where(eq(games.id, g2))
     
     // Game 3: p1 white, Sicilian
     const g3 = await service.createGame('p1', 'p2')
     await service.makeMove(g3, 'e4', { opening: 'Sicilian Defense' })
+    await db.update(games).set({ status: 'completed' }).where(eq(games.id, g3))
 
     const stats = await service.getPlayerStats('p1')
     expect(stats.favoriteOpenings).toHaveLength(2)
@@ -228,5 +231,14 @@ describe('GameService', () => {
     expect(stats.favoriteOpenings[0].count).toBe(2)
     expect(stats.favoriteOpenings[1].opening).toBe('Sicilian Defense')
     expect(stats.favoriteOpenings[1].count).toBe(1)
+  })
+
+  it('should not allow creating a new game if one is already ongoing', async () => {
+    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+
+    await service.createGame('p1', 'p2')
+    
+    await expect(service.createGame('p1', 'p2')).rejects.toThrow('A game is already in progress. Please complete or delete it first.')
   })
 })

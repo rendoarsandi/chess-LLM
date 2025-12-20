@@ -10,6 +10,12 @@ export class GameService {
   constructor(private db: any, private gm: GameManager) {}
 
   async createGame(whitePlayerId: string, blackPlayerId: string) {
+    // Check for existing ongoing games
+    const ongoingGames = await this.db.select().from(games).where(eq(games.status, 'ongoing'))
+    if (ongoingGames.length > 0) {
+      throw new Error('A game is already in progress. Please complete or delete it first.')
+    }
+
     const id = randomUUID()
     const initialState = this.gm.createNewGame(whitePlayerId, blackPlayerId)
     

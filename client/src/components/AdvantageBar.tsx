@@ -6,7 +6,6 @@ interface AdvantageBarProps {
   evaluation: EngineEvaluation | null;
   variations?: EngineEvaluation[];
   orientation?: 'vertical' | 'horizontal';
-  isThinking?: boolean;
   gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
   winnerId?: string | null;
   whitePlayerId?: string;
@@ -17,7 +16,6 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
   evaluation, 
   variations, 
   orientation = 'vertical',
-  isThinking, 
   gameStatus,
   winnerId,
   whitePlayerId,

@@ -1,0 +1,18 @@
+
+> server@1.0.0 dev
+> tsx watch src/index.ts
+
+[dotenv@17.2.3] injecting env (1) from ../.env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+[Stockfish] Spawning new process at skill 10
+[Stockfish] Spawning new process at skill 20
+[Stockfish] Spawning new process at skill 20
+[Main] Gemini API Key found, initializing GeminiPlayers
+[Main] Groq API Key found, initializing GroqPlayers
+[INFO] [GameLoop] Starting background loop with interval 5000ms
+Server is running on port 3001
+[Main] Deleted non-system player: Test P1
+[Main] Deleted non-system player: Test P2
+[Main] Deleted non-system player: Pro
+[Main] Deleted non-system player: Noob
+[Main] Deleted non-system player: Average
+[Main] Deleted non-system player: Gemini Profile

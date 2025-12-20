@@ -29,4 +29,4 @@
 - **Future Path:** Architected for seamless migration to Cloudflare Workers, D1, and Durable Objects.
 
 ## External Integrations
-- **LLM APIs:** Support for OpenAI, Anthropic, and Gemini.
+- **LLM APIs:** Support for Google Gemini and Groq (Kimi, GPT-OSS, Qwen).

@@ -8,9 +8,13 @@ interface ThinkingPanelProps {
   candidates?: string[]
   reasoning?: string
   isMobile?: boolean
+  moveNumber?: number
+  moveSAN?: string
 }
 
-export function ThinkingPanel({ side, modelName, opening, candidates, reasoning, isMobile }: ThinkingPanelProps) {
+export function ThinkingPanel({ 
+  side, modelName, opening, candidates, reasoning, isMobile, moveNumber, moveSAN 
+}: ThinkingPanelProps) {
   const isWhite = side === 'white'
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -24,10 +28,17 @@ export function ThinkingPanel({ side, modelName, opening, candidates, reasoning,
       isWhite ? "border-l-4 border-l-primary" : "border-r-4 border-r-muted-foreground"
     )}>
       <div className={cn("p-3 border-b border-border flex justify-between items-center", isWhite ? "bg-primary/5" : "bg-muted/50")}>
-        <h3 className="font-bold uppercase tracking-wider text-sm">
-          {side} Player
-        </h3>
-        <span className="text-xs font-medium text-muted-foreground truncate max-w-[120px]" title={modelName}>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold uppercase tracking-wider text-sm">
+            {side} Player
+          </h3>
+          {moveNumber && (
+            <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-black tracking-tighter">
+              MOVE {moveNumber}{moveSAN ? ` (${moveSAN})` : ''}
+            </span>
+          )}
+        </div>
+        <span className="text-xs font-medium text-muted-foreground truncate max-w-[100px]" title={modelName}>
           {modelName}
         </span>
       </div>

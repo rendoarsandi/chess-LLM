@@ -8,6 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "seed": "tsx seed.ts",
     "db:push": "drizzle-kit push",
+    "lint": "tsc --noEmit",
     "check": "tsc --noEmit"
   },
   "keywords": [],
