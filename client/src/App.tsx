@@ -19,6 +19,8 @@ import { useStockfish } from "./lib/stockfish/useStockfish"
 import { RotateCcw, Pause, Play } from "lucide-react"
 import { cn } from "./lib/utils"
 import { Routes, Route, useNavigate, useLocation, useParams } from "react-router"
+import { ErrorBoundary } from "./components/ErrorBoundary"
+import { toast } from "sonner"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -168,10 +170,21 @@ function App() {
     const chess = new Chess()
     try {
       for (let i = 0; i <= index; i++) {
-        chess.move(moves[i].move)
+        const move = moves[i].move;
+        // Validation check before move
+        const moves_list = chess.moves();
+        if (moves_list.includes(move) || chess.move(move)) {
+          // Move successful or already validated
+        } else {
+          console.warn(`Skipping invalid move at index ${i}: ${move}`);
+          toast.error(`Invalid move encountered: ${move}`, {
+            description: `Game state might be out of sync. Skipping move.`,
+            id: `invalid-move-${move}-${i}` // Prevent duplicate toasts for same move
+          });
+        }
       }
     } catch (e) {
-      console.error("Error replaying moves for FEN:", e)
+      console.error("Critical error replaying moves for FEN:", e)
     }
     return chess.fen()
   }, [moves, activeMoveIndex])
@@ -181,10 +194,18 @@ function App() {
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1
     try {
       for (let i = 0; i <= index; i++) {
-        chess.move(moves[i].move)
+        const move = moves[i].move;
+        try {
+          chess.move(move);
+        } catch (inner_e) {
+          console.warn(`Skipping invalid move for PGN at index ${i}: ${move}`, inner_e);
+          toast.error(`Illegal move in history: ${move}`, {
+            id: `pgn-invalid-${move}-${i}`
+          });
+        }
       }
     } catch (e) {
-      console.error("Error replaying moves for PGN:", e)
+      console.error("Critical error replaying moves for PGN:", e)
     }
     return chess.pgn()
   }, [moves, activeMoveIndex])
@@ -195,12 +216,16 @@ function App() {
     const chess = new Chess()
     try {
       for (let i = 0; i < index; i++) {
-        chess.move(moves[i].move)
+        try {
+          chess.move(moves[i].move)
+        } catch {
+          // Skip invalid moves silently during replay
+        }
       }
       const move = chess.move(moves[index].move)
       return { from: move.from, to: move.to }
     } catch (e) {
-      console.error("Error replaying moves for highlight:", e)
+      console.warn("Could not determine last move squares due to invalid move:", e)
       return undefined
     }
   }, [moves, activeMoveIndex])
