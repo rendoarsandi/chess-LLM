@@ -306,9 +306,16 @@ function App() {
 
   // Sync view state with location for backward compatibility with Sidebar
   useEffect(() => {
-    const path = location.pathname.split('/')[1] || 'arena';
+    const segments = location.pathname.split('/').filter(Boolean);
+    const path = segments[0] || 'arena';
+    
     if (['arena', 'leaderboard', 'profiles', 'history'].includes(path)) {
       setView(path as View);
+      if (path === 'profiles' && segments[1]) {
+        setSelectedPlayerId(segments[1]);
+      } else if (path !== 'profiles') {
+        setSelectedPlayerId(null);
+      }
     }
   }, [location.pathname]);
 

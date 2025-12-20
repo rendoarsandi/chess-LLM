@@ -14,6 +14,9 @@ vi.mock('./api', () => ({
   getMoves: vi.fn().mockResolvedValue([]),
   getPlayers: vi.fn().mockResolvedValue([]),
   getLeaderboard: vi.fn().mockResolvedValue([]),
+  getPlayerProfile: vi.fn().mockResolvedValue(null),
+  getEloHistory: vi.fn().mockResolvedValue([]),
+  getHeadToHead: vi.fn().mockResolvedValue([]),
   createGame: vi.fn(),
   deleteGame: vi.fn(),
   pauseGame: vi.fn(),
@@ -76,5 +79,21 @@ describe('App Routing', () => {
     fireEvent.click(profilesLink);
 
     expect(screen.getByText('LLM Profiles')).toBeInTheDocument();
+  });
+
+  it('should render a specific player profile when navigating to /profiles/:id', async () => {
+    const mockPlayer = { id: 'p1', name: 'Deep Blue', type: 'llm', rating: 2800, wins: 10, losses: 5, draws: 2, peakRating: 2800, createdAt: '' };
+    vi.mocked(api.getPlayers).mockResolvedValue([mockPlayer] as any);
+    vi.mocked(api.getPlayerProfile).mockResolvedValue(mockPlayer as any);
+
+    render(
+      <MemoryRouter initialEntries={['/profiles/p1']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    // Should find the player name in the profile header
+    const profileHeader = await screen.findByText('Deep Blue');
+    expect(profileHeader).toBeInTheDocument();
   });
 });
