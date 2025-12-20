@@ -9,6 +9,7 @@
 - [x] Task: Refactor `GeminiPlayer` to extract common LLM logic into a `BaseLlmPlayer` in `server/src/game/base-llm-player.ts`. d2fe899
 - [x] Task: Write failing unit tests for `GroqPlayer` in `server/src/game/groq-player.test.ts`. 0237ba0
 - [x] Task: Implement `GroqPlayer` in `server/src/game/groq-player.ts` extending `BaseLlmPlayer`. bbcc210
+- [x] Task: Implement a centralized `Logger` utility in `server/src/game/logger.ts` and refactor services to use it. 1740afe
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Groq Player Implementation (TDD)' (Protocol in workflow.md)
 
 ## Phase 3: System Integration and Seeding
