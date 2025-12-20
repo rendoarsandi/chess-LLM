@@ -2,8 +2,8 @@
 
 ## Phase 1: Infrastructure & Routing Setup
 - [x] Task: Install `react-router` and its dependencies in the `client` directory. c66a967
-- [ ] Task: Configure the basic router structure in `client/src/main.tsx` or `client/src/App.tsx`.
-- [ ] Task: Refactor the current conditional rendering logic in `App.tsx` into Route definitions.
+- [x] Task: Configure the basic router structure in `client/src/main.tsx` or `client/src/App.tsx`. 98ff686
+- [~] Task: Refactor the current conditional rendering logic in `App.tsx` into Route definitions.
 - [ ] Task: Update the `Sidebar` navigation links to use `react-router`'s `Link` or `NavLink` components.
 - [ ] Task: Verify that navigation between Arena, Leaderboard, History, and Profiles updates the URL correctly.
 - [ ] Task: Conductor - User Manual Verification 'Infrastructure & Routing Setup' (Protocol in workflow.md)
