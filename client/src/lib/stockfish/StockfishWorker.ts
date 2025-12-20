@@ -18,7 +18,6 @@ export class StockfishWorker {
 
   private init() {
     try {
-      console.log('[StockfishWorker] Initializing worker with /stockfish/stockfish.js');
       this.worker = new Worker('/stockfish/stockfish.js');
       
       this.worker.onerror = (err) => {
@@ -26,8 +25,6 @@ export class StockfishWorker {
       };
 
       this.worker.onmessage = (e) => {
-        // Log all messages to see exactly what engine says
-        console.log('[StockfishWorker] Engine response:', e.data);
         this.handleMessage(e.data);
       };
       
@@ -39,16 +36,14 @@ export class StockfishWorker {
     }
   }
 
-  private handleMessage(message: string) {
+  private handleMessage = (message: string) => {
     if (typeof message !== 'string') return;
 
     if (message === 'readyok') {
-      console.log('[StockfishWorker] Engine ready');
       return;
     }
 
     if (message.startsWith('uciok')) {
-      console.log('[StockfishWorker] UCI protocol initialized');
       return;
     }
 
@@ -63,7 +58,7 @@ export class StockfishWorker {
     }
   }
 
-  private parseInfo(message: string): EngineEvaluation | null {
+  private parseInfo = (message: string): EngineEvaluation | null => {
     const depthMatch = message.match(/depth (\d+)/);
     const scoreMatch = message.match(/score (cp|mate) (-?\d+)/);
 
@@ -83,11 +78,9 @@ export class StockfishWorker {
 
   public analyze(fen: string, timeLimitMs: number = 2000) {
     if (!this.worker) {
-      console.warn('[StockfishWorker] Cannot analyze: Worker not initialized');
       return;
     }
 
-    console.log(`[StockfishWorker] Analyzing FEN: ${fen}`);
     this.sendMessage('stop');
     this.sendMessage(`position fen ${fen}`);
     this.sendMessage(`go movetime ${timeLimitMs}`);

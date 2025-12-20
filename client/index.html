@@ -7,25 +7,6 @@
     <title>ChessLLM</title>
   </head>
   <body>
-    <div id="error-reporter" style="display:none; position:fixed; top:0; left:0; width:100%; background:red; color:white; z-index:99999; padding:10px; font-family:monospace; font-size:12px; word-break:break-all;">
-      <strong>CRITICAL ERROR DETECTED:</strong>
-      <div id="error-message"></div>
-    </div>
-    <script>
-      window.onerror = function(msg, url, line, col, error) {
-        var reporter = document.getElementById('error-reporter');
-        var message = document.getElementById('error-message');
-        reporter.style.display = 'block';
-        message.innerText = msg + '\nAt: ' + url + ':' + line;
-        return false;
-      };
-      window.onunhandledrejection = function(event) {
-        var reporter = document.getElementById('error-reporter');
-        var message = document.getElementById('error-message');
-        reporter.style.display = 'block';
-        message.innerText = 'Unhandled Rejection: ' + event.reason;
-      };
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

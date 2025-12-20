@@ -43,32 +43,32 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
 
   return (
     <div className="flex flex-col items-center h-full gap-2 px-1">
-      <div className="text-[10px] font-bold text-neutral-500 uppercase">Black</div>
+      <div className="text-[10px] font-bold text-neutral-500 uppercase hidden md:block">Black</div>
       <div className={cn(
-        "relative w-8 h-full bg-neutral-900 overflow-hidden rounded-md border-2",
+        "relative w-4 md:w-8 h-full bg-neutral-900 overflow-hidden rounded-md border-2",
         !evaluation ? "border-neutral-800" : "border-neutral-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
       )}>
         {/* White portion (Bottom up) */}
         <div 
-          className="absolute bottom-0 w-full bg-white transition-all duration-700 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]"
+          className="absolute bottom-0 w-full bg-white transition-all duration-[1000ms] cubic-bezier(0.4, 0, 0.2, 1) shadow-[0_-2px_10px_rgba(255,255,255,0.3)]"
           style={{ height: `${percentage}%` }}
         />
         
         {/* Score overlay (Black on white, White on black) */}
         <div className={cn(
-          "absolute w-full text-[10px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
-          percentage > 50 ? "bottom-4 text-black" : "top-4 text-white"
+          "absolute w-full text-[8px] md:text-[10px] font-black text-center z-10 select-none pointer-events-none transition-all duration-700",
+          percentage > 50 ? "bottom-2 md:bottom-4 text-black" : "top-2 md:top-4 text-white"
         )}>
           {formatScore()}
         </div>
       </div>
-      <div className="text-[10px] font-bold text-neutral-500 uppercase">White</div>
+      <div className="text-[10px] font-bold text-neutral-500 uppercase hidden md:block">White</div>
       
       <div className="text-[9px] text-neutral-500 font-mono flex flex-col items-center mt-1">
         {evaluation ? (
-          <span className="bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-300">D{evaluation.depth}</span>
+          <span className="bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-300 hidden md:inline">D{evaluation.depth}</span>
         ) : (
-          <span className="animate-pulse text-neutral-600">WAITING</span>
+          <span className="animate-pulse text-neutral-600 hidden md:inline">WAITING</span>
         )}
       </div>
     </div>

@@ -15,17 +15,17 @@ This plan outlines the steps to integrate a client-side Stockfish evaluation bar
 - [x] Task: Write tests for `useStockfish` hook using `chess.js` positions to verify state updates.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: React State & Logic' (Protocol in workflow.md)
 
-## Phase 3: UI Components (Presentation Layer) [checkpoint: 289a17e]
+## Phase 3: UI Components (Presentation Layer) [checkpoint: 8fa5d59]
 - [x] Task: Create `AdvantageBar` component with vertical layout and dynamic height transitions.
 - [x] Task: Implement numerical score and mate display within or beside the bar.
 - [x] Task: Implement depth indicator UI.
 - [x] Task: Integrate `AdvantageBar` into the main `App` layout, positioned to the left of `Chessboard`.
 - [x] Task: Write tests for `AdvantageBar` to ensure correct rendering of scores (+/-) and mate values.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: UI Components' (Protocol in workflow.md)
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Components' (Protocol in workflow.md)
 
 ## Phase 4: Refinement & Mobile Optimization
-- [ ] Task: Ensure the advantage bar layout is responsive (narrower or hidden on small screens if necessary).
-- [ ] Task: Add smooth CSS transitions for the bar height changes.
-- [ ] Task: Final pass on styling to match Chess.com/Lichess aesthetics (Shadcn/Tailwind).
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Refinement & Mobile Optimization' (Protocol in workflow.md)
+- [x] Task: Remove Debug Tools (ErrorOverlay, hardwired HTML reporter, and verbose console logs).
+- [x] Task: Ensure the advantage bar layout is responsive (narrower or hidden on small screens if necessary).
+- [x] Task: Add smooth CSS transitions for the bar height changes.
+- [x] Task: Final pass on styling to match Chess.com/Lichess aesthetics (Shadcn/Tailwind).
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Refinement & Mobile Optimization' (Protocol in workflow.md)

@@ -5,7 +5,6 @@ import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
-import { ErrorOverlay } from "@/components/ErrorOverlay"
 import { useEffect, useState, useCallback } from "react"
 import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers } from "./api"
 import type { Game, Move, Player } from "./api"
@@ -110,10 +109,6 @@ function App() {
   const currentDisplayFen = activeMoveIndex !== null && moves[activeMoveIndex]
     ? moves[activeMoveIndex].fen
     : (moves.length > 0 ? moves[moves.length - 1].fen : selectedGame?.fen)
-
-  if (currentDisplayFen) {
-    console.debug('[App] Current FEN for evaluation:', currentDisplayFen);
-  }
 
   const { evaluation } = useStockfish(currentDisplayFen || null)
 
@@ -264,9 +259,9 @@ function App() {
             />
           </div>
 
-          <div className="flex gap-4 w-full justify-center">
+          <div className="flex gap-2 md:gap-4 w-full justify-center">
             <div className="h-[300px] md:h-[400px] lg:h-[600px] py-4">
-              <AdvantageBar evaluation={evaluation} orientation={boardOrientation} />
+              <AdvantageBar evaluation={evaluation} />
             </div>
 
             <div className="relative group">
@@ -388,7 +383,6 @@ function App() {
           />
         </div>
       </main>
-      <ErrorOverlay />
     </div>
   )
 }

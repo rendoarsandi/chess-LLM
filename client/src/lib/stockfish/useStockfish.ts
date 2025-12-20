@@ -12,13 +12,11 @@ export function useStockfish(fen: string | null) {
   }, []);
 
   useEffect(() => {
-    console.log('[useStockfish] Hook mounted');
     if (!engineRef.current) {
       engineRef.current = new StockfishWorker(onEngineMessage);
     }
 
     return () => {
-      console.log('[useStockfish] Hook unmounting, terminating engine');
       if (engineRef.current) {
         engineRef.current.terminate();
         engineRef.current = null;
@@ -28,7 +26,6 @@ export function useStockfish(fen: string | null) {
 
   useEffect(() => {
     if (fen && engineRef.current && fen !== lastFenRef.current) {
-      console.log(`[useStockfish] Analyzing new FEN: ${fen}`);
       lastFenRef.current = fen;
       engineRef.current.analyze(fen, 2000);
     }
