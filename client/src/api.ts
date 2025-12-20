@@ -15,6 +15,11 @@ export interface Player {
   id: string
   name: string
   type: 'llm' | 'human'
+  rating: number
+  wins: number
+  losses: number
+  draws: number
+  peakRating: number
   createdAt: string
 }
 
@@ -71,5 +76,10 @@ export async function clearHistory(): Promise<{ success: boolean }> {
 
 export async function getPlayers(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/players`)
+  return res.json()
+}
+
+export async function getLeaderboard(): Promise<Player[]> {
+  const res = await fetch(`${API_URL}/leaderboard`)
   return res.json()
 }
