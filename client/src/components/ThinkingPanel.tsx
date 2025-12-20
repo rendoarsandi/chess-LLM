@@ -44,11 +44,11 @@ export function ThinkingPanel({
       </div>
       
       <div className={cn(
-        "flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar",
-        !isMobile && "max-h-[500px]"
+        "flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar transition-all duration-300",
+        !isMobile ? "min-h-[350px] max-h-[350px]" : "min-h-[120px]"
       )}>
         {!opening && !candidates && !reasoning ? (
-          <div className="h-full flex items-center justify-center text-muted-foreground italic text-sm py-8 text-center">
+          <div className="h-full min-h-[120px] flex items-center justify-center text-muted-foreground italic text-sm py-8 text-center">
             Waiting for move...
           </div>
         ) : (
