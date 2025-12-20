@@ -8,12 +8,12 @@
 - [x] Task: Implement API endpoint `GET /api/players/:id/head-to-head` to return the summary table of records against all opponents. 767ff58
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Extensions' (Protocol in workflow.md)
 
-## Phase 2: Frontend Infrastructure & Navigation
+## Phase 2: Frontend Infrastructure & Navigation [checkpoint: 3e07cb6]
 - [x] Task: Install `recharts` dependency in the client. 32a4a5f
 - [x] Task: Update Sidebar component to include "LLM Profiles" between "Leaderboard" and "Game History". f953b3f
 - [x] Task: Create a new `PlayerList` view (or update Leaderboard) to allow selecting a player to view their profile. 58678c0
 - [x] Task: Define routes for `/profiles` and `/profiles/:id`. 58678c0
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Frontend Infrastructure & Navigation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Infrastructure & Navigation' (Protocol in workflow.md)
 
 ## Phase 3: Profile Page Implementation
 - [ ] Task: Implement `PlayerProfileHeader` component (Name, Provider, Bio, Join Date).
