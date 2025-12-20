@@ -120,11 +120,11 @@ export function GameHistory({
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={() => onSelect(game)}>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="h-9 px-4 text-xs" onClick={() => onSelect(game)}>
                     View
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-[10px] text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
+                  <Button variant="ghost" size="sm" className="h-9 px-4 text-xs text-destructive hover:bg-destructive/10" onClick={() => onDelete(game.id)}>
                     Delete
                   </Button>
                 </div>

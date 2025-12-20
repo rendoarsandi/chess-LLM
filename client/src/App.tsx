@@ -6,6 +6,12 @@ import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { useEffect, useState, useCallback } from "react"
 import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers, getLeaderboard } from "./api"
 import type { Game, Move, Player } from "./api"
@@ -347,32 +353,85 @@ function App() {
             )}
           </div>
           
-          {/* Mobile thinking and leaderboard (Shown only on < md) */}
-          <div className="grid grid-cols-1 gap-8 mt-8 w-full md:hidden">
-            <div className="space-y-4">
-              <ThinkingPanel 
-                side="white" 
-                modelName={whitePlayer?.name || 'Loading...'}
-                {...whiteThinking}
-              />
-              <ThinkingPanel 
-                side="black" 
-                modelName={blackPlayer?.name || 'Loading...'}
-                {...blackThinking}
-              />
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold px-1 flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
-                Leaderboard
-              </h2>
-              <Leaderboard players={leaderboard} />
-            </div>
+          {/* Mobile Layout with Tabs (Shown only on < md) */}
+          <div className="mt-8 w-full md:hidden">
+            <Tabs defaultValue="thinking" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="thinking">Thinking</TabsTrigger>
+                <TabsTrigger value="leaderboard">Rankings</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="thinking" className="space-y-4">
+                <ThinkingPanel 
+                  side="white" 
+                  modelName={whitePlayer?.name || 'Loading...'}
+                  {...whiteThinking}
+                />
+                <ThinkingPanel 
+                  side="black" 
+                  modelName={blackPlayer?.name || 'Loading...'}
+                  {...blackThinking}
+                />
+              </TabsContent>
+              
+              <TabsContent value="leaderboard">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold px-1 flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    Leaderboard
+                  </h2>
+                  <Leaderboard players={leaderboard} />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="history">
+                <div className="space-y-8">
+                  <div className="bg-card p-6 rounded-lg shadow-lg border border-border">
+                    <div className="flex justify-between items-start mb-1">
+                      <h2 className="text-xl font-bold">Arena Controls</h2>
+                    </div>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">White</label>
+                        <select 
+                          value={whitePlayerId} 
+                          onChange={(e) => setWhitePlayerId(e.target.value)}
+                          className="w-full bg-muted text-foreground rounded border border-border px-2 py-1 text-sm"
+                        >
+                          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Black</label>
+                        <select 
+                          value={blackPlayerId} 
+                          onChange={(e) => setBlackPlayerId(e.target.value)}
+                          className="w-full bg-muted text-foreground rounded border border-border px-2 py-1 text-sm"
+                        >
+                          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <Button className="w-full" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>
+                        New Match
+                      </Button>
+                    </div>
+                  </div>
+                  <GameHistory 
+                    games={games} 
+                    players={players}
+                    selectedGameId={selectedGame?.id} 
+                    onSelect={handleSelectGame} 
+                    onDelete={handleDeleteGame}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
-        {/* Right Sidebar - Black Thinking & Arena Controls */}
-        <div className="space-y-8 h-fit">
+        {/* Right Sidebar - Black Thinking & Arena Controls - Hidden on mobile, shown on lg+ */}
+        <div className="hidden md:block space-y-8 h-fit lg:col-span-1">
           <div className="hidden lg:block">
             <ThinkingPanel 
               side="black" 
