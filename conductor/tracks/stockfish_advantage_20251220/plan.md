@@ -23,7 +23,7 @@ This plan outlines the steps to integrate a client-side Stockfish evaluation bar
 - [x] Task: Write tests for `AdvantageBar` to ensure correct rendering of scores (+/-) and mate values.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: UI Components' (Protocol in workflow.md)
 
-## Phase 4: Refinement & Mobile Optimization
+## Phase 4: Refinement & Mobile Optimization [checkpoint: 2fc37f3]
 - [x] Task: Remove Debug Tools (ErrorOverlay, hardwired HTML reporter, and verbose console logs).
 - [x] Task: Ensure the advantage bar layout is responsive (narrower or hidden on small screens if necessary).
 - [x] Task: Add smooth CSS transitions for the bar height changes.
