@@ -28,6 +28,19 @@ export interface PlayerStats {
   avgThinkingMs: number | null
 }
 
+export interface Move {
+  id: number
+  gameId: string
+  moveNumber: number
+  playerColor: 'white' | 'black'
+  move: string
+  fen: string
+  opening?: string
+  candidates?: string
+  reasoning?: string
+  createdAt: string
+}
+
 export async function getGames(): Promise<Game[]> {
   const res = await fetch(`${API_URL}/games`)
   return res.json()

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { PlayerProfile } from './PlayerProfile'
 import * as api from '@/api'
@@ -34,7 +34,7 @@ describe('PlayerProfile', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(api.getPlayerStats as any).mockResolvedValue(mockStats)
+    ;(api.getPlayerStats as Mock).mockResolvedValue(mockStats)
   })
 
   it('renders player basic info when open', async () => {
@@ -56,7 +56,7 @@ describe('PlayerProfile', () => {
   })
 
   it('renders nothing when closed', () => {
-    const { container } = render(<PlayerProfile player={mockPlayer} open={false} onOpenChange={() => {}} />)
+    render(<PlayerProfile player={mockPlayer} open={false} onOpenChange={() => {}} />)
     // When closed, DialogContent is usually not in DOM or Dialog is not open
     // Simple check: player name shouldn't be visible if it's not rendered
     expect(screen.queryByText('Stockfish 16')).not.toBeInTheDocument()

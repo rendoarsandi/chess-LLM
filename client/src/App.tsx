@@ -125,7 +125,7 @@ function App() {
     pollSelectedGame()
     const gameInterval = setInterval(pollSelectedGame, 2000)
     return () => clearInterval(gameInterval)
-  }, [selectedGame?.id])
+  }, [selectedGame?.id, selectedGame?.status, fetchLeaderboard])
 
   const currentDisplayFen = activeMoveIndex !== null && moves[activeMoveIndex]
     ? moves[activeMoveIndex].fen

@@ -21,7 +21,7 @@ export function PlayerProfile({ player, open, onOpenChange }: PlayerProfileProps
 
   useEffect(() => {
     if (player && open) {
-      setLoading(true)
+      setLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
       getPlayerStats(player.id)
         .then(setStats)
         .finally(() => setLoading(false))
