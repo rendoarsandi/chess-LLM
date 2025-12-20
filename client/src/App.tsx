@@ -7,6 +7,7 @@ import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
+import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
@@ -319,7 +320,14 @@ function App() {
 
                 <div className="flex gap-2 md:gap-4 w-full justify-center items-start">
                   <div className="h-[300px] md:h-[400px] lg:h-[500px] py-1">
-                    <AdvantageBar evaluation={evaluation} variations={variations} isThinking={isThinking} />
+                    <AdvantageBar 
+                      evaluation={evaluation} 
+                      variations={variations} 
+                      isThinking={isThinking} 
+                      gameStatus={selectedGame?.status}
+                      winnerId={selectedGame?.winnerId}
+                      whitePlayerId={selectedGame?.whitePlayerId}
+                    />
                   </div>
 
                   <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
@@ -330,6 +338,21 @@ function App() {
                       gameId={selectedGame?.id}
                       pgn={currentPgn}
                     />
+                    
+                    {selectedGame && (
+                      <GameResultOverlay 
+                        status={selectedGame.status}
+                        winnerId={selectedGame.winnerId}
+                        whitePlayerId={selectedGame.whitePlayerId}
+                        whitePlayerName={whitePlayer?.name}
+                        blackPlayerName={blackPlayer?.name}
+                        reason={selectedGame.gameOverReason}
+                        onNewMatch={() => {
+                          handleCreateGame(whitePlayerId, blackPlayerId);
+                        }}
+                      />
+                    )}
+
                     {!isLive && (
                       <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-black shadow-lg animate-pulse">
                         HISTORY MODE

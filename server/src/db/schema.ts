@@ -33,6 +33,8 @@ export const games = sqliteTable('games', {
   status: text('status', { enum: ['ongoing', 'completed', 'draw', 'paused'] }).default('ongoing').notNull(),
   fen: text('fen').default('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1').notNull(),
   winnerId: text('winner_id').references(() => players.id),
+  gameOverReason: text('game_over_reason'), // e.g. "checkmate", "stalemate", "draw"
+  pgn: text('pgn'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 })

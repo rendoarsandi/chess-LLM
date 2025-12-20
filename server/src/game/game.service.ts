@@ -131,6 +131,7 @@ export class GameService {
 
     let status = 'ongoing'
     let winnerId = null
+    let gameOverReason = null
 
     if (isGameOver) {
       if (winner === 'white') {
@@ -142,13 +143,30 @@ export class GameService {
       } else {
         status = 'draw'
       }
+
+      if (chess.isCheckmate()) gameOverReason = 'checkmate'
+      else if (chess.isStalemate()) gameOverReason = 'stalemate'
+      else if (chess.isThreefoldRepetition()) gameOverReason = 'threefold repetition'
+      else if (chess.isInsufficientMaterial()) gameOverReason = 'insufficient material'
+      else if (chess.isDraw()) gameOverReason = 'draw'
     }
+
+    // Update PGN
+    const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
+    const pgnChess = new Chess()
+    for (const m of allMoves) {
+      pgnChess.move(m.move)
+    }
+    pgnChess.move(moveResult.san)
+    const pgn = pgnChess.pgn()
 
     await this.db.update(games)
       .set({ 
         fen: nextFen, 
         status: status as any, 
         winnerId,
+        gameOverReason,
+        pgn,
         updatedAt: new Date()
       })
       .where(eq(games.id, gameId))
@@ -157,7 +175,7 @@ export class GameService {
       await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId, gameId)
     }
 
-    return { fen: nextFen, status, winnerId }
+    return { fen: nextFen, status, winnerId, gameOverReason }
   }
 
   private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {

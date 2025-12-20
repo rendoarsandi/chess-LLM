@@ -7,12 +7,30 @@ interface AdvantageBarProps {
   variations?: EngineEvaluation[];
   orientation?: 'white' | 'black';
   isThinking?: boolean;
+  gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
+  winnerId?: string | null;
+  whitePlayerId?: string;
 }
 
-export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variations, isThinking }) => {
+export const AdvantageBar: React.FC<AdvantageBarProps> = ({ 
+  evaluation, 
+  variations, 
+  isThinking, 
+  gameStatus,
+  winnerId,
+  whitePlayerId
+}) => {
   // Normalize score to percentage (0 to 100)
   // +5.0 or more is 100% white, -5.0 or less is 0% white (100% black)
   const getPercentage = () => {
+    // Terminal States override engine evaluation
+    if (gameStatus === 'completed') {
+      return winnerId === whitePlayerId ? 100 : 0;
+    }
+    if (gameStatus === 'draw') {
+      return 50;
+    }
+
     if (!evaluation) {
       return 50;
     }
@@ -20,7 +38,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
     if (evaluation.isMate) {
       const mateIn = evaluation.mateIn || 0;
       if (mateIn === 0) return 50;
-      // mateIn > 0 means White is mating, < 0 means Black is mating
+      // mateIn > 0 means White is mating (100% white), < 0 means Black is mating (0% white)
       return mateIn > 0 ? 100 : 0;
     }
 
@@ -40,6 +58,13 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
   const percentage = getPercentage();
 
   const formatScore = () => {
+    if (gameStatus === 'completed') {
+      return winnerId === whitePlayerId ? '1-0' : '0-1';
+    }
+    if (gameStatus === 'draw') {
+      return '½-½';
+    }
+
     if (!evaluation) return '';
     if (evaluation.isMate) {
       const m = evaluation.mateIn || 0;

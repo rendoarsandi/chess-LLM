@@ -7,6 +7,7 @@ export interface Game {
   status: 'ongoing' | 'completed' | 'draw' | 'paused'
   fen: string
   winnerId: string | null
+  gameOverReason?: string | null
   createdAt: string
   updatedAt: string
 }
