@@ -1,14 +1,22 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { act } from 'react'
 import { PlayerProfile } from './PlayerProfile'
 import * as api from '@/api'
+
+// Mock ResizeObserver for Recharts
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+}))
 
 vi.mock('@/api', async () => {
   const actual = await vi.importActual('@/api')
   return {
     ...actual,
-    getPlayerStats: vi.fn(),
+    getPlayerProfile: vi.fn(),
+    getEloHistory: vi.fn(),
+    getHeadToHead: vi.fn(),
   }
 })
 
@@ -22,46 +30,39 @@ describe('PlayerProfile', () => {
     losses: 2,
     draws: 5,
     peakRating: 2900,
-    createdAt: ''
-  }
-
-  const mockStats: api.PlayerStats = {
-    favoriteOpenings: [
-      { opening: 'Ruy Lopez', count: 5 },
-      { opening: 'Sicilian Defense', count: 3 }
-    ],
-    avgThinkingMs: 1500
+    createdAt: new Date().toISOString(),
+    provider: 'Arena',
+    version: '16'
   }
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(api.getPlayerStats as Mock).mockResolvedValue(mockStats)
+    ;(api.getPlayerProfile as Mock).mockResolvedValue(mockPlayer)
+    ;(api.getEloHistory as Mock).mockResolvedValue([])
+    ;(api.getHeadToHead as Mock).mockResolvedValue([])
   })
 
-  it('renders player basic info when open', async () => {
-    await act(async () => {
-      render(<PlayerProfile player={mockPlayer} open={true} onOpenChange={() => {}} />)
-    })
+  it('renders player profile data correctly', async () => {
+    render(<PlayerProfile playerId="p1" onBack={() => {}} />)
     
-    expect(screen.getByText('Stockfish 16')).toBeInTheDocument()
-    expect(screen.getByText(/llm Player • Rating 2850/i)).toBeInTheDocument()
-    expect(screen.getByText('10')).toBeInTheDocument() // Wins
-  }, 10000)
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.queryByText(/Retrieving Profile Data.../i)).not.toBeInTheDocument()
+    })
 
-  it('fetches and displays player stats', async () => {
-    render(<PlayerProfile player={mockPlayer} open={true} onOpenChange={() => {}} />)
+    expect(screen.getByText('Stockfish 16')).toBeInTheDocument()
+    expect(screen.getByText(/2850 ELO/i)).toBeInTheDocument()
+    expect(screen.getByText('10')).toBeInTheDocument() // Wins
+    expect(screen.getByText('2')).toBeInTheDocument() // Losses
+    expect(screen.getByText('5')).toBeInTheDocument() // Draws
+  })
+
+  it('shows error state when player not found', async () => {
+    ;(api.getPlayerProfile as Mock).mockResolvedValue(null)
+    render(<PlayerProfile playerId="non-existent" onBack={() => {}} />)
     
     await waitFor(() => {
-      expect(screen.getByText('Ruy Lopez')).toBeInTheDocument()
-      expect(screen.getByText('5 games')).toBeInTheDocument()
-      expect(screen.getByText('1.5s')).toBeInTheDocument() // Avg thinking time
+      expect(screen.getByText(/Model profile not found/i)).toBeInTheDocument()
     })
-  })
-
-  it('renders nothing when closed', () => {
-    render(<PlayerProfile player={mockPlayer} open={false} onOpenChange={() => {}} />)
-    // When closed, DialogContent is usually not in DOM or Dialog is not open
-    // Simple check: player name shouldn't be visible if it's not rendered
-    expect(screen.queryByText('Stockfish 16')).not.toBeInTheDocument()
   })
 })

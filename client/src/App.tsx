@@ -497,15 +497,10 @@ function App() {
                   </div>
                 </>
               ) : (
-                <div className="space-y-6">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedPlayerId(null)} className="h-8 text-[10px] font-black tracking-widest -ml-2">
-                    ← BACK TO LIST
-                  </Button>
-                  <div className="text-center py-20 bg-muted/20 rounded-xl border border-dashed border-border">
-                    <p className="text-muted-foreground">Profile Implementation in Progress...</p>
-                    <p className="text-xs text-muted-foreground mt-2">Player ID: {selectedPlayerId}</p>
-                  </div>
-                </div>
+                <PlayerProfile 
+                  playerId={selectedPlayerId} 
+                  onBack={() => setSelectedPlayerId(null)} 
+                />
               )}
             </div>
           )}
