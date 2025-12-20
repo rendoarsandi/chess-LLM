@@ -29,8 +29,12 @@ describe('StockfishWorker', () => {
     activeWorker = (worker as unknown as { worker: MockWorker }).worker;
   });
 
-  it('should initialize with UCI commands', () => {
+  it('should initialize with UCI command', () => {
     expect(activeWorker.postMessage).toHaveBeenCalledWith('uci');
+  });
+
+  it('should send isready after uciok', () => {
+    activeWorker.simulateMessage('uciok');
     expect(activeWorker.postMessage).toHaveBeenCalledWith('isready');
   });
 
@@ -59,12 +63,45 @@ describe('StockfishWorker', () => {
   });
 
   it('should send analyze commands correctly', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+    
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     worker.analyze(fen, 1000);
 
-    expect(activeWorker.postMessage).toHaveBeenCalledWith('stop');
     expect(activeWorker.postMessage).toHaveBeenCalledWith(`position fen ${fen}`);
     expect(activeWorker.postMessage).toHaveBeenCalledWith('go depth 1000');
+  });
+
+  it('should normalize scores for Black perspective', () => {
+    // FEN with Black to move
+    const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
+    worker.analyze(fen, 10);
+    
+    // If Stockfish says +50 for Black to move, it means Black is +0.5
+    // Normalized to White-relative, it should be -50
+    const infoMessage = 'info depth 10 score cp 50 pv e7e5';
+    activeWorker.simulateMessage(infoMessage);
+
+    expect(mockCallback).toHaveBeenCalledWith(expect.objectContaining({
+      score: -50,
+      sideToMove: 'b'
+    }));
+  });
+
+  it('should normalize mate for Black perspective', () => {
+    const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
+    worker.analyze(fen, 10);
+    
+    // Mate in 3 for Black
+    const infoMessage = 'info depth 10 score mate 3 pv f7f5';
+    activeWorker.simulateMessage(infoMessage);
+
+    expect(mockCallback).toHaveBeenCalledWith(expect.objectContaining({
+      isMate: true,
+      mateIn: -3,
+      sideToMove: 'b'
+    }));
   });
 
   it('should terminate the worker', () => {

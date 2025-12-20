@@ -45,6 +45,8 @@ export class StockfishWorker {
     }
   }
 
+  private currentSideToMove: 'w' | 'b' = 'w';
+
   private handleMessage = (message: string) => {
     if (typeof message !== 'string') return;
 
@@ -96,9 +98,15 @@ export class StockfishWorker {
 
     const depth = parseInt(depthMatch[1]);
     const type = scoreMatch[1];
-    const value = parseInt(scoreMatch[2]);
+    let value = parseInt(scoreMatch[2]);
     const multipv = multipvMatch ? parseInt(multipvMatch[1]) : 1;
     const pv = pvMatch ? pvMatch[1] : undefined;
+
+    // Normalize score to White-relative
+    // Stockfish CP is from the perspective of the side to move
+    if (this.currentSideToMove === 'b') {
+      value = -value;
+    }
 
     return {
       score: type === 'cp' ? value : 0,
@@ -106,13 +114,20 @@ export class StockfishWorker {
       mateIn: type === 'mate' ? value : undefined,
       depth,
       multipv,
-      pv
+      pv,
+      sideToMove: this.currentSideToMove
     };
   }
 
   public analyze(fen: string, depth: number = 15, onStart?: () => void) {
     if (!this.worker || this.isTerminated) {
       return;
+    }
+
+    // Extract side to move from FEN
+    const fenParts = fen.split(' ');
+    if (fenParts.length > 1) {
+      this.currentSideToMove = fenParts[1] === 'b' ? 'b' : 'w';
     }
 
     if (!this.isReady) {
