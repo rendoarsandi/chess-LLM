@@ -31,8 +31,8 @@ Goal: Implement the single-column stack and collapsible component containers for
 ## Phase 4: Global View Refinement & Final Polish
 Goal: Ensure all other views (Leaderboard, Profiles, History) are mobile-optimized.
 
-- [ ] Task: Audit and fix responsiveness issues in `Leaderboard.tsx` (table overflow).
-- [ ] Task: Audit and fix responsiveness issues in `PlayerProfile.tsx` (chart and stat card stacking).
-- [ ] Task: Audit and fix responsiveness issues in `GameHistory.tsx`.
-- [ ] Task: Final CSS polish for spacing, font sizes, and touch targets across the app.
+- [x] Task: Audit and fix responsiveness issues in `Leaderboard.tsx` (table overflow). b4d4dc1
+- [x] Task: Audit and fix responsiveness issues in `PlayerProfile.tsx` (chart and stat card stacking). b4d4dc1
+- [x] Task: Audit and fix responsiveness issues in `GameHistory.tsx`. b4d4dc1
+- [x] Task: Final CSS polish for spacing, font sizes, and touch targets across the app. b4d4dc1
 - [ ] Task: Conductor - User Manual Verification 'Global View Refinement & Final Polish' (Protocol in workflow.md)
