@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/Sidebar"
 import type { View } from "@/components/Sidebar"
+import { CollapsibleSection } from "@/components/CollapsibleSection"
 import { Button } from "@/components/ui/button"
 import { ChessboardContainer } from "@/components/Chessboard"
 import { GameHistory } from "@/components/GameHistory"
@@ -26,19 +27,6 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  // ... existing states ...
-
-  // Sync states on resize
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 1024) {
-        setIsSidebarCollapsed(true);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
   const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
@@ -138,6 +126,18 @@ function App() {
     const interval = setInterval(fetchMoves, 1000)
     return () => clearInterval(interval)
   }, [selectedGame])
+
+  // Sync states on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const currentDisplayFen = useMemo(() => {
     if (moves.length === 0) return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -265,28 +265,31 @@ function App() {
         
         <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
           {view === 'arena' && (
-            <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="max-w-[1600px] mx-auto flex flex-col lg:grid lg:grid-cols-4 gap-8">
               {/* Left Column - White Thinking (lg+) */}
               <div className="hidden lg:block h-fit">
                 <ThinkingPanel 
                   side="white" 
                   modelName={whitePlayer?.name || 'Loading...'}
+                  isMobile={isMobile}
                   {...whiteThinking}
                 />
               </div>
 
-              {/* Center Column - Board */}
+              {/* Center Column - Board & Main Controls */}
               <div className="lg:col-span-2 flex flex-col items-center">
                 {/* Tablet Layout (Shown only on md to lg) */}
                 <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
                   <ThinkingPanel 
                     side="white" 
                     modelName={whitePlayer?.name || 'Loading...'}
+                    isMobile={isMobile}
                     {...whiteThinking}
                   />
                   <ThinkingPanel 
                     side="black" 
                     modelName={blackPlayer?.name || 'Loading...'}
+                    isMobile={isMobile}
                     {...blackThinking}
                   />
                 </div>
@@ -304,7 +307,6 @@ function App() {
                       variations={variations} 
                       isThinking={isThinking} 
                       orientation={isMobile ? 'horizontal' : 'vertical'}
-                      // Only show terminal states (1-0, etc.) if we are at the LIVE (current) position
                       gameStatus={isLive ? selectedGame?.status : 'ongoing'}
                       winnerId={selectedGame?.winnerId}
                       whitePlayerId={selectedGame?.whitePlayerId}
@@ -382,30 +384,73 @@ function App() {
                   )}
                 </div>
 
-                {/* Mobile Thinking (< md) */}
-                <div className="mt-8 w-full md:hidden space-y-4">
-                  <ThinkingPanel 
-                    side="white" 
-                    modelName={whitePlayer?.name || 'Loading...'}
-                    {...whiteThinking}
-                  />
-                  <ThinkingPanel 
-                    side="black" 
-                    modelName={blackPlayer?.name || 'Loading...'}
-                    {...blackThinking}
-                  />
+                {/* Mobile Sections (< lg) - Stacked and Collapsible */}
+                <div className="mt-8 w-full lg:hidden space-y-4">
+                  <CollapsibleSection title="White Thinking" className="md:hidden">
+                    <ThinkingPanel 
+                      side="white" 
+                      modelName={whitePlayer?.name || 'Loading...'}
+                      isMobile={isMobile}
+                      {...whiteThinking}
+                    />
+                  </CollapsibleSection>
+
+                  <CollapsibleSection title="Black Thinking" className="md:hidden">
+                    <ThinkingPanel 
+                      side="black" 
+                      modelName={blackPlayer?.name || 'Loading...'}
+                      isMobile={isMobile}
+                      {...blackThinking}
+                    />
+                  </CollapsibleSection>
+
+                  <CollapsibleSection title="Move List">
+                    <MoveList 
+                      moves={moves} 
+                      onMoveClick={setActiveMoveIndex} 
+                      selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+                      isLive={isLive}
+                    />
+                  </CollapsibleSection>
+
+                  <CollapsibleSection title="Arena Controls">
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
+                        <select 
+                          value={whitePlayerId} 
+                          onChange={(e) => setWhitePlayerId(e.target.value)}
+                          className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
+                        >
+                          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
+                        <select 
+                          value={blackPlayerId} 
+                          onChange={(e) => setBlackPlayerId(e.target.value)}
+                          className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
+                        >
+                          {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)}>
+                        LAUNCH MATCH
+                      </Button>
+                    </div>
+                  </CollapsibleSection>
                 </div>
               </div>
 
-              {/* Right Column - Black Thinking & Arena Controls */}
-              <div className="hidden md:block space-y-8 h-fit lg:col-span-1">
-                <div className="hidden lg:block">
-                  <ThinkingPanel 
-                    side="black" 
-                    modelName={blackPlayer?.name || 'Loading...'}
-                    {...blackThinking}
-                  />
-                </div>
+              {/* Right Column - Black Thinking & Arena Controls (lg+) */}
+              <div className="hidden lg:block space-y-8 h-fit lg:col-span-1">
+                <ThinkingPanel 
+                  side="black" 
+                  modelName={blackPlayer?.name || 'Loading...'}
+                  isMobile={isMobile}
+                  {...blackThinking}
+                />
 
                 <MoveList 
                   moves={moves} 
