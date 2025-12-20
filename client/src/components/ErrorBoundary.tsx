@@ -61,10 +61,18 @@ export class ErrorBoundary extends Component<Props, State> {
               </code>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-4 space-y-3">
+              <Button 
+                onClick={this.resetErrorBoundary}
+                className="w-full flex items-center justify-center gap-2 font-black tracking-widest uppercase"
+                variant="outline"
+              >
+                <RefreshCw size={16} />
+                Attempt Recovery
+              </Button>
               <Button 
                 onClick={() => window.location.reload()}
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 font-black tracking-widest uppercase"
                 variant="default"
               >
                 <RefreshCw size={16} />
