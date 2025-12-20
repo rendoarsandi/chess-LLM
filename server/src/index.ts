@@ -170,6 +170,26 @@ app.post('/api/games', async (c) => {
   }
 })
 
+app.post('/api/games/:id/pause', async (c) => {
+  const id = c.req.param('id')
+  try {
+    await gameService.pauseGame(id)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
+app.post('/api/games/:id/resume', async (c) => {
+  const id = c.req.param('id')
+  try {
+    await gameService.resumeGame(id)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
 app.post('/api/games/:id/move', async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()

@@ -1,10 +1,10 @@
-const API_URL = 'http://localhost:3001/api'
+const API_URL = '/api'
 
 export interface Game {
   id: string
   whitePlayerId: string
   blackPlayerId: string
-  status: 'ongoing' | 'completed' | 'draw'
+  status: 'ongoing' | 'completed' | 'draw' | 'paused'
   fen: string
   winnerId: string | null
   createdAt: string
@@ -38,6 +38,7 @@ export interface Move {
   opening?: string
   candidates?: string
   reasoning?: string
+  thinkingMs?: number
   createdAt: string
 }
 
@@ -48,6 +49,20 @@ export async function getGames(): Promise<Game[]> {
 
 export async function getGame(id: string): Promise<Game> {
   const res = await fetch(`${API_URL}/games/${id}`)
+  return res.json()
+}
+
+export async function pauseGame(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games/${id}/pause`, {
+    method: 'POST'
+  })
+  return res.json()
+}
+
+export async function resumeGame(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games/${id}/resume`, {
+    method: 'POST'
+  })
   return res.json()
 }
 

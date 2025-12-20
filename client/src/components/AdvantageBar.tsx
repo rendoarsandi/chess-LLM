@@ -26,7 +26,11 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
     // Clamp score between -5 and 5 for the visual bar
     const clampedScore = Math.max(-5, Math.min(5, score));
     // Map -5..5 to 0..100
-    const calculated = ((clampedScore + 5) / 10) * 100;
+    const rawPct = ((clampedScore + 5) / 10) * 100;
+    
+    // Scale 0..100 to 5..95 so it never looks "full" unless it's a mate
+    // formula: 5 + (rawPct * (90/100))
+    const calculated = 5 + (rawPct * 0.9);
     return isNaN(calculated) ? 50 : calculated;
   };
 
@@ -44,7 +48,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
   return (
     <div className="flex flex-col items-center h-full relative">
       <div className={cn(
-        "relative w-3 md:w-4 h-full bg-neutral-950 overflow-hidden rounded-sm border-2",
+        "relative w-10 md:w-12 h-full bg-neutral-950 overflow-hidden rounded-sm border-2",
         !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
       )}>
         {/* White portion (Bottom up) */}
@@ -55,7 +59,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
         
         {/* Score overlay (Black on white, White on black) */}
         <div className={cn(
-          "absolute w-full text-[8px] md:text-[9px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
+          "absolute w-full text-[10px] md:text-[11px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
           percentage > 50 ? "bottom-2 text-black" : "top-2 text-white"
         )}>
           {formatScore()}

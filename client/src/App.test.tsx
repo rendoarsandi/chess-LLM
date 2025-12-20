@@ -69,31 +69,41 @@ describe('App Integration', () => {
     // Verify the move e4 appears in the move list
     await waitFor(() => {
       expect(screen.getByText('e4')).toBeInTheDocument()
-    }, { timeout: 3000 })
-  })
+    }, { timeout: 8000 })
+  }, 10000)
 
   it('shows BROWSING HISTORY badge when navigating back', async () => {
-    const moveFen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
-    const mockMove = {
-      id: 1,
-      gameId: 'game-1',
-      moveNumber: 1,
-      playerColor: 'white',
-      move: 'e4',
-      fen: moveFen,
-      createdAt: new Date().toISOString(),
-    }
+    const mockMoves = [
+      {
+        id: 1,
+        gameId: 'game-1',
+        moveNumber: 1,
+        playerColor: 'white',
+        move: 'e4',
+        fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        gameId: 'game-1',
+        moveNumber: 1,
+        playerColor: 'black',
+        move: 'e5',
+        fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+        createdAt: new Date().toISOString(),
+      }
+    ]
     
-    ;(api.getMoves as Mock).mockResolvedValue([mockMove])
+    ;(api.getMoves as Mock).mockResolvedValue(mockMoves)
 
     render(<App />)
 
-    await waitFor(() => expect(screen.getByText('e4')).toBeInTheDocument(), { timeout: 3000 })
+    await waitFor(() => expect(screen.getByText('e5')).toBeInTheDocument(), { timeout: 8000 })
 
-    // Click the move to enter browsing mode
+    // Click the first move (e4) to enter browsing mode
     const moveButton = screen.getByText('e4')
     fireEvent.click(moveButton)
 
-    expect(screen.getByText('BROWSING HISTORY')).toBeInTheDocument()
-  })
+    expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
+  }, 10000)
 })

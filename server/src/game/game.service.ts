@@ -27,6 +27,18 @@ export class GameService {
     return result[0]
   }
 
+  async pauseGame(gameId: string) {
+    await this.db.update(games)
+      .set({ status: 'paused', updatedAt: new Date() })
+      .where(eq(games.id, gameId))
+  }
+
+  async resumeGame(gameId: string) {
+    await this.db.update(games)
+      .set({ status: 'ongoing', updatedAt: new Date() })
+      .where(eq(games.id, gameId))
+  }
+
   async deleteGame(gameId: string) {
     // Delete associated moves first
     await this.db.delete(moves).where(eq(moves.gameId, gameId))

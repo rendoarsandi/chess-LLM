@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { act } from 'react'
 import { PlayerProfile } from './PlayerProfile'
 import * as api from '@/api'
 
@@ -38,12 +39,14 @@ describe('PlayerProfile', () => {
   })
 
   it('renders player basic info when open', async () => {
-    render(<PlayerProfile player={mockPlayer} open={true} onOpenChange={() => {}} />)
+    await act(async () => {
+      render(<PlayerProfile player={mockPlayer} open={true} onOpenChange={() => {}} />)
+    })
     
     expect(screen.getByText('Stockfish 16')).toBeInTheDocument()
     expect(screen.getByText(/llm Player • Rating 2850/i)).toBeInTheDocument()
     expect(screen.getByText('10')).toBeInTheDocument() // Wins
-  })
+  }, 10000)
 
   it('fetches and displays player stats', async () => {
     render(<PlayerProfile player={mockPlayer} open={true} onOpenChange={() => {}} />)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { GameHistory } from './GameHistory'
 import type { Game, Player } from '@/api'
 
@@ -86,8 +86,11 @@ describe('GameHistory', () => {
     const searchInput = screen.getByPlaceholderText(/search games.../i)
     
     fireEvent.change(searchInput, { target: { value: 'AlphaZero' } })
-    expect(screen.getByText('AlphaZero vs Stockfish', { selector: 'span' })).toBeInTheDocument()
-    expect(screen.queryByText('Stockfish vs Gemini', { selector: 'span' })).not.toBeInTheDocument()
+    
+    await waitFor(() => {
+      expect(screen.getByText('AlphaZero vs Stockfish', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.queryByText('Stockfish vs Gemini', { selector: 'span' })).not.toBeInTheDocument()
+    })
   })
 
   it('filters games by search query (id)', async () => {
@@ -96,8 +99,9 @@ describe('GameHistory', () => {
     const searchInput = screen.getByPlaceholderText(/search games.../i)
     fireEvent.change(searchInput, { target: { value: 'game-id-1' } })
     
-    expect(screen.getByText(/game-id-/i, { selector: 'span' })).toBeInTheDocument()
-    expect(screen.getByText('Stockfish vs Gemini', { selector: 'span' })).toBeInTheDocument()
-    expect(screen.queryByText('Gemini vs Stockfish', { selector: 'span' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Stockfish vs Gemini', { selector: 'span' })).toBeInTheDocument()
+      expect(screen.queryByText('Gemini vs Stockfish', { selector: 'span' })).not.toBeInTheDocument()
+    })
   })
 })

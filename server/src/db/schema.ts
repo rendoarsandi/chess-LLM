@@ -17,7 +17,7 @@ export const games = sqliteTable('games', {
   id: text('id').primaryKey(), // UUID
   whitePlayerId: text('white_player_id').references(() => players.id).notNull(),
   blackPlayerId: text('black_player_id').references(() => players.id).notNull(),
-  status: text('status', { enum: ['ongoing', 'completed', 'draw'] }).default('ongoing').notNull(),
+  status: text('status', { enum: ['ongoing', 'completed', 'draw', 'paused'] }).default('ongoing').notNull(),
   fen: text('fen').default('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1').notNull(),
   winnerId: text('winner_id').references(() => players.id),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),

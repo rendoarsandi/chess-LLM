@@ -50,6 +50,7 @@ describe('GameService', () => {
         opening TEXT,
         candidates TEXT,
         reasoning TEXT,
+        thinking_ms INTEGER,
         created_at INTEGER NOT NULL,
         FOREIGN KEY(game_id) REFERENCES games(id)
       );

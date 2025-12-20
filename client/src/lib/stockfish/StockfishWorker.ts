@@ -10,6 +10,7 @@ export type EngineCallback = (evaluation: EngineEvaluation) => void;
 export class StockfishWorker {
   private worker: Worker | null = null;
   private onEvaluation: EngineCallback | null = null;
+  private isTerminated: boolean = false;
 
   constructor(callback: EngineCallback) {
     this.onEvaluation = callback;
@@ -25,14 +26,17 @@ export class StockfishWorker {
       };
 
       this.worker.onmessage = (e) => {
+        if (this.isTerminated) return;
         this.handleMessage(e.data);
       };
       
       this.sendMessage('uci');
+      this.sendMessage('setoption name Threads value 1');
       this.sendMessage('ucinewgame');
       this.sendMessage('isready');
     } catch (error) {
       console.error('[StockfishWorker] Critical failure during initialization:', error);
+      this.isTerminated = true;
     }
   }
 
@@ -77,7 +81,7 @@ export class StockfishWorker {
   }
 
   public analyze(fen: string, timeLimitMs: number = 2000) {
-    if (!this.worker) {
+    if (!this.worker || this.isTerminated) {
       return;
     }
 
@@ -87,12 +91,18 @@ export class StockfishWorker {
   }
 
   private sendMessage(command: string) {
-    if (this.worker) {
-      this.worker.postMessage(command);
+    if (this.worker && !this.isTerminated) {
+      try {
+        this.worker.postMessage(command);
+      } catch (e) {
+        console.error('[StockfishWorker] Failed to send message:', e);
+        this.terminate();
+      }
     }
   }
 
   public terminate() {
+    this.isTerminated = true;
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;

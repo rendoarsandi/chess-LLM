@@ -24,8 +24,8 @@ This plan covers the backend ELO logic and the frontend components for the leade
 - [x] Task: Write tests for history filtering and profile data display. [7db09e2]
 - [x] Task: Conductor - User Manual Verification 'Phase 3: UI Enhancements & Filtering' (Protocol in workflow.md) [263097f]
 
-## Phase 4: Mobile Optimization & Final Review [checkpoint: b927967]
+## Phase 4: Mobile Optimization & Final Review [checkpoint: e01f974]
 - [x] Task: Refine the grid layout in `App.tsx` for better mobile stacking of the leaderboard. [6e908b0]
 - [x] Task: Ensure all modals and filters are touch-friendly. [6e908b0]
 - [x] Task: Final pass on styling to match ChessLLM's minimalist dark aesthetic. [6e908b0]
-- [x] Task: Conductor - User Manual Verification 'Phase 4: Mobile Optimization & Final Review' (Protocol in workflow.md) [b927967]
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Mobile Optimization & Final Review' (Protocol in workflow.md) [e01f974]
