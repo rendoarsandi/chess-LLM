@@ -22,10 +22,10 @@ Goal: Ensure the board and advantage bar adapt to mobile screen constraints.
 ## Phase 3: Arena Layout Stacking & Collapsible Sections
 Goal: Implement the single-column stack and collapsible component containers for mobile.
 
-- [ ] Task: Refactor the main grid in `App.tsx` to use a single column on mobile and the 4-column layout on `lg` screens.
-- [ ] Task: Create a `CollapsibleSection` wrapper component (or use a simple state-based toggle) for the Thinking Panel, Move List, and Arena Controls.
-- [ ] Task: Implement "Thinking Panel" truncation logic in `ThinkingPanel.tsx` for mobile view.
-- [ ] Task: Reorder elements for mobile: Board -> Controls -> Thinking -> Move List -> Arena Settings.
+- [x] Task: Refactor the main grid in `App.tsx` to use a single column on mobile and the 4-column layout on `lg` screens. 20073c5
+- [x] Task: Create a `CollapsibleSection` wrapper component (or use a simple state-based toggle) for the Thinking Panel, Move List, and Arena Controls. 20073c5
+- [x] Task: Implement "Thinking Panel" truncation logic in `ThinkingPanel.tsx` for mobile view. 20073c5
+- [x] Task: Reorder elements for mobile: Board -> Controls -> Thinking -> Move List -> Arena Settings. 20073c5
 - [ ] Task: Conductor - User Manual Verification 'Arena Layout Stacking & Collapsible Sections' (Protocol in workflow.md)
 
 ## Phase 4: Global View Refinement & Final Polish
