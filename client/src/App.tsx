@@ -52,6 +52,7 @@ function App() {
       const newGame = await getGame(id)
       handleSelectGame(newGame)
       fetchAllGames()
+      fetchLeaderboard()
     } catch {
       console.error("Error creating game")
       alert("Failed to create game. Check if the server is running.")
@@ -88,7 +89,7 @@ function App() {
     const listInterval = setInterval(() => {
       fetchAllGames()
       fetchLeaderboard()
-    }, 10000)
+    }, 5000) // Poll every 5 seconds
     return () => clearInterval(listInterval)
   }, [fetchAllGames, fetchPlayers, fetchLeaderboard])
 
@@ -108,6 +109,11 @@ function App() {
           if (a.moveNumber !== b.moveNumber) return a.moveNumber - b.moveNumber
           return a.playerColor === 'white' ? -1 : 1
         })
+
+        // If game just finished, refresh leaderboard
+        if (selectedGame?.status === 'ongoing' && updated.status !== 'ongoing') {
+          fetchLeaderboard()
+        }
 
         setSelectedGame(updated)
         setMoves(sortedMoves)
