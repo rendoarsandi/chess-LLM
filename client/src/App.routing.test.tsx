@@ -44,8 +44,8 @@ describe('App Routing', () => {
       { id: 'p2', name: 'Player 2' }
     ];
 
-    vi.mocked(api.getGames).mockResolvedValue(mockGames as any);
-    vi.mocked(api.getPlayers).mockResolvedValue(mockPlayers as any);
+    vi.mocked(api.getGames).mockResolvedValue(mockGames as unknown as api.Game[]);
+    vi.mocked(api.getPlayers).mockResolvedValue(mockPlayers as unknown as api.Player[]);
 
     render(
       <MemoryRouter initialEntries={['/history']}>
@@ -77,13 +77,13 @@ describe('App Routing', () => {
     
     fireEvent.click(profilesLink);
 
-    expect(screen.getByText('LLM Profiles')).toBeInTheDocument();
+    expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2);
   });
 
   it('should render a specific player profile when navigating to /profiles/:id', async () => {
     const mockPlayer = { id: 'p1', name: 'Deep Blue', type: 'llm', rating: 2800, wins: 10, losses: 5, draws: 2, peakRating: 2800, createdAt: '' };
-    vi.mocked(api.getPlayers).mockResolvedValue([mockPlayer] as any);
-    vi.mocked(api.getPlayerProfile).mockResolvedValue(mockPlayer as any);
+    vi.mocked(api.getPlayers).mockResolvedValue([mockPlayer] as unknown as api.Player[]);
+    vi.mocked(api.getPlayerProfile).mockResolvedValue(mockPlayer as unknown as api.Player);
 
     render(
       <MemoryRouter initialEntries={['/profiles/p1']}>
@@ -98,8 +98,8 @@ describe('App Routing', () => {
 
   it('should preserve selected game when navigating between pages', async () => {
     const mockGame = { id: 'game-persist', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' };
-    vi.mocked(api.getGames).mockResolvedValue([mockGame] as any);
-    vi.mocked(api.getGame).mockResolvedValue(mockGame as any);
+    vi.mocked(api.getGames).mockResolvedValue([mockGame] as unknown as api.Game[]);
+    vi.mocked(api.getGame).mockResolvedValue(mockGame as unknown as api.Game);
 
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -107,7 +107,10 @@ describe('App Routing', () => {
       </MemoryRouter>
     );
 
-    // Should initially show 'No Game' or similar if no games exist, but our mock has one
+    // Initial redirect to /arena, then auto-select first game
+    await screen.findAllByText('ARENA');
+
+    // Should show game ID
     const gameIdDisplay = await screen.findByText('game-per'); // Slice(0,8) of game-persist
     expect(gameIdDisplay).toBeInTheDocument();
 
@@ -122,5 +125,20 @@ describe('App Routing', () => {
 
     // Game should still be there
     expect(screen.getByText('game-per')).toBeInTheDocument();
+  });
+
+  it('should render a specific game when navigating to /arena/:id', async () => {
+    const mockGame = { id: 'specific-game-id', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' };
+    vi.mocked(api.getGames).mockResolvedValue([mockGame] as unknown as api.Game[]);
+    vi.mocked(api.getGame).mockResolvedValue(mockGame as unknown as api.Game);
+
+    render(
+      <MemoryRouter initialEntries={['/arena/specific-game-id']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    const gameIdDisplay = await screen.findByText('specific');
+    expect(gameIdDisplay).toBeInTheDocument();
   });
 });

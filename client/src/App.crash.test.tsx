@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 import { MemoryRouter } from 'react-router';
@@ -19,10 +19,10 @@ vi.mock('./api', () => ({
 describe('App Crash Reproduction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getPlayers as any).mockResolvedValue([]);
-    (api.getLeaderboard as any).mockResolvedValue([]);
-    (api.getGames as any).mockResolvedValue([{ id: 'game-1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' }]);
-    (api.getGame as any).mockResolvedValue({ id: 'game-1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' });
+    (api.getPlayers as Mock).mockResolvedValue([]);
+    (api.getLeaderboard as Mock).mockResolvedValue([]);
+    (api.getGames as Mock).mockResolvedValue([{ id: 'game-1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' }]);
+    (api.getGame as Mock).mockResolvedValue({ id: 'game-1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' });
   });
 
   it('should handle invalid moves gracefully instead of crashing the entire app', async () => {
@@ -32,7 +32,7 @@ describe('App Crash Reproduction', () => {
       { id: 2, move: 'Nf3', playerColor: 'black' }, // INVALID: Black can't move Nf3 from start
     ];
 
-    (api.getMoves as any).mockResolvedValue(invalidMoves);
+    (api.getMoves as Mock).mockResolvedValue(invalidMoves);
 
     render(
       <MemoryRouter>
