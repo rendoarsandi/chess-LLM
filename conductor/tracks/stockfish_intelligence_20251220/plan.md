@@ -23,9 +23,10 @@ Address the "function signature mismatch" and improve evaluation responsiveness.
 - [x] Task: Implement a cancellation token or "Generation ID" in `StockfishWorker.ts` to ignore stale evaluation messages from previous FENs.
 - [x] Task: Increase debounce and add a "Loading/Thinking" indicator to the UI to prevent rapid re-triggering.
 
-## Phase 4: UI/UX & Reliability (Merged)
-Ensure the frontend evaluation is stable and reflects the true engine state without ghosting.
+## Phase 5: Critical Stability & Bug Fixes
+Address the "stuck" game loop after pause/resume and Stockfish bot crashes.
 
-- [x] Task: Refactor `useStockfish.ts` to properly clear stale variations and handle engine restarts gracefully.
-- [x] Task: Optimize the debounce timing in `useStockfish.ts` to balance responsiveness and CPU usage.
-- [x] Task: Verify that "free piece" captures are correctly reflected in the `AdvantageBar` after the move is made.
+- [x] Task: Refactor `StockfishPlayer.ts` to implement a "Respawn" mechanism for the child process. 67f5f91
+- [x] Task: Update `GameLoopService.ts` to handle both 'llm' and 'human' (non-human) player types correctly. 67f5f91
+- [x] Task: Ensure `GameLoopService.ts` correctly identifies turns for all registered players in `GameManager`. 67f5f91
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Recovery' (Protocol in workflow.md)
