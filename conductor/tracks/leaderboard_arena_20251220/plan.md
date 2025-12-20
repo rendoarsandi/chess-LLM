@@ -6,7 +6,7 @@ This plan covers the backend ELO logic and the frontend components for the leade
 - [x] Task: Implement ELO calculation utility function (standard K-factor 32). [31d6e3e]
 - [x] Task: Update `GameService` to trigger ELO updates and record W/L/D stats upon game completion. [e240f7a]
 - [x] Task: Create database migration to add `peak_rating` and performance stats to the `players` table. [73d3408]
-- [ ] Task: Implement API endpoint `GET /api/leaderboard` to fetch ranked players.
+- [x] Task: Implement API endpoint `GET /api/leaderboard` to fetch ranked players. [3062445]
 - [ ] Task: Write tests for ELO calculations and leaderboard data fetching.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend ELO & Stats' (Protocol in workflow.md)
 
