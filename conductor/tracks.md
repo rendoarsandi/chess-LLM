@@ -10,3 +10,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+
+---
+
+## [~] Track: Stockfish Evaluation & Intelligence Fixes
+*Link: [./conductor/tracks/stockfish_intelligence_20251220/](./conductor/tracks/stockfish_intelligence_20251220/)*

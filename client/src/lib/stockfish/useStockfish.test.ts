@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStockfish } from './useStockfish';
 import type { EngineEvaluation } from './StockfishWorker';
@@ -11,7 +11,7 @@ let mockCallback: ((evaluation: EngineEvaluation) => void) | null = null;
 vi.mock('./StockfishWorker', () => {
   return {
     StockfishWorker: class {
-      constructor(callback: (evaluation: EngineEvaluation) => void) {
+      constructor(callback: (evaluation: EngineEvaluation) => void, _multiPv: number) {
         mockCallback = callback;
       }
       analyze = mockAnalyze;
@@ -22,22 +22,35 @@ vi.mock('./StockfishWorker', () => {
 
 describe('useStockfish', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     mockCallback = null;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('should initialize engine and analyze FEN', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     renderHook(() => useStockfish(fen));
 
-    expect(mockAnalyze).toHaveBeenCalledWith(fen, 15);
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(mockAnalyze).toHaveBeenCalledWith(fen, 18, expect.any(Function));
   });
 
   it('should update evaluation state when engine reports', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const { result } = renderHook(() => useStockfish(fen));
 
-    const mockEval = { score: 50, isMate: false, depth: 10 };
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    const mockEval: EngineEvaluation = { score: 50, isMate: false, depth: 10, multipv: 1 };
 
     act(() => {
       if (mockCallback) mockCallback(mockEval);
@@ -51,11 +64,20 @@ describe('useStockfish', () => {
       initialProps: { fen: 'startpos' },
     });
 
-    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 15);
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 18, expect.any(Function));
 
     const newFen = 'e4';
     rerender({ fen: newFen });
-    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 15);
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 18, expect.any(Function));
   });
 
   it('should terminate engine on unmount', () => {
