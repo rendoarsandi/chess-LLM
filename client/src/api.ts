@@ -23,17 +23,9 @@ export interface Player {
   createdAt: string
 }
 
-export interface Move {
-  id: number
-  gameId: string
-  moveNumber: number
-  playerColor: 'white' | 'black'
-  move: string
-  fen: string
-  opening?: string
-  candidates?: string
-  reasoning?: string
-  createdAt: string
+export interface PlayerStats {
+  favoriteOpenings: { opening: string, count: number }[]
+  avgThinkingMs: number | null
 }
 
 export async function getGames(): Promise<Game[]> {
@@ -81,5 +73,10 @@ export async function getPlayers(): Promise<Player[]> {
 
 export async function getLeaderboard(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/leaderboard`)
+  return res.json()
+}
+
+export async function getPlayerStats(id: string): Promise<PlayerStats> {
+  const res = await fetch(`${API_URL}/players/${id}/stats`)
   return res.json()
 }

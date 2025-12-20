@@ -188,6 +188,16 @@ app.get('/api/players', async (c) => {
   return c.json(allPlayers)
 })
 
+app.get('/api/players/:id/stats', async (c) => {
+  const id = c.req.param('id')
+  try {
+    const stats = await gameService.getPlayerStats(id)
+    return c.json(stats)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 404)
+  }
+})
+
 const port = 3001
 console.log(`Server is running on port ${port}`)
 

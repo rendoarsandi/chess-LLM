@@ -178,4 +178,32 @@ describe('GameService', () => {
     expect(dbMoves[2].move).toBe('Nf3')
     expect(dbMoves[2].moveNumber).toBe(2)
   })
+
+  it('should calculate player stats correctly', async () => {
+    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
+    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
+    
+    // Game 1: p1 white, Ruy Lopez
+    const g1 = await service.createGame('p1', 'p2')
+    await service.makeMove(g1, 'e4', { opening: 'Ruy Lopez' })
+    await service.makeMove(g1, 'e5')
+    await service.makeMove(g1, 'Nf3')
+    await service.makeMove(g1, 'Nc6')
+    await service.makeMove(g1, 'Bb5') // Ruy Lopez
+    
+    // Game 2: p1 white, Ruy Lopez again
+    const g2 = await service.createGame('p1', 'p2')
+    await service.makeMove(g2, 'e4', { opening: 'Ruy Lopez' })
+    
+    // Game 3: p1 white, Sicilian
+    const g3 = await service.createGame('p1', 'p2')
+    await service.makeMove(g3, 'e4', { opening: 'Sicilian Defense' })
+
+    const stats = await service.getPlayerStats('p1')
+    expect(stats.favoriteOpenings).toHaveLength(2)
+    expect(stats.favoriteOpenings[0].opening).toBe('Ruy Lopez')
+    expect(stats.favoriteOpenings[0].count).toBe(2)
+    expect(stats.favoriteOpenings[1].opening).toBe('Sicilian Defense')
+    expect(stats.favoriteOpenings[1].count).toBe(1)
+  })
 })

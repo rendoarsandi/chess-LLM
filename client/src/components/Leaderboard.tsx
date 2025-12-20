@@ -7,12 +7,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Player } from "@/api"
+import { useState } from "react"
+import { PlayerProfile } from "./PlayerProfile"
 
 interface LeaderboardProps {
   players: Player[]
 }
 
 export function Leaderboard({ players }: LeaderboardProps) {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+
   // Sort players by rating descending
   const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating)
 
@@ -22,6 +27,11 @@ export function Leaderboard({ players }: LeaderboardProps) {
         No players found. Start some matches!
       </div>
     )
+  }
+
+  const handlePlayerClick = (player: Player) => {
+    setSelectedPlayer(player)
+    setIsProfileOpen(true)
   }
 
   return (
@@ -37,7 +47,11 @@ export function Leaderboard({ players }: LeaderboardProps) {
         </TableHeader>
         <TableBody>
           {sortedPlayers.map((player, index) => (
-            <TableRow key={player.id}>
+            <TableRow 
+              key={player.id} 
+              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => handlePlayerClick(player)}
+            >
               <TableCell className="font-medium">{index + 1}</TableCell>
               <TableCell>
                 <div className="font-medium">{player.name}</div>
@@ -53,6 +67,12 @@ export function Leaderboard({ players }: LeaderboardProps) {
           ))}
         </TableBody>
       </Table>
+
+      <PlayerProfile 
+        player={selectedPlayer}
+        open={isProfileOpen}
+        onOpenChange={setIsProfileOpen}
+      />
     </div>
   )
 }

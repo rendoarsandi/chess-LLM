@@ -1,6 +1,6 @@
 import { GameManager } from './game-manager'
 import { games, moves, players } from '../db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
 
@@ -43,7 +43,45 @@ export class GameService {
     return this.gm.getPlayer(playerId)
   }
 
-  async makeMove(gameId: string, move: string, thinking?: { opening?: string, candidates?: string, reasoning?: string }) {
+  async getPlayerStats(playerId: string) {
+    // 1. Get favorite openings
+    // We look for moves made by this player (or in games they participated in as White) 
+    // where an opening was detected.
+    const playerOpenings = await this.db
+      .select({ 
+        opening: moves.opening,
+        thinkingMs: moves.thinkingMs,
+      })
+      .from(moves)
+      .innerJoin(games, eq(moves.gameId, games.id))
+      .where(sql`${moves.opening} IS NOT NULL AND ${games.whitePlayerId} = ${playerId}`)
+
+    const openingCounts: Record<string, number> = {}
+    let totalThinkingMs = 0
+    let thinkingCount = 0
+
+    playerOpenings.forEach((m: any) => {
+      openingCounts[m.opening] = (openingCounts[m.opening] || 0) + 1
+      if (m.thinkingMs) {
+        totalThinkingMs += m.thinkingMs
+        thinkingCount++
+      }
+    })
+
+    const favoriteOpenings = Object.entries(openingCounts)
+      .map(([opening, count]) => ({ opening, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+
+    const avgThinkingMs = thinkingCount > 0 ? Math.round(totalThinkingMs / thinkingCount) : null
+
+    return {
+      favoriteOpenings,
+      avgThinkingMs,
+    }
+  }
+
+  async makeMove(gameId: string, move: string, thinking?: { opening?: string, candidates?: string, reasoning?: string, thinkingMs?: number }) {
     const game = await this.getGame(gameId)
     if (!game) throw new Error('Game not found')
     if (game.status !== 'ongoing') throw new Error('Game is already finished')
@@ -70,6 +108,7 @@ export class GameService {
       opening: thinking?.opening,
       candidates: thinking?.candidates,
       reasoning: thinking?.reasoning,
+      thinkingMs: thinking?.thinkingMs,
     })
 
     let status = 'ongoing'

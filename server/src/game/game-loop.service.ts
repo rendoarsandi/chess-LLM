@@ -46,13 +46,16 @@ export class GameLoopService {
         // Resolve player: registry first, then fallback to default
         const player = this.gameService.getPlayer(currentPlayerId) || this.player
         
+        const startTime = Date.now()
         const move = await player.makeMove(game.fen, history)
+        const thinkingMs = Date.now() - startTime
+
         if (move) {
           try {
             // Check if player provides thinking data (e.g. GeminiPlayer)
-            const thinking = (player as any).getLastThinking ? (player as any).getLastThinking() : undefined
-            await this.gameService.makeMove(game.id, move, thinking)
-            console.log(`[GameLoop] Made move ${move} in game ${game.id}`)
+            const thinking = (player as any).getLastThinking ? (player as any).getLastThinking() : {}
+            await this.gameService.makeMove(game.id, move, { ...thinking, thinkingMs })
+            console.log(`[GameLoop] Made move ${move} in game ${game.id} (${thinkingMs}ms)`)
           } catch (e) {
             console.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
           }

@@ -34,6 +34,7 @@ export const moves = sqliteTable('moves', {
   opening: text('opening'),
   candidates: text('candidates'), // JSON string of top 3 moves
   reasoning: text('reasoning'),
+  thinkingMs: integer('thinking_ms'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 }, (table) => ({
   gameIdx: index('game_idx').on(table.gameId),
