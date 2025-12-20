@@ -165,47 +165,33 @@ function App() {
   }, []);
 
   const currentDisplayFen = useMemo(() => {
-    if (moves.length === 0) return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1
     const chess = new Chess()
-    try {
-      for (let i = 0; i <= index; i++) {
-        const move = moves[i].move;
-        // Validation check before move
-        const moves_list = chess.moves();
-        if (moves_list.includes(move) || chess.move(move)) {
-          // Move successful or already validated
-        } else {
-          console.warn(`Skipping invalid move at index ${i}: ${move}`);
-          toast.error(`Invalid move encountered: ${move}`, {
-            description: `Game state might be out of sync. Skipping move.`,
-            id: `invalid-move-${move}-${i}` // Prevent duplicate toasts for same move
-          });
-        }
+    if (moves.length === 0) return chess.fen()
+    
+    const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1
+    
+    for (let i = 0; i <= index; i++) {
+      try {
+        chess.move(moves[i].move);
+      } catch (e) {
+        console.warn(`Invalid move at index ${i} (${moves[i].move}):`, e);
       }
-    } catch (e) {
-      console.error("Critical error replaying moves for FEN:", e)
     }
     return chess.fen()
   }, [moves, activeMoveIndex])
 
   const currentPgn = useMemo(() => {
     const chess = new Chess()
+    if (moves.length === 0) return ""
+    
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1
-    try {
-      for (let i = 0; i <= index; i++) {
-        const move = moves[i].move;
-        try {
-          chess.move(move);
-        } catch (inner_e) {
-          console.warn(`Skipping invalid move for PGN at index ${i}: ${move}`, inner_e);
-          toast.error(`Illegal move in history: ${move}`, {
-            id: `pgn-invalid-${move}-${i}`
-          });
-        }
+    
+    for (let i = 0; i <= index; i++) {
+      try {
+        chess.move(moves[i].move);
+      } catch (e) {
+        // Skip invalid moves for PGN
       }
-    } catch (e) {
-      console.error("Critical error replaying moves for PGN:", e)
     }
     return chess.pgn()
   }, [moves, activeMoveIndex])
@@ -213,19 +199,21 @@ function App() {
   const lastMoveSquares = useMemo(() => {
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1
     if (index < 0 || moves.length === 0) return undefined
+    
     const chess = new Chess()
     try {
+      // Replay up to the second to last move
       for (let i = 0; i < index; i++) {
         try {
           chess.move(moves[i].move)
         } catch {
-          // Skip invalid moves silently during replay
+          // Skip invalid moves
         }
       }
+      // The last move we want to highlight
       const move = chess.move(moves[index].move)
       return { from: move.from, to: move.to }
     } catch (e) {
-      console.warn("Could not determine last move squares due to invalid move:", e)
       return undefined
     }
   }, [moves, activeMoveIndex])
@@ -287,6 +275,31 @@ function App() {
 
   const [whitePlayerId, setWhitePlayerId] = useState(GEMINI_3_0_ID)
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
+
+  useEffect(() => {
+    if (moves.length === 0) return
+    
+    // Validate only the latest move to notify the user
+    const latestMove = moves[moves.length - 1]
+    const chess = new Chess()
+    try {
+      // Replay all moves up to the last one
+      for (let i = 0; i < moves.length - 1; i++) {
+        try {
+          chess.move(moves[i].move)
+        } catch {
+          // Skip earlier invalid moves
+        }
+      }
+      // Check if latest move is valid
+      chess.move(latestMove.move)
+    } catch (e) {
+      toast.error(`Illegal move detected: ${latestMove.move}`, {
+        description: "The game engine attempted an invalid strategic maneuver.",
+        id: `illegal-move-${latestMove.id}`
+      })
+    }
+  }, [moves])
 
   const navigate = useNavigate();
   const location = useLocation();
