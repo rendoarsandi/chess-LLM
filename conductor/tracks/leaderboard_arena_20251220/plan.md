@@ -2,16 +2,16 @@
 
 This plan covers the backend ELO logic and the frontend components for the leaderboard and UI refinements.
 
-## Phase 1: Backend ELO & Stats (Engine Layer)
+## Phase 1: Backend ELO & Stats (Engine Layer) [checkpoint: 14cce09]
 - [x] Task: Implement ELO calculation utility function (standard K-factor 32). [31d6e3e]
 - [x] Task: Update `GameService` to trigger ELO updates and record W/L/D stats upon game completion. [e240f7a]
 - [x] Task: Create database migration to add `peak_rating` and performance stats to the `players` table. [73d3408]
 - [x] Task: Implement API endpoint `GET /api/leaderboard` to fetch ranked players. [3062445]
 - [x] Task: Write tests for ELO calculations and leaderboard data fetching. [3062445]
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend ELO & Stats' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Backend ELO & Stats' (Protocol in workflow.md) [14cce09]
 
 ## Phase 2: Leaderboard UI (Presentation Layer)
-- [ ] Task: Create `Leaderboard` component using Shadcn `Table`.
+- [x] Task: Create `Leaderboard` component using Shadcn `Table`. [14052b0]
 - [ ] Task: Integrate `Leaderboard` into the `App` sidebar (right column).
 - [ ] Task: Implement real-time updates for the leaderboard via polling.
 - [ ] Task: Write tests for `Leaderboard` rendering and sorting.
