@@ -12,9 +12,9 @@ Fix the fundamental coordinate/perspective errors where evaluations and mates ar
 ## Phase 2: Search Optimization (Server-side Bot)
 Improve the intelligence and speed of the `StockfishPlayer` bot by managing state more effectively.
 
-- [ ] Task: Refactor `StockfishPlayer.ts` to maintain a persistent UCI session across a game (remove per-move `ucinewgame`).
-- [ ] Task: Increase `Hash` and `Threads` configuration for the server-side Stockfish process.
-- [ ] Task: Implement `movetime` as a fallback or primary limit to ensure consistent move delivery.
+- [x] Task: Refactor `StockfishPlayer.ts` to maintain a persistent UCI session across a game (remove per-move `ucinewgame`). 1b889e1
+- [x] Task: Increase `Hash` and `Threads` configuration for the server-side Stockfish process. 1b889e1
+- [x] Task: Implement `movetime` as a fallback or primary limit to ensure consistent move delivery. 1b889e1
 - [ ] Task: Add logging to `StockfishPlayer.ts` to monitor engine depth and search time in real-time.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Bot Intelligence' (Protocol in workflow.md)
 
