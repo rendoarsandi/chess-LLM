@@ -153,7 +153,7 @@ function App() {
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1
 
-  const { evaluation, variations } = useStockfish(currentDisplayFen)
+  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen)
 
   const whitePlayer = players.find(p => p.id === selectedGame?.whitePlayerId)
   const blackPlayer = players.find(p => p.id === selectedGame?.blackPlayerId)
@@ -319,7 +319,7 @@ function App() {
 
                 <div className="flex gap-2 md:gap-4 w-full justify-center items-start">
                   <div className="h-[300px] md:h-[400px] lg:h-[500px] py-1">
-                    <AdvantageBar evaluation={evaluation} variations={variations} />
+                    <AdvantageBar evaluation={evaluation} variations={variations} isThinking={isThinking} />
                   </div>
 
                   <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">

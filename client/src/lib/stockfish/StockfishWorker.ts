@@ -10,14 +10,29 @@ export interface EngineEvaluation {
 
 export type EngineCallback = (evaluation: EngineEvaluation) => void;
 
+interface AnalysisRequest {
+  fen: string;
+  depth: number;
+  generation: number;
+  onStart?: () => void;
+}
+
 export class StockfishWorker {
   private worker: Worker | null = null;
   private onEvaluation: EngineCallback | null = null;
   private isTerminated: boolean = false;
   private multiPv: number = 3;
-  private isReady: boolean = false;
-  private isSearching: boolean = false;
-  private pendingFen: string | null = null;
+  
+  // State Machine
+  private isEngineInitialized: boolean = false; // uciok received
+  private isEngineReady: boolean = false;        // readyok received
+  private isSearching: boolean = false;         // 'go' sent, waiting for 'bestmove'
+  private isStopping: boolean = false;          // 'stop' sent, waiting for 'bestmove'
+  
+  private currentGeneration: number = 0;
+  private lastExecutedGeneration: number = -1;
+  private pendingRequest: AnalysisRequest | null = null;
+  private currentSideToMove: 'w' | 'b' = 'w';
 
   constructor(callback: EngineCallback, multiPv: number = 3) {
     this.onEvaluation = callback;
@@ -45,14 +60,13 @@ export class StockfishWorker {
     }
   }
 
-  private currentSideToMove: 'w' | 'b' = 'w';
-
   private handleMessage = (message: string) => {
     if (typeof message !== 'string') return;
 
     if (message.startsWith('uciok')) {
+      this.isEngineInitialized = true;
       this.sendMessage('setoption name Threads value 1');
-      this.sendMessage('setoption name Hash value 16'); // Reduced for stability
+      this.sendMessage('setoption name Hash value 32'); 
       this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);
       this.sendMessage('ucinewgame');
       this.sendMessage('isready');
@@ -60,31 +74,58 @@ export class StockfishWorker {
     }
 
     if (message.startsWith('readyok')) {
-      this.isReady = true;
-      if (this.pendingFen) {
-        const fen = this.pendingFen;
-        this.pendingFen = null;
-        this.analyze(fen, 18);
-      }
+      this.isEngineReady = true;
+      this.processQueue();
       return;
     }
 
     if (message.startsWith('bestmove')) {
       this.isSearching = false;
+      this.isStopping = false;
+      this.processQueue();
       return;
     }
 
     // Only process info messages that have a score AND a PV
     if (message.startsWith('info') && message.includes('score') && message.includes(' pv ')) {
       const evaluation = this.parseInfo(message);
-      if (evaluation && this.onEvaluation) {
+      
+      // Safety check: only emit evaluations for the most recent FEN request
+      if (evaluation && this.onEvaluation && this.lastExecutedGeneration === this.currentGeneration) {
         this.onEvaluation(evaluation);
       }
     }
   }
 
+  private processQueue() {
+    if (this.isTerminated || !this.isEngineReady || this.isStopping || this.isSearching) {
+      return;
+    }
+
+    if (this.pendingRequest) {
+      const req = this.pendingRequest;
+      this.pendingRequest = null;
+      this.executeAnalysis(req);
+    }
+  }
+
+  private executeAnalysis(req: AnalysisRequest) {
+    this.lastExecutedGeneration = req.generation;
+    this.isSearching = true;
+    
+    // Extract side to move from FEN for normalization
+    const fenParts = req.fen.split(' ');
+    if (fenParts.length > 1) {
+      this.currentSideToMove = fenParts[1] === 'b' ? 'b' : 'w';
+    }
+
+    if (req.onStart) req.onStart();
+    
+    this.sendMessage(`position fen ${req.fen}`);
+    this.sendMessage(`go depth ${req.depth}`);
+  }
+
   private parseInfo = (message: string): EngineEvaluation | null => {
-    // Check for bounds (upperbound/lowerbound) - we skip these for accuracy
     if (message.includes('upperbound') || message.includes('lowerbound')) {
       return null;
     }
@@ -102,8 +143,6 @@ export class StockfishWorker {
     const multipv = multipvMatch ? parseInt(multipvMatch[1]) : 1;
     const pv = pvMatch ? pvMatch[1] : undefined;
 
-    // Normalize score to White-relative
-    // Stockfish CP is from the perspective of the side to move
     if (this.currentSideToMove === 'b') {
       value = -value;
     }
@@ -120,29 +159,35 @@ export class StockfishWorker {
   }
 
   public analyze(fen: string, depth: number = 15, onStart?: () => void) {
-    if (!this.worker || this.isTerminated) {
+    if (!this.worker || this.isTerminated) return;
+
+    this.currentGeneration++;
+    
+    const request: AnalysisRequest = {
+      fen,
+      depth,
+      generation: this.currentGeneration,
+      onStart
+    };
+
+    // If we are currently searching, we MUST stop first and wait for 'bestmove'
+    if (this.isSearching || this.isStopping) {
+      this.pendingRequest = request;
+      if (!this.isStopping) {
+        this.isStopping = true;
+        this.sendMessage('stop');
+      }
       return;
     }
 
-    // Extract side to move from FEN
-    const fenParts = fen.split(' ');
-    if (fenParts.length > 1) {
-      this.currentSideToMove = fenParts[1] === 'b' ? 'b' : 'w';
-    }
-
-    if (!this.isReady) {
-      this.pendingFen = fen;
+    // If we are not initialized or ready, queue it
+    if (!this.isEngineReady) {
+      this.pendingRequest = request;
       return;
     }
 
-    if (this.isSearching) {
-      this.sendMessage('stop');
-    }
-
-    if (onStart) onStart();
-    this.isSearching = true;
-    this.sendMessage(`position fen ${fen}`);
-    this.sendMessage(`go depth ${depth}`);
+    // Engine is idle and ready, execute immediately
+    this.executeAnalysis(request);
   }
 
   private sendMessage(command: string) {

@@ -39,6 +39,12 @@ describe('StockfishWorker', () => {
   });
 
   it('should parse CP scores correctly', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+    
+    // Start an analysis to set current generation
+    worker.analyze('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
+    
     const infoMessage = 'info depth 10 seldepth 12 multipv 1 score cp 13 nodes 14041 nps 1404100 hashfull 0 tbhits 0 time 10 pv e2e4';
     activeWorker.simulateMessage(infoMessage);
 
@@ -51,6 +57,10 @@ describe('StockfishWorker', () => {
   });
 
   it('should parse mate scores correctly', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+    worker.analyze('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
+
     const infoMessage = 'info depth 5 score mate 3 nodes 100 pv e2e4';
     activeWorker.simulateMessage(infoMessage);
 
@@ -74,6 +84,9 @@ describe('StockfishWorker', () => {
   });
 
   it('should normalize scores for Black perspective', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+
     // FEN with Black to move
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
     worker.analyze(fen, 10);
@@ -90,6 +103,9 @@ describe('StockfishWorker', () => {
   });
 
   it('should normalize mate for Black perspective', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
     worker.analyze(fen, 10);
     
@@ -102,6 +118,30 @@ describe('StockfishWorker', () => {
       mateIn: -3,
       sideToMove: 'b'
     }));
+  });
+
+  it('should wait for bestmove after stop before starting next analysis', () => {
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+
+    const fen1 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    worker.analyze(fen1, 10);
+    expect(activeWorker.postMessage).toHaveBeenCalledWith(`position fen ${fen1}`);
+    expect(activeWorker.postMessage).toHaveBeenCalledWith('go depth 10');
+
+    const fen2 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1';
+    worker.analyze(fen2, 10);
+    
+    // Should have sent stop but NOT the new position yet
+    expect(activeWorker.postMessage).toHaveBeenCalledWith('stop');
+    expect(activeWorker.postMessage).not.toHaveBeenCalledWith(`position fen ${fen2}`);
+
+    // Simulate bestmove from the first search
+    activeWorker.simulateMessage('bestmove e2e4');
+
+    // Now it should have processed the queue
+    expect(activeWorker.postMessage).toHaveBeenCalledWith(`position fen ${fen2}`);
+    expect(activeWorker.postMessage).toHaveBeenCalledWith('go depth 10');
   });
 
   it('should terminate the worker', () => {

@@ -6,9 +6,10 @@ interface AdvantageBarProps {
   evaluation: EngineEvaluation | null;
   variations?: EngineEvaluation[];
   orientation?: 'white' | 'black';
+  isThinking?: boolean;
 }
 
-export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variations }) => {
+export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variations, isThinking }) => {
   // Normalize score to percentage (0 to 100)
   // +5.0 or more is 100% white, -5.0 or less is 0% white (100% black)
   const getPercentage = () => {
@@ -56,8 +57,9 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
   return (
     <div className="flex flex-col items-center h-full relative group/bar">
       <div className={cn(
-        "relative w-10 md:w-12 h-full bg-neutral-900 overflow-hidden rounded-sm border-2",
-        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+        "relative w-10 md:w-12 h-full bg-neutral-900 overflow-hidden rounded-sm border-2 transition-all duration-300",
+        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]",
+        isThinking && "border-primary/50 animate-pulse ring-1 ring-primary/20"
       )}>
         {/* White portion (Bottom up) */}
         <div 

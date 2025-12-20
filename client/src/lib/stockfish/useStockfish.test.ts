@@ -31,23 +31,25 @@ describe('useStockfish', () => {
     vi.useRealTimers();
   });
 
-  it('should initialize engine and analyze FEN', () => {
+  it('should initialize engine and analyze FEN after debounce', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    renderHook(() => useStockfish(fen));
+    const { result } = renderHook(() => useStockfish(fen));
+
+    expect(result.current.isThinking).toBe(true);
 
     act(() => {
-      vi.advanceTimersByTime(200);
+      vi.advanceTimersByTime(300);
     });
 
     expect(mockAnalyze).toHaveBeenCalledWith(fen, 18, expect.any(Function));
   });
 
-  it('should update evaluation state when engine reports', () => {
+  it('should update evaluation state and clear thinking when engine reports', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const { result } = renderHook(() => useStockfish(fen));
 
     act(() => {
-      vi.advanceTimersByTime(200);
+      vi.advanceTimersByTime(300);
     });
 
     const mockEval: EngineEvaluation = { score: 50, isMate: false, depth: 10, multipv: 1 };
@@ -57,6 +59,7 @@ describe('useStockfish', () => {
     });
 
     expect(result.current.evaluation).toEqual(mockEval);
+    expect(result.current.isThinking).toBe(false);
   });
 
   it('should re-analyze when FEN changes', () => {
@@ -65,7 +68,7 @@ describe('useStockfish', () => {
     });
 
     act(() => {
-      vi.advanceTimersByTime(200);
+      vi.advanceTimersByTime(300);
     });
 
     expect(mockAnalyze).toHaveBeenCalledWith('startpos', 18, expect.any(Function));
@@ -74,7 +77,7 @@ describe('useStockfish', () => {
     rerender({ fen: newFen });
 
     act(() => {
-      vi.advanceTimersByTime(200);
+      vi.advanceTimersByTime(300);
     });
 
     expect(mockAnalyze).toHaveBeenCalledWith(newFen, 18, expect.any(Function));
