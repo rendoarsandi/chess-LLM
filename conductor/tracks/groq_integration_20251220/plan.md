@@ -5,7 +5,7 @@
 - [x] Task: Implement `GroqService` in `server/src/game/groq.service.ts` using native `fetch` to interact with the Groq API. 9a262bf
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure and Scaffolding' (Protocol in workflow.md) 325ce0e
 
-## Phase 2: Groq Player Implementation (TDD)
+## Phase 2: Groq Player Implementation (TDD) [checkpoint: b7fab19]
 - [x] Task: Refactor `GeminiPlayer` to extract common LLM logic into a `BaseLlmPlayer` in `server/src/game/base-llm-player.ts`. d2fe899
 - [x] Task: Write failing unit tests for `GroqPlayer` in `server/src/game/groq-player.test.ts`. 0237ba0
 - [x] Task: Implement `GroqPlayer` in `server/src/game/groq-player.ts` extending `BaseLlmPlayer`. bbcc210
