@@ -21,6 +21,11 @@ describe('GameService', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        draws INTEGER NOT NULL DEFAULT 0,
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (
@@ -126,6 +131,30 @@ describe('GameService', () => {
     const game = await service.getGame(gameId)
     expect(game.status).toBe('completed')
     expect(game.winnerId).toBe('p2')
+  })
+
+  it('should update player ratings and stats on game completion', async () => {
+    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
+    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
+    const gameId = await service.createGame('p1', 'p2')
+
+    // Fool's mate (p2 wins)
+    await service.makeMove(gameId, 'f3')
+    await service.makeMove(gameId, 'e5')
+    await service.makeMove(gameId, 'g4')
+    await service.makeMove(gameId, 'Qh4#')
+
+    const player1 = (await db.select().from(players).where(eq(players.id, 'p1')))[0]
+    const player2 = (await db.select().from(players).where(eq(players.id, 'p2')))[0]
+
+    // Equal ratings (1200), p2 wins.
+    // Expected change for p2: 32 * (1 - 0.5) = +16
+    // Expected change for p1: 32 * (0 - 0.5) = -16
+    expect(player1.rating).toBe(1184)
+    expect(player1.losses).toBe(1)
+    expect(player2.rating).toBe(1216)
+    expect(player2.wins).toBe(1)
+    expect(player2.peakRating).toBe(1216)
   })
 
   it('should maintain the same moveNumber for White and Black moves in a turn', async () => {

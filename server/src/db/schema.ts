@@ -5,6 +5,11 @@ export const players = sqliteTable('players', {
   id: text('id').primaryKey(), // UUID
   name: text('name').notNull(),
   type: text('type', { enum: ['llm', 'human'] }).notNull(),
+  rating: integer('rating').default(1200).notNull(),
+  wins: integer('wins').default(0).notNull(),
+  losses: integer('losses').default(0).notNull(),
+  draws: integer('draws').default(0).notNull(),
+  peakRating: integer('peak_rating').default(1200).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 })
 

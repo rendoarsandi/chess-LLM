@@ -1,7 +1,8 @@
 import { GameManager } from './game-manager'
-import { games, moves } from '../db/schema'
+import { games, moves, players } from '../db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
+import { calculateEloChange } from './elo'
 
 export class GameService {
   constructor(private db: any, private gm: GameManager) {}
@@ -95,6 +96,51 @@ export class GameService {
       })
       .where(eq(games.id, gameId))
 
+    if (isGameOver) {
+      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId)
+    }
+
     return { fen: nextFen, status, winnerId }
+  }
+
+  private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null) {
+    const whitePlayer = (await this.db.select().from(players).where(eq(players.id, whiteId)))[0]
+    const blackPlayer = (await this.db.select().from(players).where(eq(players.id, blackId)))[0]
+
+    if (!whitePlayer || !blackPlayer) return
+
+    let whiteScore = 0.5
+    let blackScore = 0.5
+
+    if (status === 'completed') {
+      whiteScore = winnerId === whiteId ? 1 : 0
+      blackScore = winnerId === blackId ? 1 : 0
+    }
+
+    const whiteChange = calculateEloChange(whitePlayer.rating, blackPlayer.rating, whiteScore)
+    const blackChange = calculateEloChange(blackPlayer.rating, whitePlayer.rating, blackScore)
+
+    const newWhiteRating = whitePlayer.rating + whiteChange
+    const newBlackRating = blackPlayer.rating + blackChange
+
+    await this.db.update(players)
+      .set({
+        rating: newWhiteRating,
+        peakRating: Math.max(whitePlayer.peakRating, newWhiteRating),
+        wins: whitePlayer.wins + (whiteScore === 1 ? 1 : 0),
+        losses: whitePlayer.losses + (whiteScore === 0 ? 1 : 0),
+        draws: whitePlayer.draws + (whiteScore === 0.5 ? 1 : 0),
+      })
+      .where(eq(players.id, whiteId))
+
+    await this.db.update(players)
+      .set({
+        rating: newBlackRating,
+        peakRating: Math.max(blackPlayer.peakRating, newBlackRating),
+        wins: blackPlayer.wins + (blackScore === 1 ? 1 : 0),
+        losses: blackPlayer.losses + (blackScore === 0 ? 1 : 0),
+        draws: blackPlayer.draws + (blackScore === 0.5 ? 1 : 0),
+      })
+      .where(eq(players.id, blackId))
   }
 }
