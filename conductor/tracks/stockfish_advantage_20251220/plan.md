@@ -15,12 +15,13 @@ This plan outlines the steps to integrate a client-side Stockfish evaluation bar
 - [x] Task: Write tests for `useStockfish` hook using `chess.js` positions to verify state updates.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: React State & Logic' (Protocol in workflow.md)
 
-## Phase 3: UI Components (Presentation Layer)
-- [ ] Task: Create `AdvantageBar` component with vertical layout and dynamic height transitions.
-- [ ] Task: Implement numerical score and mate display within or beside the bar.
-- [ ] Task: Implement depth indicator UI.
-- [ ] Task: Integrate `AdvantageBar` into the main `App` layout, positioned to the left of `Chessboard`.
-- [ ] Task: Write tests for `AdvantageBar` to ensure correct rendering of scores (+/-) and mate values.
+## Phase 3: UI Components (Presentation Layer) [checkpoint: 289a17e]
+- [x] Task: Create `AdvantageBar` component with vertical layout and dynamic height transitions.
+- [x] Task: Implement numerical score and mate display within or beside the bar.
+- [x] Task: Implement depth indicator UI.
+- [x] Task: Integrate `AdvantageBar` into the main `App` layout, positioned to the left of `Chessboard`.
+- [x] Task: Write tests for `AdvantageBar` to ensure correct rendering of scores (+/-) and mate values.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: UI Components' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Components' (Protocol in workflow.md)
 
 ## Phase 4: Refinement & Mobile Optimization

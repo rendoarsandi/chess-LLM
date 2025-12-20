@@ -10,7 +10,6 @@ export type EngineCallback = (evaluation: EngineEvaluation) => void;
 export class StockfishWorker {
   private worker: Worker | null = null;
   private onEvaluation: EngineCallback | null = null;
-  private isReady: boolean = false;
 
   constructor(callback: EngineCallback) {
     this.onEvaluation = callback;
@@ -19,27 +18,47 @@ export class StockfishWorker {
 
   private init() {
     try {
+      console.log('[StockfishWorker] Initializing worker with /stockfish/stockfish.js');
       this.worker = new Worker('/stockfish/stockfish.js');
-      this.worker.onmessage = (e) => this.handleMessage(e.data);
+      
+      this.worker.onerror = (err) => {
+        console.error('[StockfishWorker] Worker error event:', err);
+      };
+
+      this.worker.onmessage = (e) => {
+        // Log all messages to see exactly what engine says
+        console.log('[StockfishWorker] Engine response:', e.data);
+        this.handleMessage(e.data);
+      };
       
       this.sendMessage('uci');
+      this.sendMessage('ucinewgame');
       this.sendMessage('isready');
-      this.sendMessage('setoption name UCI_AnalyseMode value true');
     } catch (error) {
-      console.error('Failed to initialize Stockfish worker:', error);
+      console.error('[StockfishWorker] Critical failure during initialization:', error);
     }
   }
 
   private handleMessage(message: string) {
+    if (typeof message !== 'string') return;
+
     if (message === 'readyok') {
-      this.isReady = true;
+      console.log('[StockfishWorker] Engine ready');
       return;
     }
 
-    if (message.startsWith('info') && message.includes('score')) {
-      const evaluation = this.parseInfo(message);
-      if (evaluation && this.onEvaluation) {
-        this.onEvaluation(evaluation);
+    if (message.startsWith('uciok')) {
+      console.log('[StockfishWorker] UCI protocol initialized');
+      return;
+    }
+
+    // Capture ANY info message to see if engine is even thinking
+    if (message.startsWith('info')) {
+      if (message.includes('score')) {
+        const evaluation = this.parseInfo(message);
+        if (evaluation && this.onEvaluation) {
+          this.onEvaluation(evaluation);
+        }
       }
     }
   }
@@ -63,8 +82,12 @@ export class StockfishWorker {
   }
 
   public analyze(fen: string, timeLimitMs: number = 2000) {
-    if (!this.worker) return;
+    if (!this.worker) {
+      console.warn('[StockfishWorker] Cannot analyze: Worker not initialized');
+      return;
+    }
 
+    console.log(`[StockfishWorker] Analyzing FEN: ${fen}`);
     this.sendMessage('stop');
     this.sendMessage(`position fen ${fen}`);
     this.sendMessage(`go movetime ${timeLimitMs}`);

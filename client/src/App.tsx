@@ -4,10 +4,13 @@ import { GameHistory } from "@/components/GameHistory"
 import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
+import { AdvantageBar } from "@/components/AdvantageBar"
+import { ErrorOverlay } from "@/components/ErrorOverlay"
 import { useEffect, useState, useCallback } from "react"
 import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
+import { useStockfish } from "./lib/stockfish/useStockfish"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -107,6 +110,12 @@ function App() {
   const currentDisplayFen = activeMoveIndex !== null && moves[activeMoveIndex]
     ? moves[activeMoveIndex].fen
     : (moves.length > 0 ? moves[moves.length - 1].fen : selectedGame?.fen)
+
+  if (currentDisplayFen) {
+    console.debug('[App] Current FEN for evaluation:', currentDisplayFen);
+  }
+
+  const { evaluation } = useStockfish(currentDisplayFen || null)
 
   const getPlayerThinking = (side: 'white' | 'black') => {
     if (!selectedGame || moves.length === 0) return undefined
@@ -255,19 +264,25 @@ function App() {
             />
           </div>
 
-          <div className="relative group">
-            <ChessboardContainer 
-              fen={currentDisplayFen} 
-              boardOrientation={boardOrientation}
-              highlightSquares={lastMoveSquares}
-              gameId={selectedGame?.id}
-              pgn={currentPgn}
-            />
-            {!isLive && (
-              <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-                BROWSING HISTORY
-              </div>
-            )}
+          <div className="flex gap-4 w-full justify-center">
+            <div className="h-[300px] md:h-[400px] lg:h-[600px] py-4">
+              <AdvantageBar evaluation={evaluation} orientation={boardOrientation} />
+            </div>
+
+            <div className="relative group">
+              <ChessboardContainer 
+                fen={currentDisplayFen} 
+                boardOrientation={boardOrientation}
+                highlightSquares={lastMoveSquares}
+                gameId={selectedGame?.id}
+                pgn={currentPgn}
+              />
+              {!isLive && (
+                <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                  BROWSING HISTORY
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-6 w-full max-w-[600px] space-y-4">
@@ -373,6 +388,7 @@ function App() {
           />
         </div>
       </main>
+      <ErrorOverlay />
     </div>
   )
 }

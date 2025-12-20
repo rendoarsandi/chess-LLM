@@ -1,31 +1,35 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { StockfishWorker, EngineEvaluation } from './StockfishWorker';
+import { StockfishWorker } from './StockfishWorker';
+import type { EngineEvaluation } from './StockfishWorker';
 
 export function useStockfish(fen: string | null) {
   const [evaluation, setEvaluation] = useState<EngineEvaluation | null>(null);
   const engineRef = useRef<StockfishWorker | null>(null);
+  const lastFenRef = useRef<string | null>(null);
 
   const onEngineMessage = useCallback((evalData: EngineEvaluation) => {
     setEvaluation(evalData);
   }, []);
 
   useEffect(() => {
-    // Initialize engine once
+    console.log('[useStockfish] Hook mounted');
     if (!engineRef.current) {
       engineRef.current = new StockfishWorker(onEngineMessage);
     }
 
     return () => {
+      console.log('[useStockfish] Hook unmounting, terminating engine');
       if (engineRef.current) {
         engineRef.current.terminate();
         engineRef.current = null;
       }
     };
-  }, [onEngineMessage]);
+  }, []); // Only run once on mount
 
   useEffect(() => {
-    if (fen && engineRef.current) {
-      // Analyze with a fixed time limit as per spec (2 seconds)
+    if (fen && engineRef.current && fen !== lastFenRef.current) {
+      console.log(`[useStockfish] Analyzing new FEN: ${fen}`);
+      lastFenRef.current = fen;
       engineRef.current.analyze(fen, 2000);
     }
   }, [fen]);
