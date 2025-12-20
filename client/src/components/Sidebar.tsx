@@ -1,6 +1,7 @@
 import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
+import { NavLink } from "react-router"
 
 export type View = 'arena' | 'leaderboard' | 'profiles' | 'history';
 
@@ -13,10 +14,10 @@ interface SidebarProps {
 
 export function Sidebar({ view, setView, isCollapsed, setIsCollapsed }: SidebarProps) {
   const navItems = [
-    { id: 'arena', icon: LayoutDashboard, label: 'ARENA' },
-    { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD' },
-    { id: 'profiles', icon: UserCircle, label: 'PROFILES' },
-    { id: 'history', icon: History, label: 'HISTORY' },
+    { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
+    { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },
+    { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
+    { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
   ] as const;
 
   return (
@@ -45,12 +46,12 @@ export function Sidebar({ view, setView, isCollapsed, setIsCollapsed }: SidebarP
       
       <div className="flex flex-col w-full gap-4 px-3">
         {navItems.map((item) => (
-          <button 
+          <NavLink 
             key={item.id}
-            onClick={() => setView(item.id)}
-            className={cn(
+            to={item.path}
+            className={({ isActive }) => cn(
               "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
-              view === item.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               isCollapsed ? "justify-center" : "justify-start"
             )}
           >
@@ -65,7 +66,7 @@ export function Sidebar({ view, setView, isCollapsed, setIsCollapsed }: SidebarP
                 {item.label}
               </span>
             )}
-          </button>
+          </NavLink>
         ))}
       </div>
     </nav>

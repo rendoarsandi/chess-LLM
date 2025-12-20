@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { Sidebar, type View } from './Sidebar'
+import { Sidebar } from './Sidebar'
+import { MemoryRouter } from 'react-router'
 
 describe('Sidebar Component', () => {
   it('toggles collapse state when the toggle button is clicked', () => {
@@ -8,7 +9,9 @@ describe('Sidebar Component', () => {
     const setIsCollapsed = vi.fn()
     
     const { rerender } = render(
-      <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+      <MemoryRouter>
+        <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+      </MemoryRouter>
     )
 
     // Check if expanded (should see labels)
@@ -23,7 +26,9 @@ describe('Sidebar Component', () => {
 
     // Rerender as collapsed
     rerender(
-      <Sidebar view="arena" setView={setView} isCollapsed={true} setIsCollapsed={setIsCollapsed} />
+      <MemoryRouter>
+        <Sidebar view="arena" setView={setView} isCollapsed={true} setIsCollapsed={setIsCollapsed} />
+      </MemoryRouter>
     )
 
     expect(screen.getByRole('navigation')).toHaveClass('w-16')
@@ -32,18 +37,20 @@ describe('Sidebar Component', () => {
     expect(screen.queryByText('ARENA', { selector: 'span:not(.absolute)' })).not.toBeInTheDocument()
   })
 
-  it('calls setView when a nav item is clicked', () => {
+  it('contains links to the correct routes', () => {
     const setView = vi.fn()
     const setIsCollapsed = vi.fn()
     
     render(
-      <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+      <MemoryRouter>
+        <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+      </MemoryRouter>
     )
 
-    const leaderboardButton = screen.getByText('LEADERBOARD').closest('button')
-    if (!leaderboardButton) throw new Error('Button not found')
+    const arenaLink = screen.getByText('ARENA').closest('a')
+    const leaderboardLink = screen.getByText('LEADERBOARD').closest('a')
     
-    fireEvent.click(leaderboardButton)
-    expect(setView).toHaveBeenCalledWith('leaderboard')
+    expect(arenaLink).toHaveAttribute('href', '/')
+    expect(leaderboardLink).toHaveAttribute('href', '/leaderboard')
   })
 })
