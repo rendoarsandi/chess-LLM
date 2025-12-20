@@ -129,9 +129,14 @@ app.get('/api/games/:id', async (c) => {
 })
 
 app.get('/api/games/:id/moves', async (c) => {
-  const id = c.req.param('id')
-  const gameMoves = await db.select().from(moves).where(eq(moves.gameId, id)).orderBy(desc(moves.moveNumber))
-  return c.json(gameMoves)
+  const gameId = c.req.param('id')
+  const results = await db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
+  return c.json(results)
+})
+
+app.get('/api/leaderboard', async (c) => {
+  const results = await db.select().from(players).orderBy(desc(players.rating))
+  return c.json(results)
 })
 
 app.delete('/api/games', async (c) => {
@@ -186,9 +191,11 @@ app.get('/api/players', async (c) => {
 const port = 3001
 console.log(`Server is running on port ${port}`)
 
-serve({
-  fetch: app.fetch,
-  port
-})
+if (process.env.NODE_ENV !== 'test') {
+  serve({
+    fetch: app.fetch,
+    port
+  })
+}
 
 export default app

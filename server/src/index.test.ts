@@ -84,4 +84,27 @@ describe('API Endpoints', () => {
     })
     expect(res.status).toBe(200)
   })
+
+  it('GET /api/leaderboard should return ranked players', async () => {
+    // Insert players with different ratings
+    await db.insert(players).values([
+      { id: 'leader-1', name: 'Pro', type: 'llm', rating: 1500, createdAt: new Date() },
+      { id: 'leader-2', name: 'Noob', type: 'llm', rating: 1000, createdAt: new Date() },
+      { id: 'leader-3', name: 'Average', type: 'llm', rating: 1200, createdAt: new Date() }
+    ]).onConflictDoNothing()
+
+    const res = await app.request('/api/leaderboard')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(Array.isArray(data)).toBe(true)
+    expect(data.length).toBeGreaterThanOrEqual(3)
+    
+    // Check sorting
+    expect(data[0].rating).toBeGreaterThanOrEqual(data[1].rating)
+    expect(data[1].rating).toBeGreaterThanOrEqual(data[2].rating)
+    
+    // Check fields
+    expect(data[0]).toHaveProperty('wins')
+    expect(data[0]).toHaveProperty('peakRating')
+  })
 })
