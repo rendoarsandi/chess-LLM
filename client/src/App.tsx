@@ -280,12 +280,14 @@ function App() {
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
-      <Sidebar 
-        view={view} 
-        setView={handleSetView} 
-        isCollapsed={isSidebarCollapsed} 
-        setIsCollapsed={setIsSidebarCollapsed} 
-      />
+      <ErrorBoundary fallback={<div className="w-16 h-full border-r border-destructive/20 bg-destructive/5 flex items-center justify-center p-2 text-[8px] font-black text-destructive uppercase writing-vertical-lr tracking-widest">Navigation Error</div>}>
+        <Sidebar 
+          view={view} 
+          setView={handleSetView} 
+          isCollapsed={isSidebarCollapsed} 
+          setIsCollapsed={setIsSidebarCollapsed} 
+        />
+      </ErrorBoundary>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
@@ -365,16 +367,31 @@ function App() {
                       />
                     </div>
 
-                    <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
-                      <ChessboardContainer 
-                        fen={currentDisplayFen} 
-                        boardOrientation={boardOrientation}
-                        highlightSquares={lastMoveSquares}
-                        gameId={selectedGame?.id}
-                        pgn={currentPgn}
-                      />
-                      
-                      {selectedGame && showResultOverlay && (
+                                      <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
+
+                                        <ErrorBoundary fallback={<div className="aspect-square w-full bg-muted flex items-center justify-center border border-destructive/20 rounded-lg text-[10px] font-black uppercase text-destructive tracking-widest p-4 text-center">Chessboard Error - Reload Recommended</div>}>
+
+                                          <ChessboardContainer 
+
+                                            fen={currentDisplayFen} 
+
+                                            boardOrientation={boardOrientation}
+
+                                            highlightSquares={lastMoveSquares}
+
+                                            gameId={selectedGame?.id}
+
+                                            pgn={currentPgn}
+
+                                          />
+
+                                        </ErrorBoundary>
+
+                                          
+
+                                        {selectedGame && showResultOverlay && (
+
+                    
                         <GameResultOverlay 
                           status={selectedGame.status}
                           winnerId={selectedGame.winnerId}
@@ -456,16 +473,17 @@ function App() {
                       />
                     </CollapsibleSection>
 
-                    <CollapsibleSection title="Move List">
-                      <MoveList 
-                        moves={moves} 
-                        onMoveClick={setActiveMoveIndex} 
-                        selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
-                        isLive={isLive}
-                      />
-                    </CollapsibleSection>
-
-                    <CollapsibleSection title="Arena Controls">
+                                      <CollapsibleSection title="Move List">
+                                        <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
+                                          <MoveList 
+                                            moves={moves} 
+                                            onMoveClick={setActiveMoveIndex} 
+                                            selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+                                            isLive={isLive}
+                                          />
+                                        </ErrorBoundary>
+                                      </CollapsibleSection>
+                                        <CollapsibleSection title="Arena Controls">
                       <div className="space-y-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
@@ -497,21 +515,24 @@ function App() {
 
                 {/* Right Column - Black Thinking & Arena Controls (lg+) */}
                 <div className="hidden lg:block space-y-8 h-fit lg:col-span-1">
-                  <ThinkingPanel 
-                    side="black" 
-                    modelName={blackPlayer?.name || 'Loading...'}
-                    isMobile={isMobile}
-                    {...blackThinking}
-                  />
-
-                  <MoveList 
-                    moves={moves} 
-                    onMoveClick={setActiveMoveIndex} 
-                    selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
-                    isLive={isLive}
-                  />
-
-                  <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
+                                  <ThinkingPanel 
+                                    side="black" 
+                                    modelName={blackPlayer?.name || 'Loading...'}
+                                    isMobile={isMobile}
+                                    {...blackThinking}
+                                  />
+                  
+                                  <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
+                                    <MoveList 
+                                      moves={moves} 
+                                      onMoveClick={setActiveMoveIndex} 
+                                      selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+                                      isLive={isLive}
+                                    />
+                                  </ErrorBoundary>
+                  
+                                  <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
+                  
                     <h2 className="text-xl font-bold uppercase tracking-tighter mb-4">Arena Controls</h2>
                     <div className="space-y-4">
                       <div className="space-y-1">
