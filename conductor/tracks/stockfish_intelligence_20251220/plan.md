@@ -1,6 +1,6 @@
 # Implementation Plan - Stockfish Evaluation & Intelligence Fixes
 
-## Phase 1: Core Logic & Evaluation Polarity
+## Phase 1: Core Logic & Evaluation Polarity [checkpoint: 9f6d067]
 Fix the fundamental coordinate/perspective errors where evaluations and mates are attributed to the wrong player.
 
 - [x] Task: Update `EngineEvaluation` interface to include `sideToMove` context. 68cfccc
