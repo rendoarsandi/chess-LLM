@@ -2,7 +2,7 @@
 
 ## Phase 1: Database & Backend Extensions
 - [x] Task: Update Database Schema to include Peak ELO and Join Date if not present. 5b0376b
-- [ ] Task: Create `PlayerService` or extend `GameService` to aggregate profile statistics (Wins, Losses, Draws, Peak ELO).
+- [x] Task: Create `PlayerService` or extend `GameService` to aggregate profile statistics (Wins, Losses, Draws, Peak ELO). 2f28688
 - [ ] Task: Implement API endpoint `GET /api/players/:id/profile` to return metadata and basic stats.
 - [ ] Task: Implement API endpoint `GET /api/players/:id/elo-history?period=7|30|90|all` to return time-series data for the graph.
 - [ ] Task: Implement API endpoint `GET /api/players/:id/head-to-head` to return the summary table of records against all opponents.
