@@ -1,0 +1,28 @@
+# Implementation Plan: Routing & Robust Error Handling
+
+## Phase 1: Infrastructure & Routing Setup
+- [x] Task: Install `react-router` and its dependencies in the `client` directory. c66a967
+- [ ] Task: Configure the basic router structure in `client/src/main.tsx` or `client/src/App.tsx`.
+- [ ] Task: Refactor the current conditional rendering logic in `App.tsx` into Route definitions.
+- [ ] Task: Update the `Sidebar` navigation links to use `react-router`'s `Link` or `NavLink` components.
+- [ ] Task: Verify that navigation between Arena, Leaderboard, History, and Profiles updates the URL correctly.
+- [ ] Task: Conductor - User Manual Verification 'Infrastructure & Routing Setup' (Protocol in workflow.md)
+
+## Phase 2: Error Boundaries & Global Handling
+- [ ] Task: Create a generic `ErrorBoundary` component in `client/src/components/ErrorBoundary.tsx`.
+- [ ] Task: Wrap the main layout and specific high-risk components (Chessboard, Sidebar) with `ErrorBoundary`.
+- [ ] Task: Implement a fallback UI for the `ErrorBoundary` that allows for a "Soft Reset" of the component state.
+- [ ] Task: Conductor - User Manual Verification 'Error Boundaries & Global Handling' (Protocol in workflow.md)
+
+## Phase 3: Defensive Chess Logic
+- [ ] Task: Write unit tests for `Chessboard.tsx` or relevant hooks to simulate illegal move attempts.
+- [ ] Task: Refactor move execution logic in the frontend to include `try-catch` blocks and `chess.js` move validation.
+- [ ] Task: Implement a notification system (e.g., Toast) to display illegal move errors to the user.
+- [ ] Task: (Backend) Ensure the `GameLoopService` and `GameManager` handle move failures without stopping the loop.
+- [ ] Task: Conductor - User Manual Verification 'Defensive Chess Logic' (Protocol in workflow.md)
+
+## Phase 4: Route-Specific Data Fetching & Cleanup
+- [ ] Task: Update the `PlayerProfile` route to correctly use the `:id` parameter from the URL.
+- [ ] Task: Ensure the `Arena` state (current game) is preserved or correctly re-fetched during navigation.
+- [ ] Task: Final pass on TypeScript types for all routing and error handling logic.
+- [ ] Task: Conductor - User Manual Verification 'Route-Specific Data Fetching & Cleanup' (Protocol in workflow.md)
