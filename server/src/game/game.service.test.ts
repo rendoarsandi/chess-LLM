@@ -3,7 +3,7 @@ import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import { games, moves, players } from '../db/schema'
+import { games, moves, players, ratingHistory } from '../db/schema'
 import { eq } from 'drizzle-orm'
 
 describe('GameService', () => {
@@ -26,6 +26,9 @@ describe('GameService', () => {
         losses INTEGER NOT NULL DEFAULT 0,
         draws INTEGER NOT NULL DEFAULT 0,
         peak_rating INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (
@@ -39,6 +42,15 @@ describe('GameService', () => {
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),
         FOREIGN KEY(black_player_id) REFERENCES players(id)
+      );
+      CREATE TABLE rating_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        game_id TEXT,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY(player_id) REFERENCES players(id),
+        FOREIGN KEY(game_id) REFERENCES games(id)
       );
       CREATE TABLE moves (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -156,6 +168,14 @@ describe('GameService', () => {
     expect(player2.rating).toBe(1216)
     expect(player2.wins).toBe(1)
     expect(player2.peakRating).toBe(1216)
+
+    // Check rating history
+    const history1 = await db.select().from(ratingHistory).where(eq(ratingHistory.playerId, 'p1'))
+    const history2 = await db.select().from(ratingHistory).where(eq(ratingHistory.playerId, 'p2'))
+    expect(history1).toHaveLength(1)
+    expect(history1[0].rating).toBe(1184)
+    expect(history2).toHaveLength(1)
+    expect(history2[0].rating).toBe(1216)
   })
 
   it('should maintain the same moveNumber for White and Black moves in a turn', async () => {

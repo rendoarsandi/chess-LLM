@@ -1,5 +1,5 @@
 import { GameManager } from './game-manager'
-import { games, moves, players } from '../db/schema'
+import { games, moves, players, ratingHistory } from '../db/schema'
 import { eq, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
@@ -151,13 +151,13 @@ export class GameService {
       .where(eq(games.id, gameId))
 
     if (isGameOver) {
-      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId)
+      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId, gameId)
     }
 
     return { fen: nextFen, status, winnerId }
   }
 
-  private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null) {
+  private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {
     const whitePlayer = (await this.db.select().from(players).where(eq(players.id, whiteId)))[0]
     const blackPlayer = (await this.db.select().from(players).where(eq(players.id, blackId)))[0]
 
@@ -196,5 +196,11 @@ export class GameService {
         draws: blackPlayer.draws + (blackScore === 0.5 ? 1 : 0),
       })
       .where(eq(players.id, blackId))
+
+    // Record history
+    await this.db.insert(ratingHistory).values([
+      { playerId: whiteId, rating: newWhiteRating, gameId },
+      { playerId: blackId, rating: newBlackRating, gameId }
+    ])
   }
 }
