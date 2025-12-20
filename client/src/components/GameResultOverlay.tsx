@@ -12,6 +12,7 @@ interface GameResultOverlayProps {
   blackPlayerName?: string;
   reason?: string | null;
   onNewMatch: () => void;
+  onClose?: () => void;
 }
 
 export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
@@ -21,7 +22,8 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
   whitePlayerName,
   blackPlayerName,
   reason,
-  onNewMatch
+  onNewMatch,
+  onClose
 }) => {
   const isGameOver = status === 'completed' || status === 'draw';
   if (!isGameOver) return null;
@@ -46,8 +48,17 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
         <motion.div 
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
-          className="bg-card border-2 border-primary/20 p-8 rounded-xl shadow-2xl max-w-sm w-full text-center space-y-6"
+          className="bg-card border-2 border-primary/20 p-8 rounded-xl shadow-2xl max-w-sm w-full text-center space-y-6 relative"
         >
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="absolute top-4 right-4 p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          )}
+
           <div className="flex justify-center">
             {status === 'completed' ? (
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">

@@ -31,11 +31,13 @@ function App() {
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null) // null means "Live"
+  const [showResultOverlay, setShowResultOverlay] = useState(true)
 
   const handleSelectGame = useCallback((game: Game) => {
     setSelectedGame(game)
     setMoves([]) // Clear old moves
     setActiveMoveIndex(null) // Reset to live
+    setShowResultOverlay(true) // Reset overlay for new selection
   }, [])
 
   const fetchAllGames = useCallback(async () => {
@@ -324,7 +326,8 @@ function App() {
                       evaluation={evaluation} 
                       variations={variations} 
                       isThinking={isThinking} 
-                      gameStatus={selectedGame?.status}
+                      // Only show terminal states (1-0, etc.) if we are at the LIVE (current) position
+                      gameStatus={isLive ? selectedGame?.status : 'ongoing'}
                       winnerId={selectedGame?.winnerId}
                       whitePlayerId={selectedGame?.whitePlayerId}
                     />
@@ -339,7 +342,7 @@ function App() {
                       pgn={currentPgn}
                     />
                     
-                    {selectedGame && (
+                    {selectedGame && showResultOverlay && (
                       <GameResultOverlay 
                         status={selectedGame.status}
                         winnerId={selectedGame.winnerId}
@@ -350,6 +353,7 @@ function App() {
                         onNewMatch={() => {
                           handleCreateGame(whitePlayerId, blackPlayerId);
                         }}
+                        onClose={() => setShowResultOverlay(false)}
                       />
                     )}
 
