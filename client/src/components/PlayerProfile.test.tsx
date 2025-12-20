@@ -61,8 +61,32 @@ describe('PlayerProfile', () => {
     ;(api.getPlayerProfile as Mock).mockResolvedValue(null)
     render(<PlayerProfile playerId="non-existent" onBack={() => {}} />)
     
-    await waitFor(() => {
-      expect(screen.getByText(/Model profile not found/i)).toBeInTheDocument()
+        await waitFor(() => {
+    
+          expect(screen.getByText(/Model profile not found/i)).toBeInTheDocument()
+    
+        })
+    
+      })
+    
+    
+    
+      it('shows error state when fetch fails', async () => {
+    
+        ;(api.getPlayerProfile as Mock).mockRejectedValue(new Error('Fetch failed'))
+    
+        render(<PlayerProfile playerId="p1" onBack={() => {}} />)
+    
+        
+    
+        await waitFor(() => {
+    
+          expect(screen.getByText(/Failed to load model profile data/i)).toBeInTheDocument()
+    
+        })
+    
+      })
+    
     })
-  })
-})
+    
+    

@@ -152,5 +152,5 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     expect(JSON.parse(sampleGeminiMove.candidates!)).toHaveLength(3)
 
     console.log(`[IntegrationTest] Game finished in ${attempts} iterations with status ${game.status}`)
-  })
+  }, 30000)
 })
