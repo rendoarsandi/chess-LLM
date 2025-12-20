@@ -19,7 +19,7 @@ This plan covers the backend ELO logic and the frontend components for the leade
 
 ## Phase 3: UI Enhancements & Filtering (Feature Layer)
 - [x] Task: Implement filtering logic in `GameHistory` component. [7b19636]
-- [ ] Task: Create `PlayerProfile` modal/view for detailed stats (favorite openings, move time).
+- [x] Task: Create `PlayerProfile` modal/view for detailed stats (favorite openings, move time). [94e2a89]
 - [ ] Task: Add "Visual Polish" (animations for match starts, score transitions).
 - [ ] Task: Write tests for history filtering and profile data display.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Enhancements & Filtering' (Protocol in workflow.md)
