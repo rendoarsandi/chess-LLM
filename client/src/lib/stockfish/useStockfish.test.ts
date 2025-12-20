@@ -11,6 +11,7 @@ let mockCallback: ((evaluation: EngineEvaluation) => void) | null = null;
 vi.mock('./StockfishWorker', () => {
   return {
     StockfishWorker: class {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       constructor(callback: (evaluation: EngineEvaluation) => void, _multiPv: number) {
         mockCallback = callback;
       }

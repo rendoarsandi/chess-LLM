@@ -24,7 +24,6 @@ export class StockfishWorker {
   private multiPv: number = 3;
   
   // State Machine
-  private isEngineInitialized: boolean = false; // uciok received
   private isEngineReady: boolean = false;        // readyok received
   private isSearching: boolean = false;         // 'go' sent, waiting for 'bestmove'
   private isStopping: boolean = false;          // 'stop' sent, waiting for 'bestmove'
@@ -64,7 +63,6 @@ export class StockfishWorker {
     if (typeof message !== 'string') return;
 
     if (message.startsWith('uciok')) {
-      this.isEngineInitialized = true;
       this.sendMessage('setoption name Threads value 1');
       this.sendMessage('setoption name Hash value 32'); 
       this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);

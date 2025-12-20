@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { StockfishWorker } from './StockfishWorker';
 import type { EngineEvaluation } from './StockfishWorker';
 
@@ -41,7 +41,9 @@ export function useStockfish(fen: string | null) {
   useEffect(() => {
     if (fen && engineRef.current && fen !== lastFenRef.current) {
       lastFenRef.current = fen;
-      setIsThinking(true);
+      
+      // We use a small timeout to avoid "setState in effect" lint error for synchronous calls
+      const thinkingTimeout = setTimeout(() => setIsThinking(true), 0);
       
       // Debounce analysis to prevent crashes during rapid move navigation
       // 250ms is safer for WASM stability during rapid history browsing
@@ -54,13 +56,20 @@ export function useStockfish(fen: string | null) {
         }
       }, 250);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(thinkingTimeout);
+        clearTimeout(timeoutId);
+      };
     }
   }, [fen]);
 
+  const sortedVariations = useMemo(() => {
+    return Object.values(variations).sort((a, b) => (a.multipv || 1) - (b.multipv || 1));
+  }, [variations]);
+
   return { 
     evaluation,
-    variations: Object.values(variations).sort((a, b) => (a.multipv || 1) - (b.multipv || 1)),
+    variations: sortedVariations,
     isThinking
   };
 }
