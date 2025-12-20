@@ -152,13 +152,22 @@ export class GameService {
     }
 
     // Update PGN
-    const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
-    const pgnChess = new Chess()
-    for (const m of allMoves) {
-      pgnChess.move(m.move)
+    let pgn = "";
+    try {
+      const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
+      const pgnChess = new Chess()
+      for (const m of allMoves) {
+        try {
+          pgnChess.move(m.move)
+        } catch (inner_e) {
+          console.warn(`[GameService] Skipping invalid move in PGN history for game ${gameId}: ${m.move}`);
+        }
+      }
+      pgnChess.move(moveResult.san)
+      pgn = pgnChess.pgn()
+    } catch (e) {
+      console.error(`[GameService] Error generating PGN for game ${gameId}:`, e);
     }
-    pgnChess.move(moveResult.san)
-    const pgn = pgnChess.pgn()
 
     await this.db.update(games)
       .set({ 
