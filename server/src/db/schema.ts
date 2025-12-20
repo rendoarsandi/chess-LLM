@@ -10,8 +10,21 @@ export const players = sqliteTable('players', {
   losses: integer('losses').default(0).notNull(),
   draws: integer('draws').default(0).notNull(),
   peakRating: integer('peak_rating').default(1200).notNull(),
+  version: text('version'),
+  provider: text('provider'),
+  bio: text('bio'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 })
+
+export const ratingHistory = sqliteTable('rating_history', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  playerId: text('player_id').references(() => players.id).notNull(),
+  rating: integer('rating').notNull(),
+  gameId: text('game_id').references(() => games.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => ({
+  playerIdx: index('player_rating_idx').on(table.playerId),
+}))
 
 export const games = sqliteTable('games', {
   id: text('id').primaryKey(), // UUID
