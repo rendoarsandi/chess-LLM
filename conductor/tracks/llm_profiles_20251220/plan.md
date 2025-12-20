@@ -9,7 +9,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Extensions' (Protocol in workflow.md)
 
 ## Phase 2: Frontend Infrastructure & Navigation
-- [ ] Task: Install `recharts` dependency in the client.
+- [x] Task: Install `recharts` dependency in the client. 32a4a5f
 - [ ] Task: Update Sidebar component to include "LLM Profiles" between "Leaderboard" and "Game History".
 - [ ] Task: Create a new `PlayerList` view (or update Leaderboard) to allow selecting a player to view their profile.
 - [ ] Task: Define routes for `/profiles` and `/profiles/:id`.
