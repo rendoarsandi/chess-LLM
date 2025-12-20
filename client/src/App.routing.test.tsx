@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import App from './App';
-import React from 'react';
 
 // Mock the API calls to avoid network errors during tests
 import * as api from './api';
@@ -95,5 +94,33 @@ describe('App Routing', () => {
     // Should find the player name in the profile header
     const profileHeader = await screen.findByText('Deep Blue');
     expect(profileHeader).toBeInTheDocument();
+  });
+
+  it('should preserve selected game when navigating between pages', async () => {
+    const mockGame = { id: 'game-persist', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' };
+    vi.mocked(api.getGames).mockResolvedValue([mockGame] as any);
+    vi.mocked(api.getGame).mockResolvedValue(mockGame as any);
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    // Should initially show 'No Game' or similar if no games exist, but our mock has one
+    const gameIdDisplay = await screen.findByText('game-per'); // Slice(0,8) of game-persist
+    expect(gameIdDisplay).toBeInTheDocument();
+
+    // Navigate away
+    const leaderboardLink = screen.getByText('LEADERBOARD').closest('a');
+    fireEvent.click(leaderboardLink!);
+    expect(screen.getByText('Model Rankings')).toBeInTheDocument();
+
+    // Navigate back
+    const arenaLink = screen.getAllByText('ARENA')[0].closest('a');
+    fireEvent.click(arenaLink!);
+
+    // Game should still be there
+    expect(screen.getByText('game-per')).toBeInTheDocument();
   });
 });

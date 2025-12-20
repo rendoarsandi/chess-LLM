@@ -5,12 +5,12 @@ import { MemoryRouter } from 'react-router'
 
 describe('Sidebar Component', () => {
   it('toggles collapse state when the toggle button is clicked', () => {
-    const setView = vi.fn()
+    
     const setIsCollapsed = vi.fn()
     
     const { rerender } = render(
       <MemoryRouter>
-        <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+        <Sidebar isCollapsed={false} setIsCollapsed={setIsCollapsed} />
       </MemoryRouter>
     )
 
@@ -27,7 +27,7 @@ describe('Sidebar Component', () => {
     // Rerender as collapsed
     rerender(
       <MemoryRouter>
-        <Sidebar view="arena" setView={setView} isCollapsed={true} setIsCollapsed={setIsCollapsed} />
+        <Sidebar isCollapsed={true} setIsCollapsed={setIsCollapsed} />
       </MemoryRouter>
     )
 
@@ -38,12 +38,12 @@ describe('Sidebar Component', () => {
   })
 
   it('contains links to the correct routes', () => {
-    const setView = vi.fn()
+    
     const setIsCollapsed = vi.fn()
     
     render(
       <MemoryRouter>
-        <Sidebar view="arena" setView={setView} isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+        <Sidebar isCollapsed={false} setIsCollapsed={setIsCollapsed} />
       </MemoryRouter>
     )
 

@@ -6,13 +6,11 @@ import { NavLink } from "react-router"
 export type View = 'arena' | 'leaderboard' | 'profiles' | 'history';
 
 interface SidebarProps {
-  view: View;
-  setView: (view: View) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
 }
 
-export function Sidebar({ view, setView, isCollapsed, setIsCollapsed }: SidebarProps) {
+export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const navItems = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
     { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },

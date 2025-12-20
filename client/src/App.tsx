@@ -25,7 +25,7 @@ import { toast } from "sonner"
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 
-function PlayerProfileRoute({ players, setSelectedPlayerId, navigate }: { players: Player[], setSelectedPlayerId: (id: string | null) => void, navigate: (path: string) => void }) {
+function PlayerProfileRoute({ setSelectedPlayerId, navigate }: { setSelectedPlayerId: (id: string | null) => void, navigate: (path: string) => void }) {
   const { id } = useParams();
   
   useEffect(() => {
@@ -51,7 +51,7 @@ function App() {
   const [view, setView] = useState<View>('arena');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [, setSelectedPlayerId] = useState<string | null>(null);
   const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
@@ -319,16 +319,10 @@ function App() {
     }
   }, [location.pathname]);
 
-  const handleSetView = (newView: View) => {
-    navigate(newView === 'arena' ? '/' : `/${newView}`);
-  };
-
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       <ErrorBoundary fallback={<div className="w-16 h-full border-r border-destructive/20 bg-destructive/5 flex items-center justify-center p-2 text-[8px] font-black text-destructive uppercase writing-vertical-lr tracking-widest">Navigation Error</div>}>
         <Sidebar 
-          view={view} 
-          setView={handleSetView} 
           isCollapsed={isSidebarCollapsed} 
           setIsCollapsed={setIsSidebarCollapsed} 
         />
@@ -669,7 +663,6 @@ function App() {
             <Route path="/profiles/:id" element={
               <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <PlayerProfileRoute 
-                  players={players} 
                   setSelectedPlayerId={setSelectedPlayerId}
                   navigate={navigate}
                 />

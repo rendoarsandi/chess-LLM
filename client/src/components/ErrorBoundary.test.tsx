@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorBoundary } from './ErrorBoundary';
-import React from 'react';
 
 const ProblemChild = () => {
   throw new Error('Crashing child');
@@ -49,7 +48,7 @@ describe('ErrorBoundary', () => {
   it('renders custom fallback function and allows reset', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    const { rerender } = render(
+    render(
       <ErrorBoundary fallback={(_err, reset) => (
         <div>
           <span>Error Occurred</span>
