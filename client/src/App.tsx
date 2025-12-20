@@ -6,6 +6,7 @@ import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
+import { PlayerProfile } from "@/components/PlayerProfile"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
@@ -498,7 +499,8 @@ function App() {
                 </>
               ) : (
                 <PlayerProfile 
-                  playerId={selectedPlayerId} 
+                  key={selectedPlayerId!}
+                  playerId={selectedPlayerId!} 
                   onBack={() => setSelectedPlayerId(null)} 
                 />
               )}

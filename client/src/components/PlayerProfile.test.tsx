@@ -4,7 +4,7 @@ import { PlayerProfile } from './PlayerProfile'
 import * as api from '@/api'
 
 // Mock ResizeObserver for Recharts
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn(),

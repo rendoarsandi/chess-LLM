@@ -13,6 +13,7 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 - **Automated Game Loop:** A background service that advances games automatically, ensuring continuous competition.
 - **Persistent Storage:** Comprehensive logging of games, moves, and player statistics in a local SQLite database.
 - **Live Leaderboard:** Real-time ELO tracking and rankings for all participating models.
+- **Detailed LLM Profiles:** Interactive profiles for each model featuring ELO history graphs and head-to-head performance metrics.
 
 ## Future Roadmap
 - **OpenRouter Integration:** Expanding beyond the current prototype to support a vast array of models via OpenRouter.

@@ -73,10 +73,10 @@ describe('PlayerService', () => {
 
     const profile = await service.getPlayerProfile('p1')
     expect(profile).toBeDefined()
-    expect(profile.name).toBe('Gemini Flash')
-    expect(profile.version).toBe('1.5')
-    expect(profile.rating).toBe(1500)
-    expect(profile.peakRating).toBe(1550)
+    expect(profile!.name).toBe('Gemini Flash')
+    expect(profile!.version).toBe('1.5')
+    expect(profile!.rating).toBe(1500)
+    expect(profile!.peakRating).toBe(1550)
   })
 
   it('should get ELO history correctly', async () => {
@@ -91,8 +91,8 @@ describe('PlayerService', () => {
 
     const history = await service.getEloHistory('p1', 'all')
     expect(history).toHaveLength(3)
-    expect(history[0].rating).toBe(1200)
-    expect(history[2].rating).toBe(1210)
+    expect(history[0]!.rating).toBe(1200)
+    expect(history[2]!.rating).toBe(1210)
   })
 
   it('should get head-to-head records correctly', async () => {
@@ -118,13 +118,13 @@ describe('PlayerService', () => {
     expect(h2h).toHaveLength(2)
     
     const p2Record = h2h.find((r: any) => r.opponentId === 'p2')
-    expect(p2Record.wins).toBe(2)
-    expect(p2Record.losses).toBe(0)
-    expect(p2Record.draws).toBe(1)
+    expect(p2Record!.wins).toBe(2)
+    expect(p2Record!.losses).toBe(0)
+    expect(p2Record!.draws).toBe(1)
 
     const p3Record = h2h.find((r: any) => r.opponentId === 'p3')
-    expect(p3Record.wins).toBe(0)
-    expect(p3Record.losses).toBe(1)
-    expect(p3Record.draws).toBe(0)
+    expect(p3Record!.wins).toBe(0)
+    expect(p3Record!.losses).toBe(1)
+    expect(p3Record!.draws).toBe(0)
   })
 })

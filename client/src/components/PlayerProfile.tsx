@@ -18,8 +18,6 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setLoading(true)
-    setError(null)
     getPlayerProfile(playerId)
       .then(setPlayer)
       .catch(err => {

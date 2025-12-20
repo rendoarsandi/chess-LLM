@@ -16,10 +16,9 @@ interface HeadToHeadTableProps {
 
 export function HeadToHeadTable({ playerId }: HeadToHeadTableProps) {
   const [records, setRecords] = useState<HeadToHeadRecord[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(true)
     getHeadToHead(playerId)
       .then(setRecords)
       .finally(() => setLoading(false))

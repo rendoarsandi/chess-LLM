@@ -7,6 +7,7 @@
 - **Chess Logic:** `chess.js`
 - **Chessboard UI:** `react-chessboard`
 - **Engine:** `stockfish.js` (WASM + Web Workers) for client-side evaluation
+- **Data Visualization:** `recharts` for ELO history and performance tracking
 - **Testing:** Vitest + React Testing Library + JSDOM
 
 ## Backend
