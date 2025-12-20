@@ -27,7 +27,7 @@ export function useStockfish(fen: string | null) {
   useEffect(() => {
     if (fen && engineRef.current && fen !== lastFenRef.current) {
       lastFenRef.current = fen;
-      engineRef.current.analyze(fen, 18);
+      engineRef.current.analyze(fen, 15);
     }
   }, [fen]);
 

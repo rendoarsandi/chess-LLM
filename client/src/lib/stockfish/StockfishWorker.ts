@@ -32,6 +32,7 @@ export class StockfishWorker {
       
       this.sendMessage('uci');
       this.sendMessage('setoption name Threads value 1');
+      this.sendMessage('setoption name Hash value 16');
       this.sendMessage('ucinewgame');
       this.sendMessage('isready');
     } catch (error) {
@@ -80,7 +81,7 @@ export class StockfishWorker {
     };
   }
 
-  public analyze(fen: string, depth: number = 18) {
+  public analyze(fen: string, depth: number = 15) {
     if (!this.worker || this.isTerminated) {
       return;
     }
