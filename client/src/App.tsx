@@ -11,16 +11,17 @@ import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLea
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
-import { Trophy, LayoutDashboard, History, RotateCcw, Pause, Play } from "lucide-react"
+import { Trophy, LayoutDashboard, History, RotateCcw, Pause, Play, UserCircle } from "lucide-react"
 import { cn } from "./lib/utils"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 
-type View = 'arena' | 'leaderboard' | 'history';
+type View = 'arena' | 'leaderboard' | 'profiles' | 'history';
 
 function App() {
   const [view, setView] = useState<View>('arena');
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
@@ -234,6 +235,17 @@ function App() {
         >
           <Trophy className="h-6 w-6" />
           <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">LEADERBOARD</span>
+        </button>
+
+        <button 
+          onClick={() => setView('profiles')}
+          className={cn(
+            "p-3 rounded-xl transition-all duration-200 group relative",
+            view === 'profiles' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <UserCircle className="h-6 w-6" />
+          <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">PROFILES</span>
         </button>
 
         <button 

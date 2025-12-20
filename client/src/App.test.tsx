@@ -102,8 +102,31 @@ describe('App Integration', () => {
 
     // Click the first move (e4) to enter browsing mode
     const moveButton = screen.getByText('e4')
-    fireEvent.click(moveButton)
-
-    expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
-  }, 10000)
-})
+        fireEvent.click(moveButton)
+    
+        expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
+      }, 10000)
+    
+        it('navigates to profiles view when sidebar button is clicked', async () => {
+    
+          render(<App />)
+    
+          
+    
+          const profilesButton = screen.getAllByText('PROFILES')[0]
+    
+          expect(profilesButton).toBeInTheDocument()
+    
+          
+    
+          fireEvent.click(profilesButton)
+    
+          // After click, we expect the header to show PROFILES too
+    
+          expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2)
+    
+        })
+    
+      
+    })
+    
