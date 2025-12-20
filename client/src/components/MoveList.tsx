@@ -8,30 +8,25 @@ interface MoveListProps {
 }
 
 export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive }: MoveListProps) {
-  // Sort moves by moveNumber ascending, but handle pairs (white then black)
-  // The moves array from API is desc moveNumber currently, let's reverse it locally
-  const sortedMoves = [...moves].sort((a, b) => {
-    if (a.moveNumber !== b.moveNumber) {
-      return a.moveNumber - b.moveNumber
-    }
-    return a.playerColor === 'white' ? -1 : 1
-  })
-
   // Group into rows
   const pairs: { number: number, white?: { m: Move, idx: number }, black?: { m: Move, idx: number } }[] = []
   
-  sortedMoves.forEach((move, actualIdx) => {
+  // We need to preserve the original index for onMoveClick
+  moves.forEach((move, originalIdx) => {
     let pair = pairs.find(p => p.number === move.moveNumber)
     if (!pair) {
       pair = { number: move.moveNumber }
       pairs.push(pair)
     }
     if (move.playerColor === 'white') {
-      pair.white = { m: move, idx: actualIdx }
+      pair.white = { m: move, idx: originalIdx }
     } else {
-      pair.black = { m: move, idx: actualIdx }
+      pair.black = { m: move, idx: originalIdx }
     }
   })
+
+  // Sort pairs by move number
+  pairs.sort((a, b) => a.number - b.number)
 
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg flex flex-col h-[300px]">

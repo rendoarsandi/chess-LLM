@@ -43,12 +43,15 @@ export class GameService {
   async deleteGame(gameId: string) {
     // Delete associated moves first
     await this.db.delete(moves).where(eq(moves.gameId, gameId))
+    // Delete associated rating history
+    await this.db.delete(ratingHistory).where(eq(ratingHistory.gameId, gameId))
     // Delete the game
     await this.db.delete(games).where(eq(games.id, gameId))
   }
 
   async clearHistory() {
     await this.db.delete(moves)
+    await this.db.delete(ratingHistory)
     await this.db.delete(games)
   }
 

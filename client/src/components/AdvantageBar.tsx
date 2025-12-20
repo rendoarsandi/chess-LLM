@@ -4,10 +4,11 @@ import { cn } from '../lib/utils';
 
 interface AdvantageBarProps {
   evaluation: EngineEvaluation | null;
+  variations?: EngineEvaluation[];
   orientation?: 'white' | 'black';
 }
 
-export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
+export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variations }) => {
   // Normalize score to percentage (0 to 100)
   // +5.0 or more is 100% white, -5.0 or less is 0% white (100% black)
   const getPercentage = () => {
@@ -17,6 +18,8 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
     
     if (evaluation.isMate) {
       const mateIn = evaluation.mateIn || 0;
+      // If mate is 0 or undefined, it's a bug in parsing or engine state, default to 50
+      if (mateIn === 0) return 50;
       return mateIn > 0 ? 100 : 0;
     }
 
@@ -38,7 +41,10 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
 
   const formatScore = () => {
     if (!evaluation) return '';
-    if (evaluation.isMate) return `M${Math.abs(evaluation.mateIn || 0)}`;
+    if (evaluation.isMate) {
+      const m = evaluation.mateIn || 0;
+      return m === 0 ? '0.0' : `M${Math.abs(m)}`;
+    }
     
     const score = evaluation.score / 100;
     const sign = score > 0 ? '+' : '';
@@ -46,9 +52,9 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
   };
 
   return (
-    <div className="flex flex-col items-center h-full relative">
+    <div className="flex flex-col items-center h-full relative group/bar">
       <div className={cn(
-        "relative w-10 md:w-12 h-full bg-neutral-950 overflow-hidden rounded-sm border-2",
+        "relative w-10 md:w-12 h-full bg-neutral-900 overflow-hidden rounded-sm border-2",
         !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
       )}>
         {/* White portion (Bottom up) */}
@@ -66,9 +72,33 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation }) => {
         </div>
       </div>
       
+      {/* Top Variations Tooltip-style info */}
+      {variations && variations.length > 1 && (
+        <div className="absolute left-full ml-4 top-0 bg-neutral-900/90 backdrop-blur-md border border-white/10 p-3 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none z-50 w-48 shadow-2xl">
+          <div className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 border-b border-white/5 pb-1">Top Lines</div>
+          <div className="space-y-2">
+            {variations.map((v, i) => (
+              <div key={i} className="flex flex-col gap-0.5">
+                <div className="flex justify-between items-center text-[10px] font-mono">
+                  <span className="text-neutral-400">#{v.multipv}</span>
+                  <span className={cn("font-bold", (v.score || 0) >= 0 ? "text-emerald-400" : "text-red-400")}>
+                    {v.isMate ? `M${v.mateIn}` : (v.score / 100).toFixed(2)}
+                  </span>
+                </div>
+                {v.pv && (
+                  <div className="text-[9px] text-neutral-500 truncate font-mono">
+                    {v.pv.split(' ').slice(0, 3).join(' ')}...
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {evaluation && (
-        <div className="absolute -bottom-6 text-[8px] text-neutral-500 font-mono">
-          D{evaluation.depth}
+        <div className="absolute -bottom-6 text-[8px] text-neutral-500 font-mono flex flex-col items-center">
+          <span>D{evaluation.depth}</span>
         </div>
       )}
     </div>
