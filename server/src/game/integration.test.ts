@@ -29,6 +29,11 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        draws INTEGER NOT NULL DEFAULT 0,
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (
@@ -65,7 +70,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     mockGeminiService = {
       generateMove: vi.fn().mockImplementation(async (model, prompt) => {
         // Extract FEN from prompt
-        const fenMatch = prompt.match(/Current board state \(FEN\): (.*)/)
+        const fenMatch = prompt.match(/Current FEN: (.*)/)
         const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         const chess = new Chess(fen)
         const moves = chess.moves()

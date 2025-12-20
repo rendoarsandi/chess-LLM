@@ -19,6 +19,11 @@ describe('GameLoopService', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        draws INTEGER NOT NULL DEFAULT 0,
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
         created_at INTEGER NOT NULL
       );
       CREATE TABLE games (

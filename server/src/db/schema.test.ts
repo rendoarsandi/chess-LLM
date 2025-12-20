@@ -2,8 +2,13 @@ import { describe, it, expect } from 'vitest'
 import * as schema from './schema'
 
 describe('Database Schema', () => {
-  it('should have players table defined', () => {
+  it('should have players table defined with ELO and stats columns', () => {
     expect(schema.players).toBeDefined()
+    expect(schema.players.rating).toBeDefined()
+    expect(schema.players.wins).toBeDefined()
+    expect(schema.players.losses).toBeDefined()
+    expect(schema.players.draws).toBeDefined()
+    expect(schema.players.peakRating).toBeDefined()
   })
 
   it('should have games table defined', () => {
