@@ -36,10 +36,22 @@ const GEMINI_2_5_ID = '00000000-0000-0000-0000-000000000004'
 const GEMMA_3_27B_ID = '00000000-0000-0000-0000-000000000005'
 const GEMMA_3_12B_ID = '00000000-0000-0000-0000-000000000006'
 const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
+const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
+const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
 
 // Initialize players
 const randomPlayer = new RandomPlayer()
 gameManager.setPlayer(RANDOM_BOT_ID, randomPlayer)
+
+import { StockfishPlayer } from './game/stockfish-player'
+const stockfishLow = new StockfishPlayer(0) // Skill Level 0
+const stockfishMed = new StockfishPlayer(10) // Skill Level 10
+const stockfishHigh = new StockfishPlayer(20, 2000) // Skill Level 20, 2000 ELO
+
+gameManager.setPlayer(STOCKFISH_LOW_ID, stockfishLow)
+gameManager.setPlayer(STOCKFISH_MED_ID, stockfishMed)
+gameManager.setPlayer(STOCKFISH_HIGH_ID, stockfishHigh)
 
 let defaultLlmPlayer: any = randomPlayer
 
@@ -73,6 +85,9 @@ async function ensureSystemPlayers() {
     { id: GEMMA_3_27B_ID, name: 'Gemma 3 27B', type: 'llm' as const },
     { id: GEMMA_3_12B_ID, name: 'Gemma 3 12B', type: 'llm' as const },
     { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const },
+    { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const },
+    { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const },
+    { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const },
   ]
 
   const systemIds = systemPlayers.map(p => p.id)

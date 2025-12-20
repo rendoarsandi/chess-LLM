@@ -3,6 +3,7 @@ import { games, moves, players } from '../db/schema'
 import { eq, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
+import { Chess } from 'chess.js'
 
 export class GameService {
   constructor(private db: any, private gm: GameManager) {}
@@ -98,12 +99,14 @@ export class GameService {
     if (!game) throw new Error('Game not found')
     if (game.status !== 'ongoing') throw new Error('Game is already finished')
 
-    if (!this.gm.isValidMove(game.fen, move)) {
+    const chess = new Chess(game.fen)
+    const moveResult = chess.move(move)
+    if (!moveResult) {
       throw new Error('Invalid move')
     }
 
-    const nextFen = this.gm.getNextState(game.fen, move)
-    const isGameOver = this.gm.isGameOver(nextFen)
+    const nextFen = chess.fen()
+    const isGameOver = chess.isGameOver()
     const winner = this.gm.getWinner(nextFen)
 
     const fenParts = game.fen.split(' ')
@@ -115,7 +118,7 @@ export class GameService {
       gameId,
       moveNumber,
       playerColor,
-      move,
+      move: moveResult.san, // Use SAN instead of the raw move string
       fen: nextFen,
       opening: thinking?.opening,
       candidates: thinking?.candidates,

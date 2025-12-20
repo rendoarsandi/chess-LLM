@@ -1,0 +1,8 @@
+
+> server@1.0.0 dev
+> tsx watch src/index.ts
+
+[dotenv@17.2.3] injecting env (0) from ../.env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[Main] Gemini API Key found, initializing GeminiPlayers
+[GameLoop] Starting background loop with interval 5000ms
+Server is running on port 3001
