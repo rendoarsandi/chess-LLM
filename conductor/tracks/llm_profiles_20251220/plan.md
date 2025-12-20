@@ -1,12 +1,12 @@
 # Plan: LLM Profile Pages & Sidebar Integration
 
-## Phase 1: Database & Backend Extensions
+## Phase 1: Database & Backend Extensions [checkpoint: 457f785]
 - [x] Task: Update Database Schema to include Peak ELO and Join Date if not present. 5b0376b
 - [x] Task: Create `PlayerService` or extend `GameService` to aggregate profile statistics (Wins, Losses, Draws, Peak ELO). 2f28688
 - [x] Task: Implement API endpoint `GET /api/players/:id/profile` to return metadata and basic stats. 767ff58
 - [x] Task: Implement API endpoint `GET /api/players/:id/elo-history?period=7|30|90|all` to return time-series data for the graph. 767ff58
 - [x] Task: Implement API endpoint `GET /api/players/:id/head-to-head` to return the summary table of records against all opponents. 767ff58
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Extensions' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Extensions' (Protocol in workflow.md)
 
 ## Phase 2: Frontend Infrastructure & Navigation
 - [ ] Task: Install `recharts` dependency in the client.
