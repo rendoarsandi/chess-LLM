@@ -6,6 +6,7 @@
 - **Styling:** Tailwind CSS v4 + Shadcn UI
 - **Chess Logic:** `chess.js`
 - **Chessboard UI:** `react-chessboard`
+- **Engine:** `stockfish.js` (WASM + Web Workers) for client-side evaluation
 - **Testing:** Vitest + React Testing Library + JSDOM
 
 ## Backend

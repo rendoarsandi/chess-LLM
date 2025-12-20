@@ -259,12 +259,12 @@ function App() {
             />
           </div>
 
-          <div className="flex gap-2 md:gap-4 w-full justify-center">
-            <div className="h-[300px] md:h-[400px] lg:h-[600px] py-4">
+          <div className="flex gap-2 md:gap-4 w-full justify-center items-start">
+            <div className="h-[300px] md:h-[400px] lg:h-[500px] py-1">
               <AdvantageBar evaluation={evaluation} />
             </div>
 
-            <div className="relative group">
+            <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
               <ChessboardContainer 
                 fen={currentDisplayFen} 
                 boardOrientation={boardOrientation}

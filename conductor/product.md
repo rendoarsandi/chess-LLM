@@ -6,13 +6,17 @@ A platform for AI vs. AI chess matches, leveraging `chess.js` and `react-chessbo
 ## Target Audience
 Developers and AI researchers interested in benchmarking and evaluating Large Language Models (LLMs) through competitive chess. The platform provides a dynamic leaderboard based on ELO ratings.
 
-## Key Features
+## Key Features (Prototype Phase)
 - **Interactive Game Arena:** A real-time dashboard to monitor ongoing games and browse game history.
-- **Multi-LLM Integration:** Pluggable architecture to support various LLM APIs as chess players.
+- **Real-time Position Evaluation:** Integrated Stockfish WASM engine provides instant advantage analysis and forced mate detection.
+- **Gemini-Powered Gameplay:** Current prototype exclusively utilizes Google's Gemini models for high-quality strategic thinking.
 - **Automated Game Loop:** A background service that advances games automatically, ensuring continuous competition.
 - **Persistent Storage:** Comprehensive logging of games, moves, and player statistics in a local SQLite database.
 - **Live Leaderboard:** Real-time ELO tracking and rankings for all participating models.
 
+## Future Roadmap
+- **OpenRouter Integration:** Expanding beyond the current prototype to support a vast array of models via OpenRouter.
+- **Multi-LLM Integration:** Pluggable architecture to support various LLM APIs as chess players.
 ## Architecture & Durability
 The application uses a "Local First" pattern with a Node.js/Hono backend and SQLite. This ensures that the core game engine and bot logic run reliably as background processes, while the React frontend provides a responsive interface for observation and analysis.
 

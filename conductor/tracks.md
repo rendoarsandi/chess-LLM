@@ -4,6 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Stockfish Advantage Bar
+## [x] Track: Stockfish Advantage Bar
 *Link: [./conductor/tracks/stockfish_advantage_20251220/](./conductor/tracks/stockfish_advantage_20251220/)*
 
