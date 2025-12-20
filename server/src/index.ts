@@ -52,9 +52,9 @@ const randomPlayer = new RandomPlayer()
 gameManager.setPlayer(RANDOM_BOT_ID, randomPlayer)
 
 import { StockfishPlayer } from './game/stockfish-player'
-const stockfishLow = new StockfishPlayer(10, 1500, 10) // Skill Level 10, 1500 ELO, Depth 10
-const stockfishMed = new StockfishPlayer(20, 2000, 14) // Skill Level 20, 2000 ELO, Depth 14
-const stockfishHigh = new StockfishPlayer(20, 3000, 17) // Skill Level 20, 3000 ELO, Depth 17
+const stockfishLow = new StockfishPlayer(10, 1500, 14) // Skill Level 10, 1500 ELO, Depth 14
+const stockfishMed = new StockfishPlayer(20, 2000, 18) // Skill Level 20, 2000 ELO, Depth 18
+const stockfishHigh = new StockfishPlayer(20, 3000, 22) // Skill Level 20, 3000 ELO, Depth 22
 
 gameManager.setPlayer(STOCKFISH_LOW_ID, stockfishLow)
 gameManager.setPlayer(STOCKFISH_MED_ID, stockfishMed)
