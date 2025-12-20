@@ -44,6 +44,40 @@ describe('Leaderboard', () => {
     expect(screen.getByText('W/L/D')).toBeInTheDocument()
   })
 
+  it('sorts players by rating in descending order', () => {
+    const unsortedPlayers: Player[] = [
+      {
+        id: '1',
+        name: 'Lower Rated',
+        type: 'llm',
+        rating: 1000,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        peakRating: 1000,
+        createdAt: ''
+      },
+      {
+        id: '2',
+        name: 'Higher Rated',
+        type: 'llm',
+        rating: 2000,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        peakRating: 2000,
+        createdAt: ''
+      }
+    ]
+
+    render(<Leaderboard players={unsortedPlayers} />)
+
+    const rows = screen.getAllByRole('row')
+    // row 0 is header
+    expect(rows[1]).toHaveTextContent('Higher Rated')
+    expect(rows[2]).toHaveTextContent('Lower Rated')
+  })
+
   it('displays win/loss/draw records correctly', () => {
     render(<Leaderboard players={mockPlayers} />)
     expect(screen.getByText('10/2/5')).toBeInTheDocument()
