@@ -13,10 +13,10 @@ Goal: Implement a collapsible sidebar that defaults to a slim view on mobile.
 ## Phase 2: Responsive Advantage Bar & Board
 Goal: Ensure the board and advantage bar adapt to mobile screen constraints.
 
-- [ ] Task: Modify `AdvantageBar.tsx` to support a `horizontal` orientation prop.
-- [ ] Task: Update `AdvantageBar.tsx` styles to handle horizontal layout (thinner bar, labels side-by-side).
-- [ ] Task: Update `App.tsx` to pass the `orientation` prop to `AdvantageBar` based on screen size (using a `useMediaQuery` hook or CSS breakpoints).
-- [ ] Task: Adjust `ChessboardContainer` and its wrapper in `App.tsx` for better responsive sizing (max-width constraints).
+- [x] Task: Modify `AdvantageBar.tsx` to support a `horizontal` orientation prop. dc13f92
+- [x] Task: Update `AdvantageBar.tsx` styles to handle horizontal layout (thinner bar, labels side-by-side). dc13f92
+- [x] Task: Update `App.tsx` to pass the `orientation` prop to `AdvantageBar` based on screen size (using a `useMediaQuery` hook or CSS breakpoints). dc13f92
+- [x] Task: Adjust `ChessboardContainer` and its wrapper in `App.tsx` for better responsive sizing (max-width constraints). dc13f92
 - [ ] Task: Conductor - User Manual Verification 'Responsive Advantage Bar & Board' (Protocol in workflow.md)
 
 ## Phase 3: Arena Layout Stacking & Collapsible Sections
