@@ -5,8 +5,9 @@ import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
+import { Leaderboard } from "@/components/Leaderboard"
 import { useEffect, useState, useCallback } from "react"
-import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers } from "./api"
+import { getGames, getGame, createGame, deleteGame, clearHistory, getMoves, getPlayers, getLeaderboard } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
@@ -19,6 +20,7 @@ function App() {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
   const [players, setPlayers] = useState<Player[]>([])
+  const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null) // null means "Live"
 
@@ -34,6 +36,15 @@ function App() {
       handleSelectGame(allGames[0])
     }
   }, [selectedGame, handleSelectGame])
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const data = await getLeaderboard()
+      setLeaderboard(data)
+    } catch (err) {
+      console.error("Failed to fetch leaderboard", err)
+    }
+  }, [])
 
   const handleCreateGame = async (whiteId: string, blackId: string) => {
     try {
@@ -73,9 +84,13 @@ function App() {
   useEffect(() => {
     fetchAllGames() // eslint-disable-line react-hooks/set-state-in-effect
     fetchPlayers() // eslint-disable-line react-hooks/set-state-in-effect
-    const listInterval = setInterval(fetchAllGames, 10000)
+    fetchLeaderboard() // eslint-disable-line react-hooks/set-state-in-effect
+    const listInterval = setInterval(() => {
+      fetchAllGames()
+      fetchLeaderboard()
+    }, 10000)
     return () => clearInterval(listInterval)
-  }, [fetchAllGames, fetchPlayers])
+  }, [fetchAllGames, fetchPlayers, fetchLeaderboard])
 
   useEffect(() => {
     const gameId = selectedGame?.id
@@ -381,6 +396,11 @@ function App() {
             onSelect={handleSelectGame} 
             onDelete={handleDeleteGame}
           />
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold px-1">Leaderboard</h2>
+            <Leaderboard players={leaderboard} />
+          </div>
         </div>
       </main>
     </div>

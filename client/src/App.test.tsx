@@ -9,6 +9,7 @@ vi.mock('./api', () => ({
   getGame: vi.fn(),
   getMoves: vi.fn(),
   getPlayers: vi.fn(),
+  getLeaderboard: vi.fn(),
   createGame: vi.fn(),
   deleteGame: vi.fn(),
   clearHistory: vi.fn(),
@@ -16,8 +17,8 @@ vi.mock('./api', () => ({
 
 describe('App Integration', () => {
   const mockPlayers = [
-    { id: 'p1', name: 'Player 1', type: 'llm' },
-    { id: 'p2', name: 'Player 2', type: 'llm' },
+    { id: 'p1', name: 'Player 1', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
+    { id: 'p2', name: 'Player 2', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
   ]
 
   const mockGame = {
@@ -33,6 +34,7 @@ describe('App Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(api.getPlayers as Mock).mockResolvedValue(mockPlayers)
+    ;(api.getLeaderboard as Mock).mockResolvedValue(mockPlayers)
     ;(api.getGames as Mock).mockResolvedValue([mockGame])
     ;(api.getGame as Mock).mockResolvedValue(mockGame)
     ;(api.getMoves as Mock).mockResolvedValue([])
