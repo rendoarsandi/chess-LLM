@@ -30,7 +30,7 @@ describe('useStockfish', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     renderHook(() => useStockfish(fen));
 
-    expect(mockAnalyze).toHaveBeenCalledWith(fen, 2000);
+    expect(mockAnalyze).toHaveBeenCalledWith(fen, 15);
   });
 
   it('should update evaluation state when engine reports', () => {
@@ -51,11 +51,11 @@ describe('useStockfish', () => {
       initialProps: { fen: 'startpos' },
     });
 
-    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 2000);
+    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 15);
 
     const newFen = 'e4';
     rerender({ fen: newFen });
-    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 2000);
+    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 15);
   });
 
   it('should terminate engine on unmount', () => {

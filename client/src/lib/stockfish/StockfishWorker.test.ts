@@ -64,7 +64,7 @@ describe('StockfishWorker', () => {
 
     expect(activeWorker.postMessage).toHaveBeenCalledWith('stop');
     expect(activeWorker.postMessage).toHaveBeenCalledWith(`position fen ${fen}`);
-    expect(activeWorker.postMessage).toHaveBeenCalledWith('go movetime 1000');
+    expect(activeWorker.postMessage).toHaveBeenCalledWith('go depth 1000');
   });
 
   it('should terminate the worker', () => {
