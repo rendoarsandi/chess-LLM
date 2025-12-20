@@ -1,0 +1,8 @@
+{
+  "track_id": "groq_integration_20251220",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-20T12:00:00Z",
+  "updated_at": "2025-12-20T12:00:00Z",
+  "description": "Add the Groq provider and models: moonshotai/kimi-k2-instruct-0905, openai/gpt-oss-120b, qwen/qwen3-32b"
+}
