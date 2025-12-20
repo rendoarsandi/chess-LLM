@@ -10,7 +10,7 @@
 
 ## Phase 2: Frontend Infrastructure & Navigation
 - [x] Task: Install `recharts` dependency in the client. 32a4a5f
-- [ ] Task: Update Sidebar component to include "LLM Profiles" between "Leaderboard" and "Game History".
+- [x] Task: Update Sidebar component to include "LLM Profiles" between "Leaderboard" and "Game History". f953b3f
 - [ ] Task: Create a new `PlayerList` view (or update Leaderboard) to allow selecting a player to view their profile.
 - [ ] Task: Define routes for `/profiles` and `/profiles/:id`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Infrastructure & Navigation' (Protocol in workflow.md)
