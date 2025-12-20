@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { LlmService } from './base-llm-player'
 
-export class GeminiService {
+export class GeminiService implements LlmService {
   private genAI: GoogleGenerativeAI
 
   constructor(apiKey: string) {

@@ -1,4 +1,6 @@
-export class GroqService {
+import { LlmService } from './base-llm-player'
+
+export class GroqService implements LlmService {
   private apiKey: string
   private apiUrl = 'https://api.groq.com/openai/v1/chat/completions'
 
