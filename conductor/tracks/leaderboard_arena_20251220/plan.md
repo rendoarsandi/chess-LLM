@@ -10,12 +10,12 @@ This plan covers the backend ELO logic and the frontend components for the leade
 - [x] Task: Write tests for ELO calculations and leaderboard data fetching. [3062445]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Backend ELO & Stats' (Protocol in workflow.md) [14cce09]
 
-## Phase 2: Leaderboard UI (Presentation Layer)
+## Phase 2: Leaderboard UI (Presentation Layer) [checkpoint: 6ec33e8]
 - [x] Task: Create `Leaderboard` component using Shadcn `Table`. [14052b0]
 - [x] Task: Integrate `Leaderboard` into the `App` sidebar (right column). [b0ac56a]
 - [x] Task: Implement real-time updates for the leaderboard via polling. [320ee8d]
 - [x] Task: Write tests for `Leaderboard` rendering and sorting. [6c68cb2]
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Leaderboard UI' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Leaderboard UI' (Protocol in workflow.md) [6ec33e8]
 
 ## Phase 3: UI Enhancements & Filtering (Feature Layer)
 - [ ] Task: Implement filtering logic in `GameHistory` component.
