@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
+import { MemoryRouter } from 'react-router'
 
 // Mock the API
 vi.mock('./api', () => ({
@@ -46,7 +47,11 @@ describe('App Integration', () => {
 
   it('updates board FEN when moves are fetched', async () => {
     // Initial render
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    )
 
     // Wait for initial load
     await waitFor(() => expect(api.getGames).toHaveBeenCalled())
@@ -96,7 +101,11 @@ describe('App Integration', () => {
     
     ;(api.getMoves as Mock).mockResolvedValue(mockMoves)
 
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    )
 
     await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 8000 })
 
@@ -108,7 +117,11 @@ describe('App Integration', () => {
   }, 10000)
 
   it('navigates to profiles view when sidebar button is clicked', async () => {
-    render(<App />)
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
+    )
 
     const profilesButton = screen.getAllByText('PROFILES')[0]
     expect(profilesButton).toBeInTheDocument()
