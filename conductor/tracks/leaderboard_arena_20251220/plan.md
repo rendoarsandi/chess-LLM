@@ -12,7 +12,7 @@ This plan covers the backend ELO logic and the frontend components for the leade
 
 ## Phase 2: Leaderboard UI (Presentation Layer)
 - [x] Task: Create `Leaderboard` component using Shadcn `Table`. [14052b0]
-- [ ] Task: Integrate `Leaderboard` into the `App` sidebar (right column).
+- [x] Task: Integrate `Leaderboard` into the `App` sidebar (right column). [b0ac56a]
 - [ ] Task: Implement real-time updates for the leaderboard via polling.
 - [ ] Task: Write tests for `Leaderboard` rendering and sorting.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Leaderboard UI' (Protocol in workflow.md)
