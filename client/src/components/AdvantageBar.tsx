@@ -18,8 +18,8 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
     
     if (evaluation.isMate) {
       const mateIn = evaluation.mateIn || 0;
-      // If mate is 0 or undefined, it's a bug in parsing or engine state, default to 50
       if (mateIn === 0) return 50;
+      // mateIn > 0 means White is mating, < 0 means Black is mating
       return mateIn > 0 ? 100 : 0;
     }
 
@@ -28,11 +28,10 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
 
     // Clamp score between -5 and 5 for the visual bar
     const clampedScore = Math.max(-5, Math.min(5, score));
-    // Map -5..5 to 0..100
+    // Map -5..5 to 0..100 (White advantage is positive)
     const rawPct = ((clampedScore + 5) / 10) * 100;
     
     // Scale 0..100 to 5..95 so it never looks "full" unless it's a mate
-    // formula: 5 + (rawPct * (90/100))
     const calculated = 5 + (rawPct * 0.9);
     return isNaN(calculated) ? 50 : calculated;
   };
@@ -43,11 +42,14 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({ evaluation, variatio
     if (!evaluation) return '';
     if (evaluation.isMate) {
       const m = evaluation.mateIn || 0;
+      // Absolute value for display, sign handled by position/color
       return m === 0 ? '0.0' : `M${Math.abs(m)}`;
     }
     
     const score = evaluation.score / 100;
     const sign = score > 0 ? '+' : '';
+    // If score is 0, no sign
+    if (score === 0) return '0.0';
     return `${sign}${score.toFixed(1)}`;
   };
 
