@@ -398,6 +398,7 @@ function App() {
 
           <GameHistory 
             games={games} 
+            players={players}
             selectedGameId={selectedGame?.id} 
             onSelect={handleSelectGame} 
             onDelete={handleDeleteGame}
