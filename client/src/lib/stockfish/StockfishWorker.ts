@@ -14,6 +14,9 @@ export class StockfishWorker {
   private onEvaluation: EngineCallback | null = null;
   private isTerminated: boolean = false;
   private multiPv: number = 3;
+  private isReady: boolean = false;
+  private isSearching: boolean = false;
+  private pendingFen: string | null = null;
 
   constructor(callback: EngineCallback, multiPv: number = 3) {
     this.onEvaluation = callback;
@@ -35,11 +38,6 @@ export class StockfishWorker {
       };
       
       this.sendMessage('uci');
-      this.sendMessage('setoption name Threads value 1');
-      this.sendMessage('setoption name Hash value 16');
-      this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);
-      this.sendMessage('ucinewgame');
-      this.sendMessage('isready');
     } catch (error) {
       console.error('[StockfishWorker] Critical failure during initialization:', error);
       this.isTerminated = true;
@@ -49,8 +47,31 @@ export class StockfishWorker {
   private handleMessage = (message: string) => {
     if (typeof message !== 'string') return;
 
+    if (message.startsWith('uciok')) {
+      this.sendMessage('setoption name Threads value 1');
+      this.sendMessage('setoption name Hash value 16'); // Reduced for stability
+      this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);
+      this.sendMessage('ucinewgame');
+      this.sendMessage('isready');
+      return;
+    }
+
+    if (message.startsWith('readyok')) {
+      this.isReady = true;
+      if (this.pendingFen) {
+        const fen = this.pendingFen;
+        this.pendingFen = null;
+        this.analyze(fen, 18);
+      }
+      return;
+    }
+
+    if (message.startsWith('bestmove')) {
+      this.isSearching = false;
+      return;
+    }
+
     // Only process info messages that have a score AND a PV
-    // This avoids using upperbound/lowerbound search noise
     if (message.startsWith('info') && message.includes('score') && message.includes(' pv ')) {
       const evaluation = this.parseInfo(message);
       if (evaluation && this.onEvaluation) {
@@ -93,9 +114,17 @@ export class StockfishWorker {
       return;
     }
 
-    this.sendMessage('stop');
-    this.sendMessage('ucinewgame'); // Clear internal hash/state for fresh evaluation
+    if (!this.isReady) {
+      this.pendingFen = fen;
+      return;
+    }
+
+    if (this.isSearching) {
+      this.sendMessage('stop');
+    }
+
     if (onStart) onStart();
+    this.isSearching = true;
     this.sendMessage(`position fen ${fen}`);
     this.sendMessage(`go depth ${depth}`);
   }
