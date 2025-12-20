@@ -21,8 +21,8 @@
 - [x] Task: (Backend) Ensure the `GameLoopService` and `GameManager` handle move failures without stopping the loop. b7401e4
 - [x] Task: Conductor - User Manual Verification 'Defensive Chess Logic' (Protocol in workflow.md)
 
-## Phase 4: Route-Specific Data Fetching & Cleanup
-- [ ] Task: Update the `PlayerProfile` route to correctly use the `:id` parameter from the URL.
-- [ ] Task: Ensure the `Arena` state (current game) is preserved or correctly re-fetched during navigation.
-- [ ] Task: Final pass on TypeScript types for all routing and error handling logic.
-- [ ] Task: Conductor - User Manual Verification 'Route-Specific Data Fetching & Cleanup' (Protocol in workflow.md)
+## Phase 4: Route-Specific Data Fetching & Cleanup [checkpoint: 91e1243]
+- [x] Task: Update the `PlayerProfile` route to correctly use the `:id` parameter from the URL. 73cc1ae
+- [x] Task: Ensure the `Arena` state (current game) is preserved or correctly re-fetched during navigation. 73cc1ae
+- [x] Task: Final pass on TypeScript types for all routing and error handling logic. a61645f
+- [x] Task: Conductor - User Manual Verification 'Route-Specific Data Fetching & Cleanup' (Protocol in workflow.md)
