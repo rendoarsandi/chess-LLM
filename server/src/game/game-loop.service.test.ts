@@ -171,12 +171,14 @@ describe('GameLoopService', () => {
     const runSpy = vi.spyOn(loopService, 'runIteration').mockResolvedValue()
     
     loopService.start(1000)
-    
-    await vi.advanceTimersByTimeAsync(1000)
+    // First call is immediate
     expect(runSpy).toHaveBeenCalledTimes(1)
     
     await vi.advanceTimersByTimeAsync(1000)
     expect(runSpy).toHaveBeenCalledTimes(2)
+    
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(runSpy).toHaveBeenCalledTimes(3)
     
     vi.useRealTimers()
   })
