@@ -15,13 +15,13 @@
 - [x] Task: Define routes for `/profiles` and `/profiles/:id`. 58678c0
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Infrastructure & Navigation' (Protocol in workflow.md)
 
-## Phase 3: Profile Page Implementation
+## Phase 3: Profile Page Implementation [checkpoint: 132c0a6]
 - [x] Task: Implement `PlayerProfileHeader` component (Name, Provider, Bio, Join Date). 9604e48
 - [x] Task: Implement `StatCards` component (Wins, Losses, Draws, Peak ELO, Current ELO). 9604e48
 - [x] Task: Implement `EloHistoryChart` component using `recharts` with period filters. 9604e48
 - [x] Task: Implement `HeadToHeadTable` component for the performance summary. 9604e48
 - [x] Task: Assemble components into the main `PlayerProfile` page. 9604e48
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Profile Page Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Profile Page Implementation' (Protocol in workflow.md)
 
 ## Phase 4: Refinement & Polishing
 - [ ] Task: Ensure responsive design for the profile page on mobile devices.
