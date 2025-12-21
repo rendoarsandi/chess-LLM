@@ -504,9 +504,11 @@ function App() {
           }).catch(() => navigate('/arena'));
         }
       } else {
-        // No ID, but check if we should auto-select first game
-        if (selectedGame === null && games.length > 0) {
-            handleSelectGame(games[0]);
+        // No ID, clear state for a clean view
+        if (selectedGame !== null) {
+          setSelectedGame(null);
+          setMoves([]);
+          setActiveMoveIndex(null);
         }
       }
     }

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings, LogOut } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings, LogOut, LogIn } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { NavLink, useNavigate } from "react-router"
@@ -83,8 +83,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         ))}
       </div>
 
-      {session && (
-        <div className="w-full px-3 mt-auto">
+      <div className="w-full px-3 mt-auto">
+        {session ? (
           <Button
             variant="ghost"
             className={cn(
@@ -105,8 +105,29 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </span>
             )}
           </Button>
-        </div>
-      )}
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) => cn(
+              "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
+              isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}
+          >
+            <LogIn className="h-6 w-6 shrink-0" />
+            {!isCollapsed && (
+              <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+                LOGIN
+              </span>
+            )}
+            {isCollapsed && (
+              <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                LOGIN
+              </span>
+            )}
+          </NavLink>
+        )}
+      </div>
     </nav>
   )
 }
