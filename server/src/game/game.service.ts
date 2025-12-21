@@ -38,6 +38,10 @@ export class GameService {
       tournamentId: metadata?.tournamentId,
       roundNumber: metadata?.roundNumber,
     })
+
+    if (this.socketService) {
+      this.socketService.broadcast(id, { type: 'GAME_STARTED', gameId: id })
+    }
     
     return id
   }
