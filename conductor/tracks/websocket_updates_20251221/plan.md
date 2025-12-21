@@ -1,4 +1,4 @@
-# Implementation Plan - WebSocket Game Updates [checkpoint: a50a128]
+# Implementation Plan - WebSocket Game Updates [checkpoint: 5757f34]
 
 ## Phase 1: Backend WebSocket Implementation
 - [x] Task: Install `@hono/node-ws` dependency in `server/`. 3d9e8f7
@@ -16,7 +16,7 @@
 - [x] Task: Add a "Spectator Count" display component in `client/src/components/` and integrate it into the game view. f1d3a3b
 - [x] Task: Verify that `client/src/components/GameHistory.tsx` (or similar lists) still functions correctly (it might need a separate subscription or remain polling if real-time isn't critical there). f1d3a3b
 - [x] Task: Add unit tests for `useGameSocket` hook. 4e50cd4
-- [~] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md) 5757f34
 
 ## Phase 3: System Verification & Cleanup
 - [ ] Task: Remove the polling logic from `client/src/api.ts` if no longer used for game updates.
