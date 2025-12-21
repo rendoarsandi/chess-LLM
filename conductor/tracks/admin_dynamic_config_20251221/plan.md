@@ -7,13 +7,12 @@
 - [x] Task: Create CRUD API endpoints for `llm_configurations` (GET /api/admin/models, POST /api/admin/models, PATCH /api/admin/models/:id) [99c554c]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [2cc4a04]
 
-## Phase 2: Frontend Auth & Routing
+## Phase 2: Frontend Auth & Routing [checkpoint: 5622a6d]
 - [x] Task: Initialize BetterAuth client in the React frontend [2f2fce0]
 - [x] Task: Create `AdminLogin` component and handle Email/Password login [a23c034]
 - [x] Task: Create `ProtectedRoute` component for React Router to guard admin paths [16b8419]
 - [x] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`) [5e64ff0]
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md) [5622a6d]
 
 ## Phase 3: Admin Management UI
 - [ ] Task: Develop `/admin/settings` dashboard with model list and "Add New Model" form
