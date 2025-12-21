@@ -4,13 +4,15 @@ import { GameService } from './game.service'
 import { Player } from './player.interface'
 import { alias } from 'drizzle-orm/sqlite-core'
 import { logger } from './logger'
+import { SocketService } from './socket.service'
 
 export class GameLoopService {
   constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any,
     private gameService: GameService,
-    private player: Player
+    private player: Player,
+    private socketService?: SocketService
   ) {}
 
   async runIteration() {
@@ -43,6 +45,11 @@ export class GameLoopService {
 
       // Allow any player that is NOT human to make a move automatically
       if (currentPlayerType !== 'human' && currentPlayerId) {
+        // Broadcast thinking status
+        if (this.socketService) {
+          this.socketService.broadcast(game.id, { type: 'STATUS', status: 'thinking' })
+        }
+
         // Fetch move history
         const gameMoves = await this.db.select()
           .from(movesTable)

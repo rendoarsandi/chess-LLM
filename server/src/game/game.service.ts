@@ -6,13 +6,15 @@ import { calculateEloChange } from './elo'
 import { Chess } from 'chess.js'
 import { logger } from './logger'
 import { TournamentService } from './tournament.service'
+import { SocketService } from './socket.service'
 
 export class GameService {
   constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any, 
     private gm: GameManager, 
-    private ts?: TournamentService
+    private ts?: TournamentService,
+    private socketService?: SocketService
   ) {}
 
   async createGame(whitePlayerId: string, blackPlayerId: string, metadata?: { tournamentId?: string, roundNumber?: number }) {
@@ -203,7 +205,13 @@ export class GameService {
       await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as 'completed' | 'draw', winnerId, gameId)
     }
 
-    return { fen: nextFen, status, winnerId, gameOverReason, san: moveResult.san }
+    const result = { fen: nextFen, status, winnerId, gameOverReason, san: moveResult.san, pgn }
+
+    if (this.socketService) {
+      this.socketService.broadcast(gameId, { type: 'UPDATE', ...result })
+    }
+
+    return result
   }
 
   private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {

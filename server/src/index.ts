@@ -39,7 +39,7 @@ const gameManager = new GameManager()
 const socketService = new SocketService()
 const playerService = new PlayerService(db)
 const tournamentService = new TournamentService(db)
-const gameService = new GameService(db, gameManager, tournamentService)
+const gameService = new GameService(db, gameManager, tournamentService, socketService)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -172,7 +172,7 @@ export const initPromise = initializePlayers().catch(console.error)
 
 // Default LLM player for background loop (fallback)
 const defaultLlmPlayer = new RandomPlayer()
-const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
+const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer, socketService)
 const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
 
 // Start background loop
