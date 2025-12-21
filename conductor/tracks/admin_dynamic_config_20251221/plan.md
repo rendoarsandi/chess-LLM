@@ -14,12 +14,12 @@
 - [x] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`) [5e64ff0]
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md) [5622a6d]
 
-## Phase 3: Admin Management UI
-- [~] Task: Develop `/admin/settings` dashboard with model list and "Add New Model" form
-- [ ] Task: Implement "Active/Inactive" toggle for models in the dashboard
-- [ ] Task: Add "Admin Settings" link to the `Sidebar` (conditionally visible)
-- [ ] Task: Add "Edit Configuration" shortcut on individual Model Profile pages
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Admin Management UI' (Protocol in workflow.md)
+## Phase 3: Admin Management UI [checkpoint: 171e7f4]
+- [x] Task: Develop `/admin/settings` dashboard with model list and "Add New Model" form [90755b1]
+- [x] Task: Implement "Active/Inactive" toggle for models in the dashboard [90755b1]
+- [x] Task: Add "Admin Settings" link to the `Sidebar` (conditionally visible) [90755b1]
+- [x] Task: Add "Edit Configuration" shortcut on individual Model Profile pages [90755b1]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Admin Management UI' (Protocol in workflow.md) [171e7f4]
 
 ## Phase 4: Integration & System Sync
 - [ ] Task: Update `PlayerService` to load and instantiate players based on active database configurations
