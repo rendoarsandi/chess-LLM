@@ -15,9 +15,6 @@ export class GameLoopService {
   async runIteration() {
     // 1. Advance ongoing games
     await this.advanceGames()
-
-    // 2. Start new match if none are ongoing
-    await this.maybeStartNewMatch()
   }
 
   private async advanceGames() {
@@ -78,40 +75,6 @@ export class GameLoopService {
           logger.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)
         }
       }
-    }
-  }
-
-  private async maybeStartNewMatch() {
-    const ongoingGames = await this.db.select()
-        .from(games)
-        .where(eq(games.status, 'ongoing'))
-    
-    if (ongoingGames.length > 0) return
-
-    // Get active LLM players from configurations
-    const activeLlmConfigs = await this.db.select()
-        .from(llmConfigurations)
-        .where(eq(llmConfigurations.isActive, true))
-    
-    const activePlayerIds = activeLlmConfigs
-        .filter((c: any) => c.playerId)
-        .map((c: any) => c.playerId)
-
-    if (activePlayerIds.length < 2) {
-        logger.info('[GameLoop] Not enough active LLM players to start a match')
-        return
-    }
-
-    // Pick two random players
-    const shuffled = [...activePlayerIds].sort(() => 0.5 - Math.random())
-    const whiteId = shuffled[0]
-    const blackId = shuffled[1]
-
-    try {
-        const gameId = await this.gameService.createGame(whiteId, blackId)
-        logger.info(`[GameLoop] Automatically started new match: ${gameId} (${whiteId} vs ${blackId})`)
-    } catch (e) {
-        logger.error('[GameLoop] Failed to start automatic match:', e)
     }
   }
 
