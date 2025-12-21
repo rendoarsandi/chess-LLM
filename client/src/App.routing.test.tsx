@@ -1,11 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import App from './App';
 
 // Mock the API calls to avoid network errors during tests
 import * as api from './api';
 import { vi } from 'vitest';
+import { authClient } from '@/lib/auth-client';
+
+// Mock authClient
+vi.mock('@/lib/auth-client', () => ({
+  authClient: {
+      signIn: {
+          email: vi.fn()
+      },
+      useSession: vi.fn()
+  }
+}))
 
 vi.mock('./api', () => ({
   getGames: vi.fn().mockResolvedValue([]),
@@ -98,8 +109,13 @@ describe('App Routing', () => {
 
   it('should preserve selected game when navigating between pages', async () => {
     const mockGame = { id: 'game-persist', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'ongoing' };
+    const mockPlayers = [
+      { id: 'p1', name: 'Player 1', type: 'llm' },
+      { id: 'p2', name: 'Player 2', type: 'llm' }
+    ];
     vi.mocked(api.getGames).mockResolvedValue([mockGame] as unknown as api.Game[]);
     vi.mocked(api.getGame).mockResolvedValue(mockGame as unknown as api.Game);
+    vi.mocked(api.getPlayers).mockResolvedValue(mockPlayers as unknown as api.Player[]);
 
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -110,9 +126,9 @@ describe('App Routing', () => {
     // Initial redirect to /arena, then auto-select first game
     await screen.findAllByText('ARENA');
 
-    // Should show game ID
-    const gameIdDisplay = await screen.findByText('game-per'); // Slice(0,8) of game-persist
-    expect(gameIdDisplay).toBeInTheDocument();
+    // Should show white player name (ThinkingPanel or ArenaContent)
+    const whitePlayerDisplay = await screen.findAllByText('Player 1');
+    expect(whitePlayerDisplay.length).toBeGreaterThan(0);
 
     // Navigate away
     const leaderboardLink = screen.getByText('LEADERBOARD').closest('a');
@@ -124,7 +140,9 @@ describe('App Routing', () => {
     fireEvent.click(arenaLink!);
 
     // Game should still be there
-    expect(screen.getByText('game-per')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getAllByText('Player 1').length).toBeGreaterThan(0);
+    });
   });
 
   it('should render a specific game when navigating to /arena/:id', async () => {
@@ -140,5 +158,48 @@ describe('App Routing', () => {
 
     const gameIdDisplay = await screen.findByText('specific');
     expect(gameIdDisplay).toBeInTheDocument();
+  });
+
+  it('should render AdminLogin when navigating to /login', async () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Admin Access')).toBeInTheDocument();
+  });
+
+  it('should render AdminSettings when authenticated and navigating to /admin/settings', async () => {
+    vi.mocked(authClient.useSession).mockReturnValue({
+      data: { user: { email: 'admin@test.com' } },
+      isPending: false,
+      error: null
+    } as any)
+
+    render(
+      <MemoryRouter initialEntries={['/admin/settings']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Admin Settings')).toBeInTheDocument();
+  });
+
+  it('should redirect to /login when navigating to /admin/settings without session', async () => {
+    vi.mocked(authClient.useSession).mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null
+    } as any)
+
+    render(
+      <MemoryRouter initialEntries={['/admin/settings']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    // Should redirect to login
+    expect(screen.getByText('Admin Access')).toBeInTheDocument();
   });
 });

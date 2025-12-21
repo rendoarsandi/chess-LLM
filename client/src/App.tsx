@@ -10,6 +10,9 @@ import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
+import { AdminLogin } from "@/components/AdminLogin"
+import { AdminSettings } from "@/components/AdminSettings"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
@@ -612,6 +615,12 @@ function App() {
               <div className="bg-card rounded-xl border border-border p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
             </div>
           </div>
+        } />
+        <Route path="/login" element={<AdminLogin />} />
+        <Route path="/admin/settings" element={
+          <ProtectedRoute>
+            <AdminSettings />
+          </ProtectedRoute>
         } />
       </Routes>
     </div>
