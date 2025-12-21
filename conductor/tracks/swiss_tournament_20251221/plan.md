@@ -4,7 +4,7 @@
 - [x] Task: Create `tournaments` and `tournament_participants` tables (Drizzle Schema) bc4181f
     - Define fields: `id`, `name`, `status` (scheduled, active, completed), `start_time`, `time_control_settings`, `current_round`, `total_rounds`.
 - [x] Task: Update `games` table to include `tournament_id` and `round_number` foreign keys/columns. 33a4d1a
-- [ ] Task: Create `TournamentService` class (Backend)
+- [x] Task: Create `TournamentService` class (Backend) 6e4bc7b
     - Implement methods: `createTournament`, `registerParticipant`, `startTournament`.
 - [ ] Task: Implement Swiss Pairing Logic (Algorithm)
     - Create a helper to generate pairings based on current scores and history (avoid repeat matchups).
