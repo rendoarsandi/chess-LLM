@@ -23,10 +23,16 @@ import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
 import { games, players, moves } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
+import { auth } from './lib/auth'
 
 const app = new Hono()
 
 app.use('*', cors())
+
+// BetterAuth integration
+app.on(['POST', 'GET'], '/api/auth/*', (c) => {
+  return auth.handler(c.req.raw)
+})
 
 // Initialize services
 const gameManager = new GameManager()

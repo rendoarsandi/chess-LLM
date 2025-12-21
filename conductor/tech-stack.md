@@ -17,6 +17,7 @@
 - **Language:** TypeScript
 - **Database:** SQLite (Local-first via `better-sqlite3`)
 - **ORM:** Drizzle ORM
+- **Authentication:** BetterAuth (Email/Password)
 - **Testing:** Vitest
 
 ## Background Service

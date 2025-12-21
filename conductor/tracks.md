@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-*No active tracks at this time.*
+## [~] Track: Admin Auth & Dynamic LLM Configuration
+*Link: [./conductor/tracks/admin_dynamic_config_20251221/](./conductor/tracks/admin_dynamic_config_20251221/)*
 
 ---
 
