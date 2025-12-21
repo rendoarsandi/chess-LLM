@@ -45,7 +45,7 @@ export function AdminSettings() {
             await updateAdminModel(config.id, { isActive: !config.isActive })
             toast.success(`${config.modelId} ${!config.isActive ? 'activated' : 'deactivated'}`)
             fetchConfigs()
-        } catch (error) {
+        } catch {
             toast.error("Failed to update status")
         }
     }
@@ -62,7 +62,7 @@ export function AdminSettings() {
             await deleteAdminModel(config.id)
             toast.success("Model deleted successfully")
             fetchConfigs()
-        } catch (error) {
+        } catch {
             toast.error("Failed to delete model")
         }
     }
@@ -80,7 +80,7 @@ export function AdminSettings() {
             setIsDialogOpen(false)
             setNewModel({ provider: "gemini", modelId: "", apiKey: "", isActive: true })
             fetchConfigs()
-        } catch (error) {
+        } catch {
             toast.error("Failed to save model")
         } finally {
             setIsSaving(false)

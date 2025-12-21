@@ -3,7 +3,6 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
 import { MemoryRouter } from 'react-router'
-import { authClient } from '@/lib/auth-client'
 
 // Mock authClient
 vi.mock('@/lib/auth-client', () => ({

@@ -29,7 +29,7 @@ export function AdminLogin() {
                 toast.success("Welcome, Admin")
                 navigate("/admin/settings")
             }
-        } catch (err: any) {
+        } catch (err) {
             toast.error("An unexpected error occurred")
             console.error(err)
         } finally {
