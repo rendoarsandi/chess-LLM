@@ -112,6 +112,23 @@ async function initializePlayers() {
         { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 3000 },
     ]
 
+    // 1. Get all active IDs from configurations and builtin list
+    const activeConfigs = await db.select().from(llmConfigurations)
+    const activePlayerIds = [
+        ...builtinPlayers.map(p => p.id),
+        ...activeConfigs.filter((c: any) => c.playerId).map((c: any) => c.playerId)
+    ]
+
+    // 2. Remove any players NOT in the allowed list
+    const allDbPlayers = await db.select().from(players)
+    for (const p of allDbPlayers) {
+        if (!activePlayerIds.includes(p.id)) {
+            await db.delete(players).where(eq(players.id, p.id))
+            console.log(`[Main] Deleted non-system player: ${p.name} (${p.id})`)
+        }
+    }
+
+    // 3. Ensure built-in players exist in 'players' table
     for (const p of builtinPlayers) {
         const existing = await db.select().from(players).where(eq(players.id, p.id))
         if (existing.length === 0) {
