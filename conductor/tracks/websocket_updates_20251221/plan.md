@@ -7,7 +7,7 @@
 - [x] Task: Update `GameLoopService` (`server/src/game/game-loop.service.ts`) to emit "Move Made" and "Game Over" events to `socket.service.ts`. 0c06e14
 - [x] Task: Update `GameManager` (`server/src/game/game-manager.ts`) to emit "Game Started" events. 12bf9c7
 - [x] Task: Add test coverage for `socket.service.ts` (mocking the WebSocket connection). 98cbbee
-- [ ] Task: Conductor - User Manual Verification 'Backend WebSocket Implementation' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Backend WebSocket Implementation' (Protocol in workflow.md)
 
 ## Phase 2: Frontend WebSocket Integration
 - [ ] Task: Create a custom hook `client/src/hooks/useGameSocket.ts` to manage WebSocket connection, joining rooms, and handling events.

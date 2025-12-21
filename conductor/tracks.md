@@ -8,6 +8,11 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [~] Track: changes this project using websocket when watching the game  so no sending empty request per second but only sending request when ai is  actually moved
+*Link: [./conductor/tracks/websocket_updates_20251221/](./conductor/tracks/websocket_updates_20251221/)*
+
+---
+
 ## Archived Tracks
 
 ### [x] Track: Swiss System Tournament Feature mimicking Tilted Tuesday, with Admin roster selection.
