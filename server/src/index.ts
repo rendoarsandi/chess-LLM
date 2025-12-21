@@ -25,13 +25,18 @@ import { desc, eq } from 'drizzle-orm'
 import { auth } from './lib/auth'
 import { adminMiddleware } from './middleware/admin'
 import { llmConfigService, LLMConfig } from './db/llm_config'
+import { createNodeWebSocket } from '@hono/node-ws'
+import { SocketService } from './game/socket.service'
 
 const app = new Hono()
+
+const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app })
 
 app.use('*', cors())
 
 // Initialize services
 const gameManager = new GameManager()
+const socketService = new SocketService()
 const playerService = new PlayerService(db)
 const tournamentService = new TournamentService(db)
 const gameService = new GameService(db, gameManager, tournamentService)
@@ -179,6 +184,26 @@ if (process.env.NODE_ENV !== 'test') {
 app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
+
+app.get(
+  '/ws',
+  upgradeWebSocket((c) => {
+    const gameId = c.req.query('gameId')
+
+    return {
+      onOpen(event, ws) {
+        if (gameId) {
+          socketService.joinRoom(gameId, ws)
+        }
+      },
+      onClose(event, ws) {
+        if (gameId) {
+          socketService.leaveRoom(gameId, ws)
+        }
+      },
+    }
+  })
+)
 
 // API Routes
 app.get('/api/games', async (c) => {
@@ -359,10 +384,11 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 console.log(`Server is running on port ${port}`)
 
 if (process.env.NODE_ENV !== 'test') {
-  serve({
+  const server = serve({
     fetch: app.fetch,
     port
   })
+  injectWebSocket(server)
 }
 
 export default app
