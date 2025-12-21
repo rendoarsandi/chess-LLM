@@ -183,12 +183,14 @@ async function ensureSystemPlayers() {
   }
 }
 
-ensureSystemPlayers().catch(console.error)
+export const initPromise = ensureSystemPlayers().catch(console.error)
 
 const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
 
 // Start background loop
-gameLoopService.start(5000)
+if (process.env.NODE_ENV !== 'test') {
+  gameLoopService.start(5000)
+}
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
