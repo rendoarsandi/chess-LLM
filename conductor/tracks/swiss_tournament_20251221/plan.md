@@ -1,6 +1,6 @@
 # Plan: Swiss System Tournament Feature
 
-## Phase 1: Database Schema & Domain Modeling
+## Phase 1: Database Schema & Domain Modeling [checkpoint: f2a16aa]
 - [x] Task: Create `tournaments` and `tournament_participants` tables (Drizzle Schema) bc4181f
     - Define fields: `id`, `name`, `status` (scheduled, active, completed), `start_time`, `time_control_settings`, `current_round`, `total_rounds`.
 - [x] Task: Update `games` table to include `tournament_id` and `round_number` foreign keys/columns. 33a4d1a
@@ -9,8 +9,8 @@
 - [x] Task: Implement Swiss Pairing Logic (Algorithm) eeb8d27
     - Create a helper to generate pairings based on current scores and history (avoid repeat matchups).
     - **Unit Test:** Verify pairing logic with a mock set of 8 players over 3 rounds.
-- [ ] Phase Completion Verification: Verify schema migrations and pairing algorithm.
-- [ ] Task: Conductor - User Manual Verification 'Database Schema & Domain Modeling' (Protocol in workflow.md)
+- [x] Phase Completion Verification: Verify schema migrations and pairing algorithm.
+- [x] Task: Conductor - User Manual Verification 'Database Schema & Domain Modeling' (Protocol in workflow.md)
 
 ## Phase 2: Admin Configuration UI
 - [ ] Task: Create "Tournament Management" page in Admin Panel.
