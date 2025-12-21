@@ -1,9 +1,9 @@
-import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { NavLink } from "react-router"
 
-export type View = 'arena' | 'leaderboard' | 'profiles' | 'history';
+export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -16,6 +16,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
+    { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
   ] as const;
 
   return (
