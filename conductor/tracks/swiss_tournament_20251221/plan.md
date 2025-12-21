@@ -16,8 +16,8 @@
 - [x] Task: Create "Tournament Management" page in Admin Panel.
     - Fetch and display list of registered models.
     - Form inputs: Name, Schedule Time, Time Control toggle.
-- [x] Task: Integrate `createTournament` API endpoint. 719273c
-- [x] Task: Implement "Select Participants" UI. 719273c
+- [x] Task: Integrate `createTournament` API endpoint. 5f15ec7
+- [x] Task: Implement "Select Participants" UI. 5f15ec7
 - [ ] Phase Completion Verification: Admin can successfully create a scheduled tournament with selected participants.
 - [ ] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
 
