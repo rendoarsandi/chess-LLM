@@ -23,6 +23,7 @@ import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
 import { StockfishPlayer } from './game/stockfish-player'
 import { TournamentService } from './game/tournament.service'
+import { TournamentLoopService } from './game/tournament-loop.service'
 import { games, players, moves, llmConfigurations, tournaments, tournamentParticipants } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 import { auth } from './lib/auth'
@@ -35,9 +36,9 @@ app.use('*', cors())
 
 // Initialize services
 const gameManager = new GameManager()
-const gameService = new GameService(db, gameManager)
 const playerService = new PlayerService(db)
 const tournamentService = new TournamentService(db)
+const gameService = new GameService(db, gameManager, tournamentService)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -171,10 +172,12 @@ export const initPromise = initializePlayers().catch(console.error)
 // Default LLM player for background loop (fallback)
 const defaultLlmPlayer = new RandomPlayer()
 const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
+const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
 
 // Start background loop
 if (process.env.NODE_ENV !== 'test') {
   gameLoopService.start(5000)
+  tournamentLoopService.start(10000)
 }
 
 app.get('/', (c) => {

@@ -39,7 +39,34 @@ export class TournamentService {
     return result[0]
   }
 
-  async getParticipants(tournamentId: string) {
-    return await this.db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId))
+    async getParticipants(tournamentId: string) {
+
+      return await this.db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId))
+
+    }
+
+  
+
+    async updateParticipantScore(tournamentId: string, playerId: string, points: number) {
+
+      // points is 10 for Win, 5 for Draw, 0 for Loss
+
+      await this.db.update(tournamentParticipants)
+
+        .set({ score: sql`${tournamentParticipants.score} + ${points}` })
+
+        .where(and(
+
+          eq(tournamentParticipants.tournamentId, tournamentId),
+
+          eq(tournamentParticipants.playerId, playerId)
+
+        ))
+
+    }
+
   }
-}
+
+  
+
+  import { sql, and } from 'drizzle-orm'

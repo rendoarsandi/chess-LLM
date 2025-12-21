@@ -5,15 +5,18 @@ import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
 import { Chess } from 'chess.js'
 import { logger } from './logger'
+import { TournamentService } from './tournament.service'
 
 export class GameService {
-  constructor(private db: any, private gm: GameManager) {}
+  constructor(private db: any, private gm: GameManager, private ts?: TournamentService) {}
 
-  async createGame(whitePlayerId: string, blackPlayerId: string) {
-    // Check for existing ongoing games
-    const ongoingGames = await this.db.select().from(games).where(eq(games.status, 'ongoing'))
-    if (ongoingGames.length > 0) {
-      throw new Error('A game is already in progress. Please complete or delete it first.')
+  async createGame(whitePlayerId: string, blackPlayerId: string, metadata?: { tournamentId?: string, roundNumber?: number }) {
+    // Check for existing ongoing games (unless it's a tournament game)
+    if (!metadata?.tournamentId) {
+      const ongoingGames = await this.db.select().from(games).where(eq(games.status, 'ongoing'))
+      if (ongoingGames.length > 0) {
+        throw new Error('A game is already in progress. Please complete or delete it first.')
+      }
     }
 
     const id = randomUUID()
@@ -25,6 +28,8 @@ export class GameService {
       blackPlayerId,
       fen: initialState.fen,
       status: 'ongoing',
+      tournamentId: metadata?.tournamentId,
+      roundNumber: metadata?.roundNumber,
     })
     
     return id
@@ -241,5 +246,20 @@ export class GameService {
       { playerId: whiteId, rating: newWhiteRating, gameId },
       { playerId: blackId, rating: newBlackRating, gameId }
     ])
+
+    // Update tournament scores if applicable
+    if (this.ts && gameId) {
+      const game = (await this.db.select().from(games).where(eq(games.id, gameId)))[0]
+      if (game && game.tournamentId) {
+        if (status === 'draw') {
+          await this.ts.updateParticipantScore(game.tournamentId, whiteId, 5)
+          await this.ts.updateParticipantScore(game.tournamentId, blackId, 5)
+        } else if (status === 'completed' && winnerId) {
+          const loserId = winnerId === whiteId ? blackId : whiteId
+          await this.ts.updateParticipantScore(game.tournamentId, winnerId, 10)
+          await this.ts.updateParticipantScore(game.tournamentId, loserId, 0)
+        }
+      }
+    }
   }
 }

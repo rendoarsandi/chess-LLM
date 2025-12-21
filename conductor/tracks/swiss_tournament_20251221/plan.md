@@ -22,7 +22,7 @@
 - [x] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
 
 ## Phase 3: Tournament Execution Engine (Background)
-- [ ] Task: Extend `GameLoopService` or create `TournamentLoopService`.
+- [~] Task: Extend `GameLoopService` or create `TournamentLoopService`.
     - Poll for "Scheduled" tournaments where `now >= start_time`.
     - **Transition:** Scheduled -> Active. Generate Round 1 pairings.
     - Create `Game` records for pairings.
