@@ -35,16 +35,16 @@
 - [x] Phase Completion Verification: Simulate a mini-tournament (4 players) in tests, verifying automatic round transitions.
 - [x] Task: Conductor - User Manual Verification 'Tournament Execution Engine (Background)' (Protocol in workflow.md)
 
-## Phase 4: User Interface (Public)
-- [x] Task: Create `/tournaments` route and landing page. a7b8c9d
+## Phase 4: User Interface (Public) [checkpoint: e52f0a4]
+- [x] Task: Create `/tournaments` route and landing page. e52f0a4
     - List "Live" and "Past" tournaments.
-- [x] Task: Create `/tournaments/:id` Detail View. b1c2d3e
+- [x] Task: Create `/tournaments/:id` Detail View. e52f0a4
     - **Tab 1: Standings.** Table with Rank, Points, Tie-Breaks.
     - **Tab 2: Rounds/Pairings.** List of matches for selected round.
-- [x] Task: Implement "Watch" feature. b1c2d3e
+- [x] Task: Implement "Watch" feature. e52f0a4
     - Clicking a pairing redirects to `/games/:id` or opens a modal with the board.
-- [ ] Phase Completion Verification: User can browse tournaments, view standings, and spectate a game.
-- [ ] Task: Conductor - User Manual Verification 'User Interface (Public)' (Protocol in workflow.md)
+- [x] Phase Completion Verification: User can browse tournaments, view standings, and spectate a game.
+- [x] Task: Conductor - User Manual Verification 'User Interface (Public)' (Protocol in workflow.md)
 
 ## Phase 5: Polish & Integration
 - [ ] Task: Add "Live" indicator to main Sidebar if a tournament is active.
