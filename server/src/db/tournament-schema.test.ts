@@ -22,4 +22,10 @@ describe('Tournament Database Schema', () => {
     expect(schema.tournamentParticipants.buchholz).toBeDefined()
     expect(schema.tournamentParticipants.joinedAt).toBeDefined()
   })
+
+  it('should have games table updated with tournament columns', () => {
+    expect(schema.games).toBeDefined()
+    expect(schema.games.tournamentId).toBeDefined()
+    expect(schema.games.roundNumber).toBeDefined()
+  })
 })

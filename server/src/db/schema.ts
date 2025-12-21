@@ -35,6 +35,8 @@ export const games = sqliteTable('games', {
   winnerId: text('winner_id').references(() => players.id),
   gameOverReason: text('game_over_reason'), // e.g. "checkmate", "stalemate", "draw"
   pgn: text('pgn'),
+  tournamentId: text('tournament_id').references(() => tournaments.id),
+  roundNumber: integer('round_number'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
 })
