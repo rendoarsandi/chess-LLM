@@ -119,7 +119,7 @@ export class GameService {
     const isGameOver = chess.isGameOver()
     const winner = this.gm.getWinner(nextFen)
 
-    logger.info(`[GameService] Move applied: ${move}. isGameOver: ${isGameOver}, winner: ${winner}`)
+    logger.info(`[GameService] Move applied: ${moveResult.san}. isGameOver: ${isGameOver}, winner: ${winner}`)
 
     const fenParts = game.fen.split(' ')
     const playerColor = fenParts[1] === 'w' ? 'white' : 'black'
@@ -178,7 +178,8 @@ export class GameService {
       logger.debug(`[GameService] Error generating PGN for game ${gameId}:`, e);
     }
 
-    await this.db.update(games)      .set({ 
+    await this.db.update(games)
+      .set({ 
         fen: nextFen, 
         status: status as any, 
         winnerId,
@@ -192,7 +193,7 @@ export class GameService {
       await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId, gameId)
     }
 
-    return { fen: nextFen, status, winnerId, gameOverReason }
+    return { fen: nextFen, status, winnerId, gameOverReason, san: moveResult.san }
   }
 
   private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {
