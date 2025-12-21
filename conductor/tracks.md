@@ -6,12 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-## [~] Track: Admin Auth & Dynamic LLM Configuration
-*Link: [./conductor/tracks/admin_dynamic_config_20251221/](./conductor/tracks/admin_dynamic_config_20251221/)*
-
 ---
 
 ## Archived Tracks
+
+### [x] Track: Admin Auth & Dynamic LLM Configuration
+*Link: [./conductor/archive/admin_dynamic_config_20251221/](./conductor/archive/admin_dynamic_config_20251221/)*
 
 ### [x] Track: Leaderboard & Arena UI Enhancements
 *Link: [./conductor/archive/leaderboard_arena_20251220/](./conductor/archive/leaderboard_arena_20251220/)*
