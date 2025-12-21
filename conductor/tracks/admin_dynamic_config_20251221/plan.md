@@ -15,7 +15,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md) [5622a6d]
 
 ## Phase 3: Admin Management UI
-- [ ] Task: Develop `/admin/settings` dashboard with model list and "Add New Model" form
+- [~] Task: Develop `/admin/settings` dashboard with model list and "Add New Model" form
 - [ ] Task: Implement "Active/Inactive" toggle for models in the dashboard
 - [ ] Task: Add "Admin Settings" link to the `Sidebar` (conditionally visible)
 - [ ] Task: Add "Edit Configuration" shortcut on individual Model Profile pages

@@ -504,15 +504,13 @@ function App() {
           }).catch(() => navigate('/arena'));
         }
       } else {
-        // No ID, clear state for a 'clean' view
-        if (selectedGame !== null) {
-          setSelectedGame(null);
-          setMoves([]);
-          setActiveMoveIndex(null);
+        // No ID, but check if we should auto-select first game
+        if (selectedGame === null && games.length > 0) {
+            handleSelectGame(games[0]);
         }
       }
     }
-  }, [location.pathname, selectedGame?.id, selectedGame, navigate]);
+  }, [location.pathname, selectedGame?.id, selectedGame, navigate, games, handleSelectGame]);
 
   // Sync selectedGame with periodically fetched games list to catch status changes
   useEffect(() => {
