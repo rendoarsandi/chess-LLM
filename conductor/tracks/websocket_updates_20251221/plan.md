@@ -19,7 +19,7 @@
 - [x] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md) 5757f34
 
 ## Phase 3: System Verification & Cleanup
-- [ ] Task: Remove the polling logic from `client/src/api.ts` if no longer used for game updates.
+- [x] Task: Remove the polling logic from `client/src/api.ts` if no longer used for game updates. 7185788
 - [ ] Task: Stress test: Open multiple tabs (simulated spectators) and verify the spectator count updates accurately across all.
 - [ ] Task: Verify reconnection logic (simulate network drop).
 - [ ] Task: Conductor - User Manual Verification 'System Verification & Cleanup' (Protocol in workflow.md)
