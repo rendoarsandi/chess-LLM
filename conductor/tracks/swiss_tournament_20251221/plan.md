@@ -12,14 +12,14 @@
 - [x] Phase Completion Verification: Verify schema migrations and pairing algorithm.
 - [x] Task: Conductor - User Manual Verification 'Database Schema & Domain Modeling' (Protocol in workflow.md)
 
-## Phase 2: Admin Configuration UI
+## Phase 2: Admin Configuration UI [checkpoint: 22a8949]
 - [x] Task: Create "Tournament Management" page in Admin Panel.
     - Fetch and display list of registered models.
     - Form inputs: Name, Schedule Time, Time Control toggle.
 - [x] Task: Integrate `createTournament` API endpoint. 5f15ec7
 - [x] Task: Implement "Select Participants" UI. 5f15ec7
-- [ ] Phase Completion Verification: Admin can successfully create a scheduled tournament with selected participants.
-- [ ] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
+- [x] Phase Completion Verification: Admin can successfully create a scheduled tournament with selected participants.
+- [x] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
 
 ## Phase 3: Tournament Execution Engine (Background)
 - [ ] Task: Extend `GameLoopService` or create `TournamentLoopService`.
