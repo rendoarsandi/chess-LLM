@@ -28,6 +28,7 @@ import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "re
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { toast } from "sonner"
 import type { ThinkingData } from "./types"
+import { useGameSocket } from "./hooks/useGameSocket"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -71,6 +72,8 @@ interface ArenaContentProps {
   moves: Move[];
   players: Player[];
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
+  spectatorCount: number;
+  thinkingStatus: 'thinking' | 'idle';
 }
 
 function ArenaContent({ 
@@ -79,14 +82,25 @@ function ArenaContent({
   currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
-  moves, players, setBoardOrientation
+  moves, players, setBoardOrientation, spectatorCount, thinkingStatus
 }: ArenaContentProps) {
+  const turn = currentDisplayFen.split(' ')[1];
+  const isWhiteTurn = turn === 'w';
+
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
       <header className="h-16 border-b border-border px-8 flex items-center justify-between bg-background/50 backdrop-blur-md shrink-0">
-        <h1 className="text-xl font-black tracking-tighter uppercase italic flex items-center gap-3">
-          ChessLLM <span className="text-primary not-italic text-[10px] bg-primary/10 px-2 py-0.5 rounded border border-primary/20 tracking-widest">ARENA</span>
-        </h1>
+        <div className="flex items-center gap-6">
+          <h1 className="text-xl font-black tracking-tighter uppercase italic flex items-center gap-3">
+            ChessLLM <span className="text-primary not-italic text-[10px] bg-primary/10 px-2 py-0.5 rounded border border-primary/20 tracking-widest">ARENA</span>
+          </h1>
+          {selectedGame && (
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/30 px-3 py-1 rounded-full border border-border">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              {spectatorCount} Spectators
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black" onClick={() => setBoardOrientation((prev) => prev === 'white' ? 'black' : 'white')}>
             <RotateCcw className="h-3 w-3 mr-2" />
@@ -107,7 +121,13 @@ function ArenaContent({
       <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
         <div className="max-w-[1600px] mx-auto flex flex-col lg:grid lg:grid-cols-4 gap-8">
           <div className="hidden lg:block h-fit">
-            <ThinkingPanel side="white" modelName={selectedGame ? (whitePlayer?.name || 'Loading...') : 'Inactive'} isMobile={isMobile} {...whiteThinking} />
+            <ThinkingPanel 
+              side="white" 
+              modelName={selectedGame ? (whitePlayer?.name || 'Loading...') : 'Inactive'} 
+              isMobile={isMobile} 
+              {...whiteThinking} 
+              isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
+            />
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center">
@@ -133,8 +153,20 @@ function ArenaContent({
             ) : (
               <>
                 <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
-                  <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
-                  <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
+                  <ThinkingPanel 
+                    side="white" 
+                    modelName={whitePlayer?.name || 'Loading...'} 
+                    isMobile={isMobile} 
+                    {...whiteThinking} 
+                    isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
+                  />
+                  <ThinkingPanel 
+                    side="black" 
+                    modelName={blackPlayer?.name || 'Loading...'} 
+                    isMobile={isMobile} 
+                    {...blackThinking} 
+                    isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
+                  />
                 </div>
 
                 <div className={cn("flex w-full justify-center items-start gap-2 md:gap-4", isMobile ? "flex-col items-center" : "flex-row")}>
@@ -221,7 +253,13 @@ function ArenaContent({
           </div>
 
           <div className="hidden lg:block space-y-8 h-fit lg:col-span-1">
-            <ThinkingPanel side="black" modelName={selectedGame ? (blackPlayer?.name || 'Loading...') : 'Inactive'} isMobile={isMobile} {...blackThinking} />
+            <ThinkingPanel 
+              side="black" 
+              modelName={selectedGame ? (blackPlayer?.name || 'Loading...') : 'Inactive'} 
+              isMobile={isMobile} 
+              {...blackThinking} 
+              isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
+            />
             {selectedGame && (
               <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
                 <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
@@ -268,6 +306,8 @@ function App() {
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null)
   const [showResultOverlay, setShowResultOverlay] = useState(true)
+
+  const { lastUpdate, thinkingStatus, spectatorCount } = useGameSocket(selectedGame?.id)
 
   const [whitePlayerId, setWhitePlayerId] = useState(GEMINI_3_0_ID)
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
@@ -352,11 +392,6 @@ function App() {
       await fetchLeaderboard();
     };
     initFetch();
-    const interval = setInterval(() => {
-      fetchAllGames();
-      fetchLeaderboard();
-    }, 2000);
-    return () => clearInterval(interval);
   }, [fetchAllGames, fetchPlayers, fetchLeaderboard]);
 
   useEffect(() => {
@@ -366,9 +401,22 @@ function App() {
       setMoves(data);
     };
     fetchMovesData();
-    const interval = setInterval(fetchMovesData, 1000);
-    return () => clearInterval(interval);
   }, [selectedGame]);
+
+  useEffect(() => {
+    if (lastUpdate && selectedGame) {
+      setSelectedGame(prev => prev ? ({
+        ...prev,
+        fen: lastUpdate.fen,
+        status: lastUpdate.status,
+        winnerId: lastUpdate.winnerId,
+        gameOverReason: lastUpdate.gameOverReason
+      }) : null);
+      
+      // Refresh moves to get thinking data and full history
+      getMoves(selectedGame.id).then(setMoves);
+    }
+  }, [lastUpdate, selectedGame?.id]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -563,7 +611,8 @@ function App() {
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-            setBoardOrientation={setBoardOrientation}
+            setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
+            thinkingStatus={thinkingStatus}
           />
         } />
         <Route path="/arena/:gameId" element={
@@ -580,7 +629,8 @@ function App() {
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-            setBoardOrientation={setBoardOrientation}
+            setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
+            thinkingStatus={thinkingStatus}
           />
         } />
         <Route path="/leaderboard" element={

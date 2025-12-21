@@ -10,10 +10,11 @@ interface ThinkingPanelProps {
   isMobile?: boolean
   moveNumber?: number
   moveSAN?: string
+  isThinking?: boolean
 }
 
 export function ThinkingPanel({ 
-  side, modelName, opening, candidates, reasoning, isMobile, moveNumber, moveSAN 
+  side, modelName, opening, candidates, reasoning, isMobile, moveNumber, moveSAN, isThinking 
 }: ThinkingPanelProps) {
   const isWhite = side === 'white'
   const [isExpanded, setIsExpanded] = useState(false)
@@ -25,14 +26,24 @@ export function ThinkingPanel({
   return (
     <div className={cn(
       "flex flex-col h-full bg-card border border-border rounded-lg overflow-hidden shadow-lg transition-all duration-300",
-      isWhite ? "border-l-4 border-l-primary" : "border-r-4 border-r-muted-foreground"
+      isWhite ? "border-l-4 border-l-primary" : "border-r-4 border-r-muted-foreground",
+      isThinking && "ring-2 ring-primary animate-pulse"
     )}>
       <div className={cn("p-3 border-b border-border flex justify-between items-center", isWhite ? "bg-primary/5" : "bg-muted/50")}>
         <div className="flex items-center gap-2">
           <h3 className="font-bold uppercase tracking-wider text-sm">
             {side} Player
           </h3>
-          {moveNumber && (
+          {isThinking ? (
+             <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-tighter">
+                <span className="flex gap-0.5">
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+                Thinking
+             </span>
+          ) : moveNumber && (
             <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-black tracking-tighter">
               MOVE {moveNumber}{moveSAN ? ` (${moveSAN})` : ''}
             </span>
@@ -48,8 +59,15 @@ export function ThinkingPanel({
         !isMobile ? "min-h-[350px] max-h-[350px]" : "min-h-[120px]"
       )}>
         {!opening && !candidates && !reasoning ? (
-          <div className="h-full min-h-[120px] flex items-center justify-center text-muted-foreground italic text-sm py-8 text-center">
-            Waiting for move...
+          <div className="h-full min-h-[120px] flex items-center justify-center text-muted-foreground italic text-sm py-8 text-center flex-col gap-3">
+            {isThinking ? (
+              <>
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span>Model is analyzing the position...</span>
+              </>
+            ) : (
+              <span>Waiting for move...</span>
+            )}
           </div>
         ) : (
           <>
