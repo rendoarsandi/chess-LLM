@@ -54,3 +54,14 @@ export const moves = sqliteTable('moves', {
 }, (table) => ({
   gameIdx: index('game_idx').on(table.gameId),
 }))
+
+export const llmConfigurations = sqliteTable('llm_configurations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  provider: text('provider').notNull(), // e.g., 'gemini', 'groq'
+  modelId: text('model_id').notNull(), // e.g., 'gemini-1.5-pro'
+  apiKey: text('api_key'), // Optional if stored in env
+  isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
+  isHardcoded: integer('is_hardcoded', { mode: 'boolean' }).default(false).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+})
