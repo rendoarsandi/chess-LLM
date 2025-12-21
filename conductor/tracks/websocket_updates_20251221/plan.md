@@ -12,10 +12,10 @@
 ## Phase 2: Frontend WebSocket Integration
 - [x] Task: Create a custom hook `client/src/hooks/useGameSocket.ts` to manage WebSocket connection, joining rooms, and handling events. 7c8d916
 - [x] Task: Refactor `client/src/components/Chessboard.tsx` to use `useGameSocket` instead of the polling `useQuery`. f1d3a3b
-- [ ] Task: Update `client/src/components/ThinkingPanel.tsx` to react to "Thinking" status events from the socket.
-- [ ] Task: Add a "Spectator Count" display component in `client/src/components/` and integrate it into the game view.
-- [ ] Task: Verify that `client/src/components/GameHistory.tsx` (or similar lists) still functions correctly (it might need a separate subscription or remain polling if real-time isn't critical there).
-- [ ] Task: Add unit tests for `useGameSocket` hook.
+- [x] Task: Update `client/src/components/ThinkingPanel.tsx` to react to "Thinking" status events from the socket. f1d3a3b
+- [x] Task: Add a "Spectator Count" display component in `client/src/components/` and integrate it into the game view. f1d3a3b
+- [x] Task: Verify that `client/src/components/GameHistory.tsx` (or similar lists) still functions correctly (it might need a separate subscription or remain polling if real-time isn't critical there). f1d3a3b
+- [x] Task: Add unit tests for `useGameSocket` hook. 4e50cd4
 - [ ] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md)
 
 ## Phase 3: System Verification & Cleanup
