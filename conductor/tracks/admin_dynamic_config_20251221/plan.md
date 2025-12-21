@@ -8,7 +8,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [2cc4a04]
 
 ## Phase 2: Frontend Auth & Routing
-- [ ] Task: Initialize BetterAuth client in the React frontend
+- [x] Task: Initialize BetterAuth client in the React frontend [2f2fce0]
 - [ ] Task: Create `AdminLogin` component and handle GitHub OAuth redirect
 - [ ] Task: Create `ProtectedRoute` component for React Router to guard admin paths
 - [ ] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`)
