@@ -70,7 +70,23 @@ export interface Move {
   candidates?: string
   reasoning?: string
   thinkingMs?: number
+  updatedAt: string
+}
+
+export interface Tournament {
+  id: string
+  name: string
+  status: 'scheduled' | 'active' | 'completed'
+  startTime: string
+  timeControlSettings: string | null
+  currentRound: number
+  totalRounds: number
   createdAt: string
+}
+
+export interface TournamentParticipant extends Player {
+  score: number
+  buchholz: number
 }
 
 export async function getGames(): Promise<Game[]> {
@@ -183,5 +199,36 @@ export async function deleteAdminModel(id: number): Promise<{ success: boolean }
   const res = await fetch(`${API_URL}/admin/models/${id}`, {
     method: 'DELETE'
   })
+  return res.json()
+}
+
+// Tournament API
+export async function getTournaments(): Promise<Tournament[]> {
+  const res = await fetch(`${API_URL}/tournaments`)
+  return res.json()
+}
+
+export async function getTournament(id: string): Promise<Tournament> {
+  const res = await fetch(`${API_URL}/tournaments/${id}`)
+  return res.json()
+}
+
+export async function createTournament(data: {
+  name: string,
+  startTime: string,
+  totalRounds: number,
+  timeControlSettings?: string,
+  participantIds: string[]
+}): Promise<{ id: string }> {
+  const res = await fetch(`${API_URL}/tournaments`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  return res.json()
+}
+
+export async function getTournamentParticipants(id: string): Promise<TournamentParticipant[]> {
+  const res = await fetch(`${API_URL}/tournaments/${id}/participants`)
   return res.json()
 }

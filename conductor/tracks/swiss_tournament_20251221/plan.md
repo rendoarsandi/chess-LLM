@@ -13,13 +13,11 @@
 - [x] Task: Conductor - User Manual Verification 'Database Schema & Domain Modeling' (Protocol in workflow.md)
 
 ## Phase 2: Admin Configuration UI
-- [ ] Task: Create "Tournament Management" page in Admin Panel.
+- [x] Task: Create "Tournament Management" page in Admin Panel.
     - Fetch and display list of registered models.
     - Form inputs: Name, Schedule Time, Time Control toggle.
-- [ ] Task: Integrate `createTournament` API endpoint.
-- [ ] Task: Implement "Select Participants" UI.
-    - Multi-select checkbox list for DB models.
-    - Buttons to add "Stockfish" or "Random" placeholders.
+- [x] Task: Integrate `createTournament` API endpoint. 719273c
+- [x] Task: Implement "Select Participants" UI. 719273c
 - [ ] Phase Completion Verification: Admin can successfully create a scheduled tournament with selected participants.
 - [ ] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
 

@@ -22,7 +22,8 @@ import { GroqService } from './game/groq.service'
 import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
 import { StockfishPlayer } from './game/stockfish-player'
-import { games, players, moves, llmConfigurations } from './db/schema'
+import { TournamentService } from './game/tournament.service'
+import { games, players, moves, llmConfigurations, tournaments, tournamentParticipants } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 import { auth } from './lib/auth'
 import { adminMiddleware } from './middleware/admin'
@@ -31,6 +32,12 @@ import { llmConfigService } from './db/llm_config'
 const app = new Hono()
 
 app.use('*', cors())
+
+// Initialize services
+const gameManager = new GameManager()
+const gameService = new GameService(db, gameManager)
+const playerService = new PlayerService(db)
+const tournamentService = new TournamentService(db)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -67,12 +74,30 @@ admin.delete('/models/:id', async (c) => {
   return c.json({ success: true })
 })
 
-app.route('/api/admin', admin)
+admin.post('/tournaments', async (c) => {
+  const body = await c.req.json()
+  const { name, startTime, totalRounds, timeControlSettings, participantIds } = body
+  
+  try {
+    const tournament = await tournamentService.createTournament({
+      name,
+      startTime: new Date(startTime),
+      totalRounds,
+      timeControlSettings
+    })
+    
+    // Register participants
+    for (const pid of participantIds) {
+      await tournamentService.registerParticipant(tournament.id, pid)
+    }
+    
+    return c.json(tournament, 201)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
 
-// Initialize services
-const gameManager = new GameManager()
-const gameService = new GameService(db, gameManager)
-const playerService = new PlayerService(db)
+app.route('/api/admin', admin)
 
 // System Player IDs (Hardcoded for core bots to preserve history)
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
@@ -289,6 +314,40 @@ app.get('/api/players/:id/head-to-head', async (c) => {
   } catch (e) {
     return c.json({ error: (e as Error).message }, 500)
   }
+})
+
+app.get('/api/tournaments', async (c) => {
+  const allTournaments = await db.select().from(tournaments).orderBy(desc(tournaments.createdAt))
+  return c.json(allTournaments)
+})
+
+app.get('/api/tournaments/:id', async (c) => {
+  const id = c.req.param('id')
+  const tournament = await tournamentService.getTournament(id)
+  if (!tournament) return c.json({ error: 'Tournament not found' }, 404)
+  return c.json(tournament)
+})
+
+app.get('/api/tournaments/:id/participants', async (c) => {
+  const id = c.req.param('id')
+  const results = await db.select({
+    id: players.id,
+    name: players.name,
+    type: players.type,
+    rating: players.rating,
+    wins: players.wins,
+    losses: players.losses,
+    draws: players.draws,
+    peakRating: players.peakRating,
+    score: tournamentParticipants.score,
+    buchholz: tournamentParticipants.buchholz
+  })
+  .from(tournamentParticipants)
+  .innerJoin(players, eq(tournamentParticipants.playerId, players.id))
+  .where(eq(tournamentParticipants.tournamentId, id))
+  .orderBy(desc(tournamentParticipants.score), desc(tournamentParticipants.buchholz))
+  
+  return c.json(results)
 })
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001

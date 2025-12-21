@@ -12,6 +12,7 @@ import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { AdminLogin } from "@/components/AdminLogin"
 import { AdminSettings } from "@/components/AdminSettings"
+import { TournamentManagement } from "@/components/TournamentManagement"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
@@ -19,7 +20,7 @@ import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
-import { RotateCcw, Pause, Play } from "lucide-react"
+import { RotateCcw, Pause, Play, Trophy } from "lucide-react"
 import { cn } from "./lib/utils"
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router"
 import { ErrorBoundary } from "./components/ErrorBoundary"
@@ -616,10 +617,26 @@ function App() {
             </div>
           </div>
         } />
+        <Route path="/tournaments" element={
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Tournaments</h2><p className="text-muted-foreground font-medium">Live and historical Swiss system championships.</p></div>
+              <div className="bg-card rounded-xl border border-border p-8 shadow-xl text-center py-12">
+                <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="font-bold uppercase tracking-widest text-muted-foreground">Public list coming soon. View Admin panel for management.</p>
+              </div>
+            </div>
+          </div>
+        } />
         <Route path="/login" element={<AdminLogin />} />
         <Route path="/admin/settings" element={
           <ProtectedRoute>
             <AdminSettings />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/tournaments" element={
+          <ProtectedRoute>
+            <TournamentManagement />
           </ProtectedRoute>
         } />
       </Routes>
