@@ -111,6 +111,27 @@ export const account = sqliteTable("account", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 })
 
+export const tournaments = sqliteTable('tournaments', {
+  id: text('id').primaryKey(), // UUID
+  name: text('name').notNull(),
+  status: text('status', { enum: ['scheduled', 'active', 'completed'] }).default('scheduled').notNull(),
+  startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
+  timeControlSettings: text('time_control_settings'), // JSON string or simple text
+  currentRound: integer('current_round').default(0).notNull(),
+  totalRounds: integer('total_rounds').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+})
+
+export const tournamentParticipants = sqliteTable('tournament_participants', {
+  tournamentId: text('tournament_id').references(() => tournaments.id).notNull(),
+  playerId: text('player_id').references(() => players.id).notNull(),
+  score: integer('score').default(0).notNull(), // Multiplied by 10 to handle 0.5 as 5
+  buchholz: integer('buchholz').default(0).notNull(),
+  joinedAt: integer('joined_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => ({
+  pk: index('tournament_participants_pk').on(table.tournamentId, table.playerId),
+}))
+
 export const verification = sqliteTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
