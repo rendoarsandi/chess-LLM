@@ -5,7 +5,7 @@ import App from './App';
 
 // Mock the API calls to avoid network errors during tests
 import * as api from './api';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 import { authClient } from '@/lib/auth-client';
 
 // Mock authClient
@@ -34,6 +34,15 @@ vi.mock('./api', () => ({
 }));
 
 describe('App Routing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(authClient.useSession).mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null
+    } as any);
+  });
+
   it('should render the Leaderboard when navigating to /leaderboard', async () => {
     render(
       <MemoryRouter initialEntries={['/leaderboard']}>

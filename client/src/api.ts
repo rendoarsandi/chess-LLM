@@ -48,6 +48,17 @@ export interface HeadToHeadRecord {
   draws: number
 }
 
+export interface LLMConfig {
+  id: number
+  provider: string
+  modelId: string
+  apiKey: string | null
+  isActive: boolean
+  isHardcoded: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Move {
   id: number
   gameId: string
@@ -141,5 +152,36 @@ export async function getEloHistory(id: string, period: string = 'all'): Promise
 
 export async function getHeadToHead(id: string): Promise<HeadToHeadRecord[]> {
   const res = await fetch(`${API_URL}/players/${id}/head-to-head`)
+  return res.json()
+}
+
+// Admin API
+export async function getAdminModels(): Promise<LLMConfig[]> {
+  const res = await fetch(`${API_URL}/admin/models`)
+  return res.json()
+}
+
+export async function createAdminModel(config: Partial<LLMConfig>): Promise<LLMConfig> {
+  const res = await fetch(`${API_URL}/admin/models`, {
+    method: 'POST',
+    body: JSON.stringify(config),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  return res.json()
+}
+
+export async function updateAdminModel(id: number, config: Partial<LLMConfig>): Promise<LLMConfig> {
+  const res = await fetch(`${API_URL}/admin/models/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(config),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  return res.json()
+}
+
+export async function deleteAdminModel(id: number): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/admin/models/${id}`, {
+    method: 'DELETE'
+  })
   return res.json()
 }

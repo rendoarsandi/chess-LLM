@@ -5,7 +5,9 @@ import { StatCards } from "./PlayerProfile/StatCards"
 import { EloHistoryChart } from "./PlayerProfile/EloHistoryChart"
 import { HeadToHeadTable } from "./PlayerProfile/HeadToHeadTable"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Loader2 } from "lucide-react"
+import { ChevronLeft, Loader2, Settings } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
+import { useNavigate } from "react-router"
 
 interface PlayerProfileProps {
   playerId: string
@@ -16,6 +18,8 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
   const [player, setPlayer] = useState<Player | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { data: session } = authClient.useSession()
+  const navigate = useNavigate()
 
   useEffect(() => {
     getPlayerProfile(playerId)
@@ -53,7 +57,7 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -63,6 +67,18 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
           <ChevronLeft className="h-3 w-3 mr-1" />
           BACK TO MODELS
         </Button>
+
+        {session && player.type === 'llm' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/admin/settings')}
+            className="h-8 text-[10px] font-black tracking-widest gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            EDIT CONFIGURATION
+          </Button>
+        )}
       </div>
 
       <PlayerProfileHeader player={player} />

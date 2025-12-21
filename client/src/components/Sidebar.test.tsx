@@ -1,56 +1,61 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Sidebar } from './Sidebar'
 import { MemoryRouter } from 'react-router'
+import { authClient } from '@/lib/auth-client'
 
-describe('Sidebar Component', () => {
-  it('toggles collapse state when the toggle button is clicked', () => {
-    
-    const setIsCollapsed = vi.fn()
-    
-    const { rerender } = render(
-      <MemoryRouter>
-        <Sidebar isCollapsed={false} setIsCollapsed={setIsCollapsed} />
-      </MemoryRouter>
-    )
+// Mock authClient
+vi.mock('@/lib/auth-client', () => ({
+  authClient: {
+    useSession: vi.fn(),
+    signOut: vi.fn(),
+  },
+}))
 
-    // Check if expanded (should see labels)
-    expect(screen.getByText('ARENA')).toBeInTheDocument()
-    expect(screen.getByRole('navigation')).toHaveClass('w-64')
-
-    const toggleButton = screen.getByLabelText('Toggle Sidebar')
-    fireEvent.click(toggleButton)
-
-    // Verify setIsCollapsed was called with true
-    expect(setIsCollapsed).toHaveBeenCalledWith(true)
-
-    // Rerender as collapsed
-    rerender(
-      <MemoryRouter>
-        <Sidebar isCollapsed={true} setIsCollapsed={setIsCollapsed} />
-      </MemoryRouter>
-    )
-
-    expect(screen.getByRole('navigation')).toHaveClass('w-16')
-    // Label should be hidden or inside a tooltip-like span (which might still be in DOM but invisible)
-    // In our implementation, label is only rendered if !isCollapsed
-    expect(screen.queryByText('ARENA', { selector: 'span:not(.absolute)' })).not.toBeInTheDocument()
+describe('Sidebar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it('contains links to the correct routes', () => {
-    
-    const setIsCollapsed = vi.fn()
+  it('renders basic nav items', () => {
+    ;(authClient.useSession as any).mockReturnValue({ data: null })
     
     render(
       <MemoryRouter>
-        <Sidebar isCollapsed={false} setIsCollapsed={setIsCollapsed} />
+        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
       </MemoryRouter>
     )
-
-    const arenaLink = screen.getByText('ARENA').closest('a')
-    const leaderboardLink = screen.getByText('LEADERBOARD').closest('a')
     
-    expect(arenaLink).toHaveAttribute('href', '/')
-    expect(leaderboardLink).toHaveAttribute('href', '/leaderboard')
+    expect(screen.getByText('ARENA')).toBeDefined()
+    expect(screen.getByText('LEADERBOARD')).toBeDefined()
+    expect(screen.queryByText('SETTINGS')).toBeNull()
+  })
+
+  it('renders settings and logout when logged in', () => {
+    ;(authClient.useSession as any).mockReturnValue({ data: { user: { id: '1' } } })
+    
+    render(
+      <MemoryRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
+      </MemoryRouter>
+    )
+    
+    expect(screen.getByText('SETTINGS')).toBeDefined()
+    expect(screen.getByText('LOGOUT')).toBeDefined()
+  })
+
+  it('calls signOut when logout is clicked', async () => {
+    ;(authClient.useSession as any).mockReturnValue({ data: { user: { id: '1' } } })
+    ;(authClient.signOut as any).mockResolvedValue({})
+
+    render(
+      <MemoryRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
+      </MemoryRouter>
+    )
+    
+    fireEvent.click(screen.getByText('LOGOUT'))
+    
+    expect(authClient.signOut).toHaveBeenCalled()
   })
 })

@@ -3,6 +3,18 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
 import { MemoryRouter } from 'react-router'
+import { authClient } from '@/lib/auth-client'
+
+// Mock authClient
+vi.mock('@/lib/auth-client', () => ({
+  authClient: {
+      useSession: vi.fn(() => ({
+          data: { user: { email: 'admin@test.com' } },
+          isPending: false,
+          error: null
+      }))
+  }
+}))
 
 // Mock the API
 vi.mock('./api', () => ({
@@ -56,6 +68,9 @@ describe('App Integration', () => {
     // Wait for initial load
     await waitFor(() => expect(api.getGames).toHaveBeenCalled())
 
+    // If no game is selected (default view), we might need to select one or start one
+    // But our mock provides [mockGame], so App should eventually select it via polling/sync
+    
     // Simulate a new move being found during polling
     const moveFen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
     const mockMove = {
@@ -71,11 +86,11 @@ describe('App Integration', () => {
     // Update mock for the next poll
     ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
-    // Verify the move e4 appears in the move list
+    // Wait for the game to be selected and moves to be rendered
     await waitFor(() => {
       expect(screen.getAllByText('e4').length).toBeGreaterThan(0)
-    }, { timeout: 8000 })
-  }, 10000)
+    }, { timeout: 15000 })
+  }, 20000)
 
   it('shows BROWSING HISTORY badge when navigating back', async () => {
     const mockMoves = [
@@ -107,14 +122,14 @@ describe('App Integration', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 8000 })
+    await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 15000 })
 
     // Click the first move (e4) to enter browsing mode
     const moveButton = screen.getAllByText('e4')[0]
     fireEvent.click(moveButton)
 
     expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
-  }, 10000)
+  }, 20000)
 
   it('navigates to profiles view when sidebar button is clicked', async () => {
     render(

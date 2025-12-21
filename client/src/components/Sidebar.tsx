@@ -1,7 +1,8 @@
-import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
-import { NavLink } from "react-router"
+import { NavLink, useNavigate } from "react-router"
+import { authClient } from "@/lib/auth-client"
 
 export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings';
 
@@ -11,13 +12,26 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
+  const { data: session } = authClient.useSession()
+  const navigate = useNavigate()
+
   const navItems = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
     { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
-    { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
+    ...(session ? [{ id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' }] : []),
   ] as const;
+
+  const handleLogout = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate("/")
+        }
+      }
+    })
+  }
 
   return (
     <nav className={cn(
@@ -43,7 +57,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </Button>
       
-      <div className="flex flex-col w-full gap-4 px-3">
+      <div className="flex flex-col w-full gap-4 px-3 flex-1">
         {navItems.map((item) => (
           <NavLink 
             key={item.id}
@@ -68,6 +82,31 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           </NavLink>
         ))}
       </div>
+
+      {session && (
+        <div className="w-full px-3 mt-auto">
+          <Button
+            variant="ghost"
+            className={cn(
+              "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full text-destructive hover:bg-destructive/10 hover:text-destructive",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className="h-6 w-6 shrink-0" />
+            {!isCollapsed && (
+              <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+                LOGOUT
+              </span>
+            )}
+            {isCollapsed && (
+              <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-destructive text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                LOGOUT
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
     </nav>
   )
 }

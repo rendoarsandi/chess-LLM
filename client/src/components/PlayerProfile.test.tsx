@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { PlayerProfile } from './PlayerProfile'
 import * as api from '@/api'
+import { authClient } from '@/lib/auth-client'
+import { MemoryRouter } from 'react-router'
 
 // Mock ResizeObserver for Recharts
 globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -19,6 +21,12 @@ vi.mock('@/api', async () => {
     getHeadToHead: vi.fn(),
   }
 })
+
+vi.mock('@/lib/auth-client', () => ({
+  authClient: {
+    useSession: vi.fn(),
+  },
+}))
 
 describe('PlayerProfile', () => {
   const mockPlayer: api.Player = {
@@ -40,10 +48,15 @@ describe('PlayerProfile', () => {
     ;(api.getPlayerProfile as Mock).mockResolvedValue(mockPlayer)
     ;(api.getEloHistory as Mock).mockResolvedValue([])
     ;(api.getHeadToHead as Mock).mockResolvedValue([])
+    ;(authClient.useSession as any).mockReturnValue({ data: null })
   })
 
   it('renders player profile data correctly', async () => {
-    render(<PlayerProfile playerId="p1" onBack={() => {}} />)
+    render(
+      <MemoryRouter>
+        <PlayerProfile playerId="p1" onBack={() => {}} />
+      </MemoryRouter>
+    )
     
     // Wait for loading to finish
     await waitFor(() => {
@@ -55,11 +68,30 @@ describe('PlayerProfile', () => {
     expect(screen.getByText('10')).toBeInTheDocument() // Wins
     expect(screen.getByText('2')).toBeInTheDocument() // Losses
     expect(screen.getByText('5')).toBeInTheDocument() // Draws
+    expect(screen.queryByText(/EDIT CONFIGURATION/i)).toBeNull()
+  })
+
+  it('shows EDIT CONFIGURATION button when logged in', async () => {
+    ;(authClient.useSession as any).mockReturnValue({ data: { user: { id: '1' } } })
+    
+    render(
+      <MemoryRouter>
+        <PlayerProfile playerId="p1" onBack={() => {}} />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      expect(screen.getByText(/EDIT CONFIGURATION/i)).toBeDefined()
+    })
   })
 
   it('shows error state when player not found', async () => {
     ;(api.getPlayerProfile as Mock).mockResolvedValue(null)
-    render(<PlayerProfile playerId="non-existent" onBack={() => {}} />)
+    render(
+      <MemoryRouter>
+        <PlayerProfile playerId="non-existent" onBack={() => {}} />
+      </MemoryRouter>
+    )
     
         await waitFor(() => {
     
@@ -75,7 +107,11 @@ describe('PlayerProfile', () => {
     
         ;(api.getPlayerProfile as Mock).mockRejectedValue(new Error('Fetch failed'))
     
-        render(<PlayerProfile playerId="p1" onBack={() => {}} />)
+        render(
+          <MemoryRouter>
+            <PlayerProfile playerId="p1" onBack={() => {}} />
+          </MemoryRouter>
+        )
     
         
     
