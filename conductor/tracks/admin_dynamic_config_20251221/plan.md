@@ -11,7 +11,8 @@
 - [x] Task: Initialize BetterAuth client in the React frontend [2f2fce0]
 - [x] Task: Create `AdminLogin` component and handle Email/Password login [a23c034]
 - [x] Task: Create `ProtectedRoute` component for React Router to guard admin paths [16b8419]
-- [ ] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`)
+- [x] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`) [5e64ff0]
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md)
 
 ## Phase 3: Admin Management UI
