@@ -8,6 +8,8 @@ export interface Game {
   fen: string
   winnerId: string | null
   gameOverReason?: string | null
+  tournamentId?: string | null
+  roundNumber?: number | null
   createdAt: string
   updatedAt: string
 }
@@ -70,7 +72,7 @@ export interface Move {
   candidates?: string
   reasoning?: string
   thinkingMs?: number
-  updatedAt: string
+  createdAt?: string
 }
 
 export interface Tournament {

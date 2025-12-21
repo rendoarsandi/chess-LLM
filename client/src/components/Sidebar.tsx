@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { NavLink, useNavigate } from "react-router"
 import { authClient } from "@/lib/auth-client"
+import { useEffect, useState } from "react"
+import { getTournaments } from "@/api"
 
 export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings';
 
@@ -14,10 +16,25 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const { data: session } = authClient.useSession()
   const navigate = useNavigate()
+  const [hasLiveTournament, setHasLiveTournament] = useState(false)
+
+  useEffect(() => {
+    const checkLive = async () => {
+      try {
+        const ts = await getTournaments()
+        setHasLiveTournament(ts.some(t => t.status === 'active'))
+      } catch (e) {
+        console.error("Failed to fetch tournaments for sidebar", e)
+      }
+    }
+    checkLive()
+    const interval = setInterval(checkLive, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   const navItems = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
-    { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments' },
+    { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
     { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
@@ -74,14 +91,24 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           >
             <item.icon className="h-6 w-6 shrink-0" />
             {!isCollapsed && (
-              <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
-                {item.label}
-              </span>
+              <div className="flex items-center justify-between flex-1">
+                <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+                  {item.label}
+                </span>
+                {(item as any).indicator && (
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50" />
+                )}
+              </div>
             )}
             {isCollapsed && (
-              <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                {item.label}
-              </span>
+              <>
+                {(item as any).indicator && (
+                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse border-2 border-background" />
+                )}
+                <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                  {item.label}
+                </span>
+              </>
             )}
           </NavLink>
         ))}

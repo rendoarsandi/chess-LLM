@@ -157,7 +157,7 @@ describe('TournamentLoopService', () => {
     // Verify Round 2 games were created (p1 vs p3, winners vs winners)
     const r2Games = await db.select().from(games).where(and(eq(games.tournamentId, 't2'), eq(games.roundNumber, 2)))
     expect(r2Games).toHaveLength(2)
-    const match = r2Games.find(g => (g.whitePlayerId === 'p1' && g.blackPlayerId === 'p3') || (g.whitePlayerId === 'p3' && g.blackPlayerId === 'p1'))
+    const match = r2Games.find((g: any) => (g.whitePlayerId === 'p1' && g.blackPlayerId === 'p3') || (g.whitePlayerId === 'p3' && g.blackPlayerId === 'p1'))
     expect(match).toBeDefined()
   })
 })

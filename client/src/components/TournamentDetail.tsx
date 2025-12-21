@@ -4,7 +4,6 @@ import { Trophy, Users, Swords, Play, ChevronLeft, Loader2 } from "lucide-react"
 import { getTournament, getTournamentParticipants, getTournamentGames, type Tournament, type TournamentParticipant, type Game } from "../api"
 import { Button } from "./ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
-import { Tabs, TabsContent, TableList, TabsTrigger } from "./ui/tabs"
 import { cn } from "@/lib/utils"
 
 export function TournamentDetail() {
@@ -86,10 +85,10 @@ export function TournamentDetail() {
                                 </h4>
                             </div>
                             <div className="grid grid-cols-1 gap-3">
-                                {games.filter(g => g.roundNumber === tournament.currentRound).map(game => (
+                                {games.filter(g => g.roundNumber !== null && g.roundNumber !== undefined && g.roundNumber === tournament.currentRound).map(game => (
                                     <PairingRow key={game.id} game={game} participants={participants} onClick={() => navigate(`/arena/${game.id}`)} />
                                 ))}
-                                {games.filter(g => g.roundNumber === tournament.currentRound).length === 0 && (
+                                {games.filter(g => g.roundNumber !== null && g.roundNumber !== undefined && g.roundNumber === tournament.currentRound).length === 0 && (
                                     <div className="p-12 text-center bg-muted/20 rounded-xl border border-dashed">
                                         <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Waiting for round to begin...</p>
                                     </div>
@@ -100,7 +99,7 @@ export function TournamentDetail() {
                                 <div className="pt-8 space-y-6">
                                     <h4 className="text-sm font-black uppercase tracking-widest px-2 text-muted-foreground">Previous Rounds</h4>
                                     <div className="grid grid-cols-1 gap-3 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
-                                        {games.filter(g => g.roundNumber < tournament.currentRound).map(game => (
+                                        {games.filter(g => g.roundNumber !== null && g.roundNumber !== undefined && g.roundNumber < tournament.currentRound).map(game => (
                                             <PairingRow key={game.id} game={game} participants={participants} onClick={() => navigate(`/arena/${game.id}`)} />
                                         ))}
                                     </div>

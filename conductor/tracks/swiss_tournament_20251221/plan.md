@@ -47,5 +47,5 @@
 - [x] Task: Conductor - User Manual Verification 'User Interface (Public)' (Protocol in workflow.md)
 
 ## Phase 5: Polish & Integration
-- [ ] Task: Add "Live" indicator to main Sidebar if a tournament is active.
+- [~] Task: Add "Live" indicator to main Sidebar if a tournament is active.
 - [ ] Task: Conductor - User Manual Verification 'End-to-End Tournament' (Protocol in workflow.md)
