@@ -20,6 +20,6 @@
 
 ## Phase 3: System Verification & Cleanup
 - [x] Task: Remove the polling logic from `client/src/api.ts` if no longer used for game updates. 7185788
-- [ ] Task: Stress test: Open multiple tabs (simulated spectators) and verify the spectator count updates accurately across all.
-- [ ] Task: Verify reconnection logic (simulate network drop).
-- [ ] Task: Conductor - User Manual Verification 'System Verification & Cleanup' (Protocol in workflow.md)
+- [x] Task: Stress test: Open multiple tabs (simulated spectators) and verify the spectator count updates accurately across all. 7185788
+- [x] Task: Verify reconnection logic (simulate network drop). 7185788
+- [~] Task: Conductor - User Manual Verification 'System Verification & Cleanup' (Protocol in workflow.md)
