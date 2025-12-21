@@ -4,10 +4,16 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: Leaderboard & Arena UI Enhancements
-*Link: [./conductor/tracks/leaderboard_arena_20251220/](./conductor/tracks/leaderboard_arena_20251220/)*
+## Active Tracks
+
+*No active tracks at this time.*
 
 ---
 
-## [x] Track: Routing & Robust Error Handling
-*Link: [./conductor/tracks/routing_robustness_20251220/](./conductor/tracks/routing_robustness_20251220/)*
+## Archived Tracks
+
+### [x] Track: Leaderboard & Arena UI Enhancements
+*Link: [./conductor/archive/leaderboard_arena_20251220/](./conductor/archive/leaderboard_arena_20251220/)*
+
+### [x] Track: Routing & Robust Error Handling
+*Link: [./conductor/archive/routing_robustness_20251220/](./conductor/archive/routing_robustness_20251220/)*
