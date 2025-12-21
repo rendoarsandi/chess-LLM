@@ -6,7 +6,7 @@
 - [x] Task: Update `games` table to include `tournament_id` and `round_number` foreign keys/columns. 33a4d1a
 - [x] Task: Create `TournamentService` class (Backend) 6e4bc7b
     - Implement methods: `createTournament`, `registerParticipant`, `startTournament`.
-- [ ] Task: Implement Swiss Pairing Logic (Algorithm)
+- [x] Task: Implement Swiss Pairing Logic (Algorithm) eeb8d27
     - Create a helper to generate pairings based on current scores and history (avoid repeat matchups).
     - **Unit Test:** Verify pairing logic with a mock set of 8 players over 3 rounds.
 - [ ] Phase Completion Verification: Verify schema migrations and pairing algorithm.
