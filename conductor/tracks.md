@@ -6,6 +6,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
+### [~] Track: Swiss System Tournament Feature mimicking Tilted Tuesday, with Admin roster selection.
+*Link: [./conductor/tracks/swiss_tournament_20251221/](./conductor/tracks/swiss_tournament_20251221/)*
+
 ---
 
 ## Archived Tracks
