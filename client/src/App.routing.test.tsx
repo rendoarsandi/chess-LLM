@@ -31,6 +31,10 @@ vi.mock('./api', () => ({
   deleteGame: vi.fn(),
   pauseGame: vi.fn(),
   resumeGame: vi.fn(),
+  getAdminModels: vi.fn().mockResolvedValue([]),
+  createAdminModel: vi.fn(),
+  updateAdminModel: vi.fn(),
+  deleteAdminModel: vi.fn(),
 }));
 
 describe('App Routing', () => {

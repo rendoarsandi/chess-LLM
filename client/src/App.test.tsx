@@ -9,7 +9,7 @@ import { authClient } from '@/lib/auth-client'
 vi.mock('@/lib/auth-client', () => ({
   authClient: {
       useSession: vi.fn(() => ({
-          data: { user: { email: 'admin@test.com' } },
+          data: null,
           isPending: false,
           error: null
       }))
@@ -26,6 +26,10 @@ vi.mock('./api', () => ({
   createGame: vi.fn(),
   deleteGame: vi.fn(),
   clearHistory: vi.fn(),
+  getAdminModels: vi.fn().mockResolvedValue([]),
+  createAdminModel: vi.fn(),
+  updateAdminModel: vi.fn(),
+  deleteAdminModel: vi.fn(),
 }))
 
 describe('App Integration', () => {
