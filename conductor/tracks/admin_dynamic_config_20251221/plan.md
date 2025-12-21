@@ -21,9 +21,9 @@
 - [x] Task: Add "Edit Configuration" shortcut on individual Model Profile pages [90755b1]
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Admin Management UI' (Protocol in workflow.md) [171e7f4]
 
-## Phase 4: Integration & System Sync
-- [ ] Task: Update `PlayerService` to load and instantiate players based on active database configurations
-- [ ] Task: Update `GameLoopService` to filter candidate players by their "Active" status in the DB
-- [ ] Task: Ensure hardcoded models are automatically registered/synced in the `llm_configurations` table on startup
-- [ ] Task: End-to-end verification: Add new model -> Activate -> Verify it enters the game loop
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration & System Sync' (Protocol in workflow.md)
+## Phase 4: Integration & System Sync [checkpoint: 7b6417e]
+- [x] Task: Update `PlayerService` to load and instantiate players based on active database configurations [54e805c]
+- [x] Task: Update `GameLoopService` to filter candidate players by their "Active" status in the DB [54e805c]
+- [x] Task: Ensure hardcoded models are automatically registered/synced in the `llm_configurations` table on startup [54e805c]
+- [x] Task: End-to-end verification: Add new model -> Activate -> Verify it enters the game loop [54e805c]
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Integration & System Sync' (Protocol in workflow.md) [7b6417e]
