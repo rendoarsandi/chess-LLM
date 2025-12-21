@@ -46,7 +46,7 @@ describe('useStockfish', () => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(mockAnalyze).toHaveBeenCalledWith(fen, 18, expect.any(Function));
+    expect(mockAnalyze).toHaveBeenCalledWith(fen, 18);
   });
 
   it('should update evaluation state and clear thinking when engine reports', () => {
@@ -76,7 +76,7 @@ describe('useStockfish', () => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 18, expect.any(Function));
+    expect(mockAnalyze).toHaveBeenCalledWith('startpos', 18);
 
     const newFen = 'e4';
     rerender({ fen: newFen });
@@ -85,7 +85,7 @@ describe('useStockfish', () => {
       vi.advanceTimersByTime(300);
     });
 
-    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 18, expect.any(Function));
+    expect(mockAnalyze).toHaveBeenCalledWith(newFen, 18);
   });
 
   it('should terminate engine on unmount', () => {

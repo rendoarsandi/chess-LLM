@@ -18,6 +18,9 @@ describe('API Endpoints', () => {
   })
 
   it('POST /api/games should create a new game', async () => {
+    // Clear history first to ensure no ongoing games
+    await app.request('/api/games', { method: 'DELETE' })
+
     // Insert players to satisfy FK constraints
     await db.insert(players).values([
       { id: 'test-p1', name: 'Test P1', type: 'human', createdAt: new Date() },
@@ -33,6 +36,9 @@ describe('API Endpoints', () => {
   })
 
   it('GET /api/games/:id/moves should return moves for a game with thinking data', async () => {
+    // Clear history first
+    await app.request('/api/games', { method: 'DELETE' })
+
     // Create a game first
     const whitePlayerId = 'test-p1'
     const blackPlayerId = 'test-p2'
