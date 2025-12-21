@@ -1,12 +1,15 @@
-import { tournaments, tournamentParticipants, games, players } from '../db/schema'
-import { eq, and, lte, sql, inArray, desc } from 'drizzle-orm'
+import { tournaments, tournamentParticipants, games } from '../db/schema'
+import { eq, and, lte, sql } from 'drizzle-orm'
 import { generatePairings } from './swiss'
 import { logger } from './logger'
 
 export class TournamentLoopService {
   constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private tournamentService: any, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private gameService: any
   ) {}
 
@@ -34,7 +37,7 @@ export class TournamentLoopService {
       }
 
       // Generate Round 1 pairings
-      const playersForSwiss = participants.map((p: any) => ({ id: p.playerId, score: p.score }))
+      const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
       const pairings = generatePairings(playersForSwiss, [])
 
       // Start the tournament (Update status)
@@ -78,7 +81,7 @@ export class TournamentLoopService {
           eq(games.roundNumber, t.currentRound)
         ))
 
-      const allFinished = roundGames.every((g: any) => g.status === 'completed' || g.status === 'draw')
+      const allFinished = roundGames.every((g: { status: string }) => g.status === 'completed' || g.status === 'draw')
       
       if (roundGames.length > 0 && allFinished) {
         if (t.currentRound < t.totalRounds) {
@@ -86,14 +89,14 @@ export class TournamentLoopService {
           
           // Generate next round pairings
           const participants = await this.tournamentService.getParticipants(t.id)
-          const playersForSwiss = participants.map((p: any) => ({ id: p.playerId, score: p.score }))
+          const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
           
           // Fetch history of all games in this tournament so far
           const historyGames = await this.db.select()
             .from(games)
             .where(eq(games.tournamentId, t.id))
           
-          const history = historyGames.map((g: any) => ({ white: g.whitePlayerId, black: g.blackPlayerId }))
+          const history = historyGames.map((g: { whitePlayerId: string, blackPlayerId: string }) => ({ white: g.whitePlayerId, black: g.blackPlayerId }))
           
           const pairings = generatePairings(playersForSwiss, history)
 

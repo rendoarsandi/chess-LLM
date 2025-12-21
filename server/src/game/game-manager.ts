@@ -34,7 +34,7 @@ export class GameManager {
       const chess = new Chess(fen)
       const result = chess.move(move)
       return !!result
-    } catch (e) {
+    } catch {
       return false
     }
   }

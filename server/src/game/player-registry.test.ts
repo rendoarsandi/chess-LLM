@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { PlayerService } from './player.service'
 import { GameManager } from './game-manager'
 import { drizzle } from 'drizzle-orm/better-sqlite3'

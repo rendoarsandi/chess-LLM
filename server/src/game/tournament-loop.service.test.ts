@@ -57,7 +57,7 @@ describe('TournamentLoopService', () => {
         white_player_id TEXT NOT NULL,
         black_player_id TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'ongoing',
-        fen TEXT NOT NULL,
+        fen TEXT NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB NR w KQkq - 0 1',
         winner_id TEXT,
         game_over_reason TEXT,
         pgn TEXT,
@@ -65,7 +65,8 @@ describe('TournamentLoopService', () => {
         round_number INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
-        FOREIGN KEY(tournament_id) REFERENCES tournaments(id)
+        FOREIGN KEY(white_player_id) REFERENCES players(id),
+        FOREIGN KEY(black_player_id) REFERENCES players(id)
       );
     `)
 

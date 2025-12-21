@@ -5,7 +5,7 @@ import { GeminiService } from './gemini.service'
 vi.mock('@google/generative-ai', () => {
   return {
     GoogleGenerativeAI: class {
-      constructor(apiKey: string) {}
+      constructor() {}
       getGenerativeModel = vi.fn().mockReturnValue({
         generateContent: vi.fn().mockResolvedValue({
           response: {

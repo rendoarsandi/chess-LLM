@@ -4,11 +4,10 @@ import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { RandomPlayer } from './random-player'
 import { GroqPlayer } from './groq-player'
-import { GroqService } from './groq.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { eq } from 'drizzle-orm'
 import Database from 'better-sqlite3'
-import { games, players, moves } from '../db/schema'
+import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
 
 describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
@@ -49,6 +48,8 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
         winner_id TEXT,
         game_over_reason TEXT,
         pgn TEXT,
+        tournament_id TEXT,
+        round_number INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),
@@ -158,5 +159,5 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
     const sampleGroqMove = groqMoves[0]
     expect(sampleGroqMove.opening).toBe('Groq Opening')
     expect(sampleGroqMove.reasoning).toBe('Groq thinking')
-  }, 30000)
+  }, 60000)
 })

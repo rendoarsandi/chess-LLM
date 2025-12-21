@@ -32,7 +32,15 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     return () => clearInterval(interval)
   }, [])
 
-  const navItems = [
+  interface NavItem {
+    id: string;
+    icon: React.ElementType;
+    label: string;
+    path: string;
+    indicator?: boolean;
+  }
+
+  const navItems: NavItem[] = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
     { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
     { id: 'leaderboard', icon: Trophy, label: 'LEADERBOARD', path: '/leaderboard' },
@@ -42,7 +50,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
       { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
     ] : []),
-  ] as const;
+  ];
 
   const handleLogout = async () => {
     await authClient.signOut({
@@ -95,14 +103,14 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
                   {item.label}
                 </span>
-                {(item as any).indicator && (
+                {item.indicator && (
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50" />
                 )}
               </div>
             )}
             {isCollapsed && (
               <>
-                {(item as any).indicator && (
+                {item.indicator && (
                   <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse border-2 border-background" />
                 )}
                 <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">

@@ -16,19 +16,15 @@ import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
 import { PlayerService } from './game/player.service'
 import { RandomPlayer } from './game/random-player'
-import { GeminiService } from './game/gemini.service'
-import { GeminiPlayer } from './game/gemini-player'
-import { GroqService } from './game/groq.service'
-import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
 import { StockfishPlayer } from './game/stockfish-player'
 import { TournamentService } from './game/tournament.service'
 import { TournamentLoopService } from './game/tournament-loop.service'
 import { games, players, moves, llmConfigurations, tournaments, tournamentParticipants } from './db/schema'
-import { desc, eq, sql } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { auth } from './lib/auth'
 import { adminMiddleware } from './middleware/admin'
-import { llmConfigService } from './db/llm_config'
+import { llmConfigService, LLMConfig } from './db/llm_config'
 
 const app = new Hono()
 
@@ -149,8 +145,8 @@ async function initializePlayers() {
     const activeConfigs = await db.select().from(llmConfigurations)
     const activePlayerIds = [
         ...builtinPlayers.map(p => p.id),
-        ...activeConfigs.filter((c: any) => c.playerId).map((c: any) => c.playerId)
-    ]
+        ...activeConfigs.filter((c: LLMConfig) => c.playerId).map((c: LLMConfig) => c.playerId)
+    ] as string[]
 
     // 4. Remove any players NOT in the allowed list (orphaned test profiles)
     const allDbPlayers = await db.select().from(players)

@@ -6,6 +6,13 @@ export interface LlmService {
   generateMove(modelName: string, prompt: string): Promise<string>
 }
 
+interface LlmResponse {
+  opening?: string;
+  candidates?: string[];
+  reasoning?: string;
+  move: string;
+}
+
 export abstract class BaseLlmPlayer implements Player {
   protected lastThinking: { opening?: string, candidates?: string, reasoning?: string } | null = null
 
@@ -28,7 +35,7 @@ export abstract class BaseLlmPlayer implements Player {
 
     while (attempts <= maxRetries) {
       try {
-        let timeoutId: any
+        let timeoutId: ReturnType<typeof setTimeout> | undefined
         const timeoutPromise = new Promise<null>((_, reject) => {
           timeoutId = setTimeout(() => reject(new Error('Timeout')), this.timeoutMs)
         })
@@ -37,7 +44,7 @@ export abstract class BaseLlmPlayer implements Player {
         
         const responseText = await Promise.race([
           responsePromise.then(res => {
-            clearTimeout(timeoutId)
+            if (timeoutId) clearTimeout(timeoutId)
             return res
           }),
           timeoutPromise
@@ -49,13 +56,13 @@ export abstract class BaseLlmPlayer implements Player {
         }
 
         // Parse JSON response
-        let parsed: any
+        let parsed: LlmResponse
         try {
           // LLMs sometimes wrap JSON in code blocks
           const jsonMatch = responseText.match(/\{[\s\S]*\}/)
           const cleanJson = jsonMatch ? jsonMatch[0] : responseText
           parsed = JSON.parse(cleanJson)
-        } catch (e) {
+        } catch {
           logger.warn(`[${this.constructor.name}] Failed to parse JSON response: ${responseText}`)
           currentPrompt = `Your previous response was not valid JSON. 
 Please provide your response in the EXACT JSON format requested:
@@ -83,7 +90,7 @@ Please provide your response in the EXACT JSON format requested:
             return move
           }
           throw new Error('Invalid move')
-        } catch (e) {
+        } catch {
           // Invalid move, prepare feedback prompt
           const currentLegalMoves = chess.moves().join(', ')
           currentPrompt = `The move "${move}" was illegal. 

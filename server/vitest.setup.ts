@@ -1,4 +1,4 @@
-import { vi, beforeAll } from 'vitest'
+import { beforeAll } from 'vitest'
 import { logger } from './src/game/logger'
 
 beforeAll(() => {

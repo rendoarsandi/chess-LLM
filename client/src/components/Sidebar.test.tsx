@@ -12,6 +12,11 @@ vi.mock('@/lib/auth-client', () => ({
   },
 }))
 
+// Mock API
+vi.mock('@/api', () => ({
+  getTournaments: vi.fn().mockResolvedValue([]),
+}))
+
 describe('Sidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()

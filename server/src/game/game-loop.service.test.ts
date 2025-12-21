@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GameLoopService } from './game-loop.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import { games, players, moves } from '../db/schema'
+import { games, players } from '../db/schema'
 import { logger } from './logger'
 
 describe('GameLoopService', () => {
@@ -39,6 +39,8 @@ describe('GameLoopService', () => {
         winner_id TEXT,
         game_over_reason TEXT,
         pgn TEXT,
+        tournament_id TEXT,
+        round_number INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),

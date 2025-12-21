@@ -1,5 +1,5 @@
-import { games, players, moves as movesTable, llmConfigurations } from '../db/schema'
-import { eq, desc, and } from 'drizzle-orm'
+import { games, players, moves as movesTable } from '../db/schema'
+import { eq } from 'drizzle-orm'
 import { GameService } from './game.service'
 import { Player } from './player.interface'
 import { alias } from 'drizzle-orm/sqlite-core'
@@ -7,6 +7,7 @@ import { logger } from './logger'
 
 export class GameLoopService {
   constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any,
     private gameService: GameService,
     private player: Player
@@ -41,14 +42,14 @@ export class GameLoopService {
       const currentPlayerId = turn === 'w' ? game.whitePlayerId : game.blackPlayerId
 
       // Allow any player that is NOT human to make a move automatically
-      if (currentPlayerType !== 'human') {
+      if (currentPlayerType !== 'human' && currentPlayerId) {
         // Fetch move history
         const gameMoves = await this.db.select()
           .from(movesTable)
           .where(eq(movesTable.gameId, game.id))
           .orderBy(movesTable.moveNumber)
         
-        const history = gameMoves.map((m: any) => m.move)
+        const history = gameMoves.map((m: { move: string }) => m.move)
 
         // Resolve player: registry first, then fallback to default
         const player = this.gameService.getPlayer(currentPlayerId) || this.player
@@ -65,7 +66,7 @@ export class GameLoopService {
         if (move) {
           try {
             // Check if player provides thinking data (e.g. GeminiPlayer)
-            const thinking = (player as any).getLastThinking ? (player as any).getLastThinking() : {}
+            const thinking = player.getLastThinking ? player.getLastThinking() : {}
             const result = await this.gameService.makeMove(game.id, move, { ...thinking, thinkingMs })
             logger.info(`[GameLoop] Made move ${result.san} in game ${game.id} (${thinkingMs}ms)`)
           } catch (e) {

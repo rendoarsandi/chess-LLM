@@ -1,8 +1,9 @@
 import { tournaments, tournamentParticipants } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql, and } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
 export class TournamentService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(private db: any) {}
 
   async createTournament(data: { name: string, startTime: Date, totalRounds: number, timeControlSettings?: string }) {
@@ -39,34 +40,17 @@ export class TournamentService {
     return result[0]
   }
 
-    async getParticipants(tournamentId: string) {
-
-      return await this.db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId))
-
-    }
-
-  
-
-    async updateParticipantScore(tournamentId: string, playerId: string, points: number) {
-
-      // points is 10 for Win, 5 for Draw, 0 for Loss
-
-      await this.db.update(tournamentParticipants)
-
-        .set({ score: sql`${tournamentParticipants.score} + ${points}` })
-
-        .where(and(
-
-          eq(tournamentParticipants.tournamentId, tournamentId),
-
-          eq(tournamentParticipants.playerId, playerId)
-
-        ))
-
-    }
-
+  async getParticipants(tournamentId: string) {
+    return await this.db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId))
   }
 
-  
-
-  import { sql, and } from 'drizzle-orm'
+  async updateParticipantScore(tournamentId: string, playerId: string, points: number) {
+    // points is 10 for Win, 5 for Draw, 0 for Loss
+    await this.db.update(tournamentParticipants)
+      .set({ score: sql`${tournamentParticipants.score} + ${points}` })
+      .where(and(
+        eq(tournamentParticipants.tournamentId, tournamentId),
+        eq(tournamentParticipants.playerId, playerId)
+      ))
+  }
+}

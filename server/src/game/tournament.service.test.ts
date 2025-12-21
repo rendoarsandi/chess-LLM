@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TournamentService } from './tournament.service'
-import { tournaments, tournamentParticipants, players } from '../db/schema'
+import { tournaments, tournamentParticipants } from '../db/schema'
 
 describe('TournamentService', () => {
   let db: any

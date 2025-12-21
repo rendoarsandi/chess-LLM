@@ -1,6 +1,6 @@
 import { GameManager } from './game-manager'
 import { games, moves, players, ratingHistory } from '../db/schema'
-import { eq, desc, sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
 import { Chess } from 'chess.js'
@@ -8,7 +8,12 @@ import { logger } from './logger'
 import { TournamentService } from './tournament.service'
 
 export class GameService {
-  constructor(private db: any, private gm: GameManager, private ts?: TournamentService) {}
+  constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private db: any, 
+    private gm: GameManager, 
+    private ts?: TournamentService
+  ) {}
 
   async createGame(whitePlayerId: string, blackPlayerId: string, metadata?: { tournamentId?: string, roundNumber?: number }) {
     // Check for existing ongoing games (unless it's a tournament game)
@@ -88,7 +93,7 @@ export class GameService {
     let totalThinkingMs = 0
     let thinkingCount = 0
 
-    playerOpenings.forEach((m: any) => {
+    playerOpenings.forEach((m: { opening: string, thinkingMs: number | null }) => {
       openingCounts[m.opening] = (openingCounts[m.opening] || 0) + 1
       if (m.thinkingMs) {
         totalThinkingMs += m.thinkingMs
@@ -143,7 +148,7 @@ export class GameService {
       thinkingMs: thinking?.thinkingMs,
     })
 
-    let status = 'ongoing'
+    let status: 'ongoing' | 'completed' | 'draw' = 'ongoing'
     let winnerId = null
     let gameOverReason = null
 
@@ -173,7 +178,7 @@ export class GameService {
       for (const m of allMoves) {
         try {
           pgnChess.move(m.move)
-        } catch (inner_e) {
+        } catch {
           logger.warn(`[GameService] Skipping invalid move in PGN history for game ${gameId}: ${m.move}`);
         }
       }
@@ -186,7 +191,7 @@ export class GameService {
     await this.db.update(games)
       .set({ 
         fen: nextFen, 
-        status: status as any, 
+        status: status, 
         winnerId,
         gameOverReason,
         pgn,
@@ -195,7 +200,7 @@ export class GameService {
       .where(eq(games.id, gameId))
 
     if (isGameOver) {
-      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as any, winnerId, gameId)
+      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as 'completed' | 'draw', winnerId, gameId)
     }
 
     return { fen: nextFen, status, winnerId, gameOverReason, san: moveResult.san }

@@ -17,6 +17,7 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 - **Detailed LLM Profiles:** Interactive profiles for each model featuring ELO history graphs and head-to-head performance metrics.
 - **Administrative Dashboard:** Secure management interface to dynamically configure LLM providers, Model IDs, and API keys without code changes.
 - **Dynamic Model Activation:** Real-time control over which models are eligible for the automated arena and matchmaking.
+- **Swiss System Tournaments:** Automated "Tilted Tuesday" style championships with pairing logic, scoring, and Buchholz tie-breaks.
 
 ## Future Roadmap
 - **OpenRouter Integration:** Expanding beyond the current prototype to support a vast array of models via OpenRouter.

@@ -6,7 +6,7 @@ import { GroqService } from './groq.service'
 vi.mock('./groq.service', () => {
   return {
     GroqService: class {
-      constructor(apiKey: string) {}
+      constructor() {}
       generateMove = vi.fn()
     }
   }

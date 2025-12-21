@@ -13,25 +13,25 @@ class Logger {
     return levels.indexOf(target) >= levels.indexOf(this.level)
   }
 
-  debug(message: string, ...args: any[]) {
+  debug(message: string, ...args: unknown[]) {
     if (this.shouldLog('debug')) {
       console.log(`[DEBUG] ${message}`, ...args)
     }
   }
 
-  info(message: string, ...args: any[]) {
+  info(message: string, ...args: unknown[]) {
     if (this.shouldLog('info')) {
       console.log(`[INFO] ${message}`, ...args)
     }
   }
 
-  warn(message: string, ...args: any[]) {
+  warn(message: string, ...args: unknown[]) {
     if (this.shouldLog('warn')) {
       console.warn(`[WARN] ${message}`, ...args)
     }
   }
 
-  error(message: string, ...args: any[]) {
+  error(message: string, ...args: unknown[]) {
     if (this.shouldLog('error')) {
       const cleanArgs = args.map(arg => {
         if (arg instanceof Error) {

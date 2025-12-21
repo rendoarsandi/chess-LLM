@@ -1,5 +1,5 @@
 import { players, ratingHistory, games, llmConfigurations } from '../db/schema'
-import { eq, or, and, sql, desc, gte } from 'drizzle-orm'
+import { eq, or, and, gte } from 'drizzle-orm'
 import { GameManager } from './game-manager'
 import { GeminiService } from './gemini.service'
 import { GeminiPlayer } from './gemini-player'
@@ -10,6 +10,7 @@ import { StockfishPlayer } from './stockfish-player'
 import crypto from 'crypto'
 
 export class PlayerService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(private db: any) {}
 
   /**
@@ -36,6 +37,7 @@ export class PlayerService {
     // For now, index.ts still does initial setup.
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private createPlayerInstance(config: any) {
     const apiKey = config.apiKey || process.env[`${config.provider.toUpperCase()}_API_KEY`]
     
@@ -63,6 +65,7 @@ export class PlayerService {
     const existingConfigs = await this.db.select().from(llmConfigurations)
     
     for (const hc of hardcoded) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const existing = existingConfigs.find((c: any) => c.modelId === hc.modelId && c.provider === hc.provider)
         const playerId = this.generatePlayerId(`${hc.provider}-${hc.modelId}`)
 

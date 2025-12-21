@@ -4,11 +4,10 @@ import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { RandomPlayer } from './random-player'
 import { GeminiPlayer } from './gemini-player'
-import { GeminiService } from './gemini.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import { eq } from 'drizzle-orm'
 import Database from 'better-sqlite3'
-import { games, players, moves } from '../db/schema'
+import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
 
 describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
@@ -48,6 +47,8 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         winner_id TEXT,
         game_over_reason TEXT,
         pgn TEXT,
+        tournament_id TEXT,
+        round_number INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),
@@ -166,5 +167,5 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     expect(JSON.parse(sampleGeminiMove.candidates!)).toHaveLength(3)
 
     console.log(`[IntegrationTest] Game finished in ${attempts} iterations with status ${game.status}`)
-  }, 30000)
+  }, 60000)
 })

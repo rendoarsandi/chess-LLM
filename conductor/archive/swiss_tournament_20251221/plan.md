@@ -46,6 +46,6 @@
 - [x] Phase Completion Verification: User can browse tournaments, view standings, and spectate a game.
 - [x] Task: Conductor - User Manual Verification 'User Interface (Public)' (Protocol in workflow.md)
 
-## Phase 5: Polish & Integration
-- [~] Task: Add "Live" indicator to main Sidebar if a tournament is active.
-- [ ] Task: Conductor - User Manual Verification 'End-to-End Tournament' (Protocol in workflow.md)
+## Phase 5: Polish & Integration [checkpoint: d99453d]
+- [x] Task: Add "Live" indicator to main Sidebar if a tournament is active. d99453d
+- [x] Task: Conductor - User Manual Verification 'End-to-End Tournament' (Protocol in workflow.md)

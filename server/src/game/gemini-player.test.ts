@@ -7,7 +7,7 @@ import { logger } from './logger'
 vi.mock('./gemini.service', () => {
   return {
     GeminiService: class {
-      constructor(apiKey: string) {}
+      constructor() {}
       generateMove = vi.fn()
     }
   }

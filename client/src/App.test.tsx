@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, findByText } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
 import { MemoryRouter } from 'react-router'
+import { authClient } from '@/lib/auth-client'
 
 // Mock authClient
 vi.mock('@/lib/auth-client', () => ({
   authClient: {
+      signIn: {
+          email: vi.fn()
+      },
       useSession: vi.fn(() => ({
           data: null,
           isPending: false,
@@ -17,21 +21,27 @@ vi.mock('@/lib/auth-client', () => ({
 
 // Mock the API
 vi.mock('./api', () => ({
-  getGames: vi.fn(),
-  getGame: vi.fn(),
-  getMoves: vi.fn(),
-  getPlayers: vi.fn(),
-  getLeaderboard: vi.fn(),
+  getGames: vi.fn().mockResolvedValue([]),
+  getGame: vi.fn().mockResolvedValue(null),
+  getMoves: vi.fn().mockResolvedValue([]),
+  getPlayers: vi.fn().mockResolvedValue([]),
+  getLeaderboard: vi.fn().mockResolvedValue([]),
+  getPlayerProfile: vi.fn().mockResolvedValue(null),
+  getEloHistory: vi.fn().mockResolvedValue([]),
+  getHeadToHead: vi.fn().mockResolvedValue([]),
   createGame: vi.fn(),
   deleteGame: vi.fn(),
+  pauseGame: vi.fn(),
+  resumeGame: vi.fn(),
   clearHistory: vi.fn(),
   getAdminModels: vi.fn().mockResolvedValue([]),
   createAdminModel: vi.fn(),
   updateAdminModel: vi.fn(),
   deleteAdminModel: vi.fn(),
+  getTournaments: vi.fn().mockResolvedValue([]),
 }))
 
-describe('App Integration', () => {
+describe('App Component', () => {
   const mockPlayers = [
     { id: 'p1', name: 'Player 1', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
     { id: 'p2', name: 'Player 2', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
@@ -54,102 +64,156 @@ describe('App Integration', () => {
     ;(api.getGames as Mock).mockResolvedValue([mockGame])
     ;(api.getGame as Mock).mockResolvedValue(mockGame)
     ;(api.getMoves as Mock).mockResolvedValue([])
+    
+    vi.mocked(authClient.useSession).mockReturnValue({
+      data: null,
+      isPending: false,
+      error: null
+    } as any);
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('updates board FEN when moves are fetched', async () => {
-    // Initial render
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
-    )
+  describe('Core Integration', () => {
+    it('updates board FEN when moves are fetched', async () => {
+      render(
+        <MemoryRouter>
+          <App />
+        </MemoryRouter>
+      )
 
-    // Wait for initial load
-    await waitFor(() => expect(api.getGames).toHaveBeenCalled())
-
-    // If no game is selected (default view), we might need to select one or start one
-    // But our mock provides [mockGame], so App should eventually select it via polling/sync
-    
-    // Simulate a new move being found during polling
-    const moveFen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
-    const mockMove = {
-      id: 1,
-      gameId: 'game-1',
-      moveNumber: 1,
-      playerColor: 'white',
-      move: 'e4',
-      fen: moveFen,
-      createdAt: new Date().toISOString(),
-    }
-
-    // Update mock for the next poll
-    ;(api.getMoves as Mock).mockResolvedValue([mockMove])
-
-    // Wait for the game to be selected and moves to be rendered
-    await waitFor(() => {
-      expect(screen.getAllByText('e4').length).toBeGreaterThan(0)
-    }, { timeout: 15000 })
-  }, 20000)
-
-  it('shows BROWSING HISTORY badge when navigating back', async () => {
-    const mockMoves = [
-      {
+      await waitFor(() => expect(api.getGames).toHaveBeenCalled())
+      
+      const moveFen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
+      const mockMove = {
         id: 1,
         gameId: 'game-1',
         moveNumber: 1,
         playerColor: 'white',
         move: 'e4',
-        fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        gameId: 'game-1',
-        moveNumber: 1,
-        playerColor: 'black',
-        move: 'e5',
-        fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+        fen: moveFen,
         createdAt: new Date().toISOString(),
       }
-    ]
-    
-    ;(api.getMoves as Mock).mockResolvedValue(mockMoves)
 
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
-    )
+      ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
-    await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 15000 })
+      await waitFor(() => {
+        expect(screen.getAllByText('e4').length).toBeGreaterThan(0)
+      }, { timeout: 15000 })
+    }, 20000)
 
-    // Click the first move (e4) to enter browsing mode
-    const moveButton = screen.getAllByText('e4')[0]
-    fireEvent.click(moveButton)
+    it('shows HISTORY MODE badge when navigating back in history', async () => {
+      const mockMoves = [
+        {
+          id: 1,
+          gameId: 'game-1',
+          moveNumber: 1,
+          playerColor: 'white',
+          move: 'e4',
+          fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          gameId: 'game-1',
+          moveNumber: 1,
+          playerColor: 'black',
+          move: 'e5',
+          fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+          createdAt: new Date().toISOString(),
+        }
+      ]
+      
+      ;(api.getMoves as Mock).mockResolvedValue(mockMoves)
 
-    expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
-  }, 20000)
+      render(
+        <MemoryRouter>
+          <App />
+        </MemoryRouter>
+      )
 
-  it('navigates to profiles view when sidebar button is clicked', async () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>
-    )
+      await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 15000 })
 
-    const profilesButton = screen.getAllByText('PROFILES')[0]
-    expect(profilesButton).toBeInTheDocument()
+      const moveButton = screen.getAllByText('e4')[0]
+      fireEvent.click(moveButton)
 
-    fireEvent.click(profilesButton)
+      expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
+    }, 20000)
 
-    // After click, we expect the header to show PROFILES too
-    await waitFor(() => {
-      expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2)
-    })
+    it('handles invalid moves gracefully instead of crashing', async () => {
+      const invalidMoves = [
+        { id: 1, move: 'Nf3', playerColor: 'white' },
+        { id: 2, move: 'Nf3', playerColor: 'black' }, // INVALID
+      ];
+
+      (api.getMoves as Mock).mockResolvedValue(invalidMoves);
+
+      render(
+        <MemoryRouter>
+          <App />
+        </MemoryRouter>
+      );
+
+      const arenaTitles = await screen.findAllByText('ARENA');
+      expect(arenaTitles[0]).toBeInTheDocument();
+    });
+  })
+
+  describe('Routing', () => {
+    it('should render the Leaderboard when navigating to /leaderboard', async () => {
+      render(
+        <MemoryRouter initialEntries={['/leaderboard']}>
+          <App />
+        </MemoryRouter>
+      );
+
+      const title = await screen.findByText('Model Rankings');
+      expect(title).toBeInTheDocument();
+    });
+
+    it('should render the Profiles page when clicking the sidebar link', async () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <App />
+        </MemoryRouter>
+      );
+
+      const profilesLink = screen.getByText('PROFILES').closest('a');
+      if (!profilesLink) throw new Error('Profiles link not found');
+      
+      fireEvent.click(profilesLink);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('PROFILES').length).toBeGreaterThanOrEqual(2);
+      });
+    });
+
+    it('should render AdminLogin when navigating to /login', async () => {
+      render(
+        <MemoryRouter initialEntries={['/login']}>
+          <App />
+        </MemoryRouter>
+      );
+
+      expect(await screen.findByText('Admin Access')).toBeInTheDocument();
+    });
+
+    it('should render AdminSettings when authenticated and navigating to /admin/settings', async () => {
+      vi.mocked(authClient.useSession).mockReturnValue({
+        data: { user: { email: 'admin@test.com' } },
+        isPending: false,
+        error: null
+      } as any)
+
+      render(
+        <MemoryRouter initialEntries={['/admin/settings']}>
+          <App />
+        </MemoryRouter>
+      );
+
+      expect(await screen.findByText('Admin Settings')).toBeInTheDocument();
+    });
   })
 })
-    

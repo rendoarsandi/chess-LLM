@@ -507,8 +507,11 @@ function App() {
           }).catch(() => navigate('/arena'));
         }
       } else {
-        // No ID, clear state for a clean view
-        if (selectedGame !== null) {
+        // No ID, try to auto-select an ongoing game, otherwise clear
+        const ongoingGame = games.find(g => g.status === 'ongoing' || g.status === 'paused');
+        if (ongoingGame) {
+          handleSelectGame(ongoingGame);
+        } else if (selectedGame !== null) {
           setSelectedGame(null);
           setMoves([]);
           setActiveMoveIndex(null);

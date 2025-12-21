@@ -22,7 +22,9 @@
 
 ## Background Service
 - **GameLoopService:** Periodic background process to advance games played by LLMs.
+- **TournamentLoopService:** Manages tournament lifecycles, including scheduling, pairing generation, and round progression.
 - **RandomPlayer:** Initial bot implementation for testing the automated loop.
+- **Swiss Pairing Engine:** Custom algorithm for non-repeat pairings based on tournament standings.
 
 ## Deployment & Scalability
 - **Local Development:** Optimized for Termux/Node.js.

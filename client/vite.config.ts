@@ -21,6 +21,7 @@ export default defineConfig({
   },
   // @ts-expect-error - vitest configuration is not officially supported in vite config type
   test: {
+    include: ['src/**/*.test.{ts,tsx}'],
     globals: true,
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',

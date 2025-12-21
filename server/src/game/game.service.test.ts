@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
@@ -40,6 +40,8 @@ describe('GameService', () => {
         winner_id TEXT,
         game_over_reason TEXT,
         pgn TEXT,
+        tournament_id TEXT,
+        round_number INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         FOREIGN KEY(white_player_id) REFERENCES players(id),
