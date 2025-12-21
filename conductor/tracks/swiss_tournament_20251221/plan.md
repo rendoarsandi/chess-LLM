@@ -3,7 +3,7 @@
 ## Phase 1: Database Schema & Domain Modeling
 - [x] Task: Create `tournaments` and `tournament_participants` tables (Drizzle Schema) bc4181f
     - Define fields: `id`, `name`, `status` (scheduled, active, completed), `start_time`, `time_control_settings`, `current_round`, `total_rounds`.
-- [ ] Task: Update `games` table to include `tournament_id` and `round_number` foreign keys/columns.
+- [x] Task: Update `games` table to include `tournament_id` and `round_number` foreign keys/columns. 33a4d1a
 - [ ] Task: Create `TournamentService` class (Backend)
     - Implement methods: `createTournament`, `registerParticipant`, `startTournament`.
 - [ ] Task: Implement Swiss Pairing Logic (Algorithm)
