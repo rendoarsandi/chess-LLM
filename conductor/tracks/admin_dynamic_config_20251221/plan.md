@@ -9,7 +9,7 @@
 
 ## Phase 2: Frontend Auth & Routing
 - [x] Task: Initialize BetterAuth client in the React frontend [2f2fce0]
-- [ ] Task: Create `AdminLogin` component and handle GitHub OAuth redirect
+- [x] Task: Create `AdminLogin` component and handle Email/Password login [a23c034]
 - [ ] Task: Create `ProtectedRoute` component for React Router to guard admin paths
 - [ ] Task: Define admin routes in `App.tsx` (e.g., `/admin/settings`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend Auth & Routing' (Protocol in workflow.md)
