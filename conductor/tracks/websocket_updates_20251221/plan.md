@@ -16,7 +16,7 @@
 - [x] Task: Add a "Spectator Count" display component in `client/src/components/` and integrate it into the game view. f1d3a3b
 - [x] Task: Verify that `client/src/components/GameHistory.tsx` (or similar lists) still functions correctly (it might need a separate subscription or remain polling if real-time isn't critical there). f1d3a3b
 - [x] Task: Add unit tests for `useGameSocket` hook. 4e50cd4
-- [ ] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Frontend WebSocket Integration' (Protocol in workflow.md)
 
 ## Phase 3: System Verification & Cleanup
 - [ ] Task: Remove the polling logic from `client/src/api.ts` if no longer used for game updates.

@@ -23,13 +23,13 @@ export function useGameSocket(gameId: string | undefined) {
   const socketRef = useRef<WebSocket | null>(null)
 
   const connect = useCallback(() => {
-    if (!gameId) return
+    if (!gameId) {
+      return
+    }
     if (socketRef.current?.readyState === WebSocket.OPEN) return
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = window.location.host
-    // In development, if using Vite proxy, this might need adjustment 
-    // but typically /ws will be proxied to the backend port.
     const wsUrl = `${protocol}//${host}/ws?gameId=${gameId}`
 
     const socket = new WebSocket(wsUrl)
