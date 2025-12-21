@@ -24,6 +24,8 @@ import { GameLoopService } from './game/game-loop.service'
 import { games, players, moves } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 import { auth } from './lib/auth'
+import { adminMiddleware } from './middleware/admin'
+import { llmConfigService } from './db/llm_config'
 
 const app = new Hono()
 
@@ -33,6 +35,38 @@ app.use('*', cors())
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
   return auth.handler(c.req.raw)
 })
+
+// Admin Routes
+const admin = new Hono()
+admin.use('*', adminMiddleware)
+
+admin.get('/models', async (c) => {
+  const configs = await llmConfigService.getAllConfigs()
+  return c.json(configs)
+})
+
+admin.post('/models', async (c) => {
+  const body = await c.req.json()
+  const config = await llmConfigService.createConfig(body)
+  return c.json(config, 201)
+})
+
+admin.patch('/models/:id', async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const body = await c.req.json()
+  const config = await llmConfigService.updateConfig(id, body)
+  if (!config) return c.json({ error: 'Not found' }, 404)
+  return c.json(config)
+})
+
+admin.delete('/models/:id', async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const result = await llmConfigService.deleteConfig(id)
+  if (!result) return c.json({ error: 'Not found' }, 404)
+  return c.json({ success: true })
+})
+
+app.route('/api/admin', admin)
 
 // Initialize services
 const gameManager = new GameManager()
