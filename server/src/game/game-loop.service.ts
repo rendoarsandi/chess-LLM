@@ -1,5 +1,5 @@
-import { games, players, moves as movesTable } from '../db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { games, players, moves as movesTable, llmConfigurations } from '../db/schema'
+import { eq, desc, and } from 'drizzle-orm'
 import { GameService } from './game.service'
 import { Player } from './player.interface'
 import { alias } from 'drizzle-orm/sqlite-core'
@@ -13,6 +13,14 @@ export class GameLoopService {
   ) {}
 
   async runIteration() {
+    // 1. Advance ongoing games
+    await this.advanceGames()
+
+    // 2. Start new match if none are ongoing
+    await this.maybeStartNewMatch()
+  }
+
+  private async advanceGames() {
     const whitePlayer = alias(players, 'whitePlayer')
     const blackPlayer = alias(players, 'blackPlayer')
 
@@ -49,7 +57,12 @@ export class GameLoopService {
         const player = this.gameService.getPlayer(currentPlayerId) || this.player
         
         const startTime = Date.now()
-        const move = await player.makeMove(game.fen, history)
+        let move = null
+        try {
+            move = await player.makeMove(game.fen, history)
+        } catch (e) {
+            logger.error(`[GameLoop] Error calling makeMove for ${currentPlayerId}:`, e)
+        }
         const thinkingMs = Date.now() - startTime
 
         if (move) {
@@ -65,6 +78,40 @@ export class GameLoopService {
           logger.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)
         }
       }
+    }
+  }
+
+  private async maybeStartNewMatch() {
+    const ongoingGames = await this.db.select()
+        .from(games)
+        .where(eq(games.status, 'ongoing'))
+    
+    if (ongoingGames.length > 0) return
+
+    // Get active LLM players from configurations
+    const activeLlmConfigs = await this.db.select()
+        .from(llmConfigurations)
+        .where(eq(llmConfigurations.isActive, true))
+    
+    const activePlayerIds = activeLlmConfigs
+        .filter((c: any) => c.playerId)
+        .map((c: any) => c.playerId)
+
+    if (activePlayerIds.length < 2) {
+        logger.info('[GameLoop] Not enough active LLM players to start a match')
+        return
+    }
+
+    // Pick two random players
+    const shuffled = [...activePlayerIds].sort(() => 0.5 - Math.random())
+    const whiteId = shuffled[0]
+    const blackId = shuffled[1]
+
+    try {
+        const gameId = await this.gameService.createGame(whiteId, blackId)
+        logger.info(`[GameLoop] Automatically started new match: ${gameId} (${whiteId} vs ${blackId})`)
+    } catch (e) {
+        logger.error('[GameLoop] Failed to start automatic match:', e)
     }
   }
 

@@ -21,6 +21,7 @@ import { GeminiPlayer } from './game/gemini-player'
 import { GroqService } from './game/groq.service'
 import { GroqPlayer } from './game/groq-player'
 import { GameLoopService } from './game/game-loop.service'
+import { StockfishPlayer } from './game/stockfish-player'
 import { games, players, moves } from './db/schema'
 import { desc, eq, sql } from 'drizzle-orm'
 import { auth } from './lib/auth'
@@ -73,118 +74,58 @@ const gameManager = new GameManager()
 const gameService = new GameService(db, gameManager)
 const playerService = new PlayerService(db)
 
-// System Player IDs
+// System Player IDs (Hardcoded for core bots to preserve history)
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
-const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
-const GEMINI_2_5_ID = '00000000-0000-0000-0000-000000000004'
-const GEMMA_3_27B_ID = '00000000-0000-0000-0000-000000000005'
-const GEMMA_3_12B_ID = '00000000-0000-0000-0000-000000000006'
 const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
 const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
 const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
 const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
-const KIMI_ID = '00000000-0000-0000-0000-000000000020'
-const GPT_OSS_ID = '00000000-0000-0000-0000-000000000021'
-const QWEN_ID = '00000000-0000-0000-0000-000000000022'
 
-// Initialize players
-const randomPlayer = new RandomPlayer()
-gameManager.setPlayer(RANDOM_BOT_ID, randomPlayer)
+// Initialize built-in non-LLM players
+gameManager.setPlayer(RANDOM_BOT_ID, new RandomPlayer())
+gameManager.setPlayer(STOCKFISH_LOW_ID, new StockfishPlayer(10, 1500, 14))
+gameManager.setPlayer(STOCKFISH_MED_ID, new StockfishPlayer(20, 2000, 18))
+gameManager.setPlayer(STOCKFISH_HIGH_ID, new StockfishPlayer(20, 3000, 22))
 
-import { StockfishPlayer } from './game/stockfish-player'
-const stockfishLow = new StockfishPlayer(10, 1500, 14) // Skill Level 10, 1500 ELO, Depth 14
-const stockfishMed = new StockfishPlayer(20, 2000, 18) // Skill Level 20, 2000 ELO, Depth 18
-const stockfishHigh = new StockfishPlayer(20, 3000, 22) // Skill Level 20, 3000 ELO, Depth 22
+async function initializePlayers() {
+    console.log('[Main] Synchronizing LLM configurations...')
+    
+    const hardcodedModels = [
+        { provider: 'gemini', modelId: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', rating: 2500 },
+        { provider: 'gemini', modelId: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', rating: 2300 },
+        { provider: 'gemini', modelId: 'gemma-3-27b-it', name: 'Gemma 3 27B', rating: 2400 },
+        { provider: 'gemini', modelId: 'gemma-3-12b-it', name: 'Gemma 3 12B', rating: 2100 },
+        { provider: 'groq', modelId: 'moonshotai/kimi-k2-instruct-0905', name: 'Kimi k2', rating: 2600 },
+        { provider: 'groq', modelId: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', rating: 2700 },
+        { provider: 'groq', modelId: 'qwen/qwen3-32b', name: 'Qwen 3 32B', rating: 2550 },
+    ]
 
-gameManager.setPlayer(STOCKFISH_LOW_ID, stockfishLow)
-gameManager.setPlayer(STOCKFISH_MED_ID, stockfishMed)
-gameManager.setPlayer(STOCKFISH_HIGH_ID, stockfishHigh)
+    await playerService.syncHardcodedConfigs(hardcodedModels)
+    await playerService.initializeActivePlayers(gameManager)
+    
+    // Ensure built-in players exist in 'players' table
+    const builtinPlayers = [
+        { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const, rating: 800 },
+        { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const, rating: 1200 },
+        { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500 },
+        { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const, rating: 2000 },
+        { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 3000 },
+    ]
 
-let defaultLlmPlayer: any = randomPlayer
-
-const geminiApiKey = process.env.GEMINI_API_KEY
-if (geminiApiKey && geminiApiKey !== 'your_api_key_here') {
-  console.log('[Main] Gemini API Key found, initializing GeminiPlayers')
-  const geminiService = new GeminiService(geminiApiKey)
-  
-  const gemini30Player = new GeminiPlayer(geminiService, 'gemini-3-flash-preview')
-  const gemini25Player = new GeminiPlayer(geminiService, 'gemini-2.5-flash')
-  const gemma27bPlayer = new GeminiPlayer(geminiService, 'gemma-3-27b-it')
-  const gemma12bPlayer = new GeminiPlayer(geminiService, 'gemma-3-12b-it')
-  
-  defaultLlmPlayer = gemini30Player
-  gameManager.setPlayer(GEMINI_3_0_ID, gemini30Player)
-  gameManager.setPlayer(GEMINI_2_5_ID, gemini25Player)
-  gameManager.setPlayer(GEMMA_3_27B_ID, gemma27bPlayer)
-  gameManager.setPlayer(GEMMA_3_12B_ID, gemma12bPlayer)
-} else {
-  console.error('[CRITICAL] Gemini API Key NOT FOUND in .env')
-}
-
-const groqApiKey = process.env.GROQ_API_KEY
-if (groqApiKey && groqApiKey !== 'your_api_key_here') {
-  console.log('[Main] Groq API Key found, initializing GroqPlayers')
-  const groqService = new GroqService(groqApiKey)
-  
-  const kimiPlayer = new GroqPlayer(groqService, 'moonshotai/kimi-k2-instruct-0905')
-  const gptOssPlayer = new GroqPlayer(groqService, 'openai/gpt-oss-120b')
-  const qwenPlayer = new GroqPlayer(groqService, 'qwen/qwen3-32b')
-  
-  gameManager.setPlayer(KIMI_ID, kimiPlayer)
-  gameManager.setPlayer(GPT_OSS_ID, gptOssPlayer)
-  gameManager.setPlayer(QWEN_ID, qwenPlayer)
-} else {
-  console.log('[Main] Groq API Key NOT FOUND in .env')
-}
-
-// Ensure system players exist in DB and remove others
-async function ensureSystemPlayers() {
-  const systemPlayers = [
-    { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const, rating: 800 },
-    { id: GEMINI_3_0_ID, name: 'Gemini 3 Flash', type: 'llm' as const, rating: 2500 },
-    { id: GEMINI_2_5_ID, name: 'Gemini 2.5 Flash', type: 'llm' as const, rating: 2300 },
-    { id: GEMMA_3_27B_ID, name: 'Gemma 3 27B', type: 'llm' as const, rating: 2400 },
-    { id: GEMMA_3_12B_ID, name: 'Gemma 3 12B', type: 'llm' as const, rating: 2100 },
-    { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const, rating: 1200 },
-    { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500 },
-    { id: STOCKFISH_MED_ID, name: 'Stockfish (Mid)', type: 'llm' as const, rating: 2000 },
-    { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 3000 },
-    { id: KIMI_ID, name: 'Kimi k2', type: 'llm' as const, rating: 2600 },
-    { id: GPT_OSS_ID, name: 'GPT-OSS 120B', type: 'llm' as const, rating: 2700 },
-    { id: QWEN_ID, name: 'Qwen 3 32B', type: 'llm' as const, rating: 2550 },
-  ]
-
-  const systemIds = systemPlayers.map(p => p.id)
-
-  // Remove any players NOT in the system list (like test P1, P2)
-  const allPlayers = await db.select().from(players)
-  for (const p of allPlayers) {
-    if (!systemIds.includes(p.id)) {
-      await db.delete(players).where(eq(players.id, p.id))
-      console.log(`[Main] Deleted non-system player: ${p.name}`)
+    for (const p of builtinPlayers) {
+        const existing = await db.select().from(players).where(eq(players.id, p.id))
+        if (existing.length === 0) {
+            await db.insert(players).values({ ...p, peakRating: p.rating })
+        }
     }
-  }
 
-  const existing = await db.select().from(players)
-  const existingIds = existing.map(p => p.id)
-
-  for (const p of systemPlayers) {
-    if (!existingIds.includes(p.id)) {
-      await db.insert(players).values({ ...p, peakRating: p.rating })
-      console.log(`[Main] Created system player: ${p.name}`)
-    } else {
-      // Update name and rating if it exists but differs
-      await db.update(players).set({ 
-        name: p.name,
-        rating: p.rating,
-        peakRating: sql`MAX(peak_rating, ${p.rating})`
-      }).where(eq(players.id, p.id))
-    }
-  }
+    console.log('[Main] Player initialization complete.')
 }
 
-export const initPromise = ensureSystemPlayers().catch(console.error)
+export const initPromise = initializePlayers().catch(console.error)
 
+// Default LLM player for background loop (fallback)
+const defaultLlmPlayer = new RandomPlayer()
 const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer)
 
 // Start background loop

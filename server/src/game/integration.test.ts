@@ -76,6 +76,18 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
         created_at INTEGER NOT NULL,
         FOREIGN KEY(game_id) REFERENCES games(id)
       );
+      CREATE TABLE llm_configurations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id TEXT,
+        provider TEXT NOT NULL,
+        model_id TEXT NOT NULL,
+        api_key TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        is_hardcoded INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (player_id) REFERENCES players(id)
+      );
     `)
 
     gameManager = new GameManager()

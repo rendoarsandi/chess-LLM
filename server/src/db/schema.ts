@@ -57,6 +57,7 @@ export const moves = sqliteTable('moves', {
 
 export const llmConfigurations = sqliteTable('llm_configurations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  playerId: text('player_id').references(() => players.id), // UUID of the instantiated player
   provider: text('provider').notNull(), // e.g., 'gemini', 'groq'
   modelId: text('model_id').notNull(), // e.g., 'gemini-1.5-pro'
   apiKey: text('api_key'), // Optional if stored in env

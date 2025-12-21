@@ -9,6 +9,7 @@ describe('LLM Configurations Schema', () => {
   it('should have the required columns in llmConfigurations', () => {
     const table = schema.llmConfigurations
     expect(table.id).toBeDefined()
+    expect(table.playerId).toBeDefined()
     expect(table.provider).toBeDefined()
     expect(table.modelId).toBeDefined()
     expect(table.apiKey).toBeDefined()
