@@ -21,19 +21,19 @@
 - [x] Phase Completion Verification: Admin can successfully create a scheduled tournament with selected participants.
 - [x] Task: Conductor - User Manual Verification 'Admin Configuration UI' (Protocol in workflow.md)
 
-## Phase 3: Tournament Execution Engine (Background)
-- [~] Task: Extend `GameLoopService` or create `TournamentLoopService`.
+## Phase 3: Tournament Execution Engine (Background) [checkpoint: 03e3b9e]
+- [x] Task: Extend `GameLoopService` or create `TournamentLoopService`. 03e3b9e
     - Poll for "Scheduled" tournaments where `now >= start_time`.
     - **Transition:** Scheduled -> Active. Generate Round 1 pairings.
     - Create `Game` records for pairings.
-- [ ] Task: Implement Round Transition Logic.
+- [x] Task: Implement Round Transition Logic. 03e3b9e
     - Monitor active tournament games.
     - When all games in round R are `COMPLETED`, calculate scores.
     - Generate pairings for Round R+1.
     - If R == Total Rounds, transition Tournament -> Completed.
-- [ ] Task: Test "No Time Control" vs "Timed" logic integration with existing game engine.
-- [ ] Phase Completion Verification: Simulate a mini-tournament (4 players) in tests, verifying automatic round transitions.
-- [ ] Task: Conductor - User Manual Verification 'Tournament Execution Engine (Background)' (Protocol in workflow.md)
+- [x] Task: Test "No Time Control" vs "Timed" logic integration with existing game engine. 03e3b9e
+- [x] Phase Completion Verification: Simulate a mini-tournament (4 players) in tests, verifying automatic round transitions.
+- [x] Task: Conductor - User Manual Verification 'Tournament Execution Engine (Background)' (Protocol in workflow.md)
 
 ## Phase 4: User Interface (Public)
 - [ ] Task: Create `/tournaments` route and landing page.
