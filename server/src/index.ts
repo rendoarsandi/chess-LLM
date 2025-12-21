@@ -353,6 +353,12 @@ app.get('/api/tournaments/:id/participants', async (c) => {
   return c.json(results)
 })
 
+app.get('/api/tournaments/:id/games', async (c) => {
+  const id = c.req.param('id')
+  const results = await db.select().from(games).where(eq(games.tournamentId, id)).orderBy(desc(games.roundNumber), desc(games.createdAt))
+  return c.json(results)
+})
+
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 console.log(`Server is running on port ${port}`)
 

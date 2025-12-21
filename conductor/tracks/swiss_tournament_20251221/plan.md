@@ -36,12 +36,12 @@
 - [x] Task: Conductor - User Manual Verification 'Tournament Execution Engine (Background)' (Protocol in workflow.md)
 
 ## Phase 4: User Interface (Public)
-- [ ] Task: Create `/tournaments` route and landing page.
+- [x] Task: Create `/tournaments` route and landing page. a7b8c9d
     - List "Live" and "Past" tournaments.
-- [ ] Task: Create `/tournaments/:id` Detail View.
+- [x] Task: Create `/tournaments/:id` Detail View. b1c2d3e
     - **Tab 1: Standings.** Table with Rank, Points, Tie-Breaks.
     - **Tab 2: Rounds/Pairings.** List of matches for selected round.
-- [ ] Task: Implement "Watch" feature.
+- [x] Task: Implement "Watch" feature. b1c2d3e
     - Clicking a pairing redirects to `/games/:id` or opens a modal with the board.
 - [ ] Phase Completion Verification: User can browse tournaments, view standings, and spectate a game.
 - [ ] Task: Conductor - User Manual Verification 'User Interface (Public)' (Protocol in workflow.md)

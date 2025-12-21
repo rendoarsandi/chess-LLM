@@ -232,3 +232,8 @@ export async function getTournamentParticipants(id: string): Promise<TournamentP
   const res = await fetch(`${API_URL}/tournaments/${id}/participants`)
   return res.json()
 }
+
+export async function getTournamentGames(id: string): Promise<Game[]> {
+  const res = await fetch(`${API_URL}/tournaments/${id}/games`)
+  return res.json()
+}
