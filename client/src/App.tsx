@@ -568,20 +568,6 @@ function App() {
     }
   }, [location.pathname, selectedGame?.id, selectedGame, navigate, games, handleSelectGame]);
 
-  // Sync selectedGame with periodically fetched games list to catch status changes
-  useEffect(() => {
-    if (selectedGame) {
-      const updated = games.find(g => g.id === selectedGame.id);
-      if (updated && (
-        updated.status !== selectedGame.status || 
-        updated.winnerId !== selectedGame.winnerId ||
-        updated.gameOverReason !== selectedGame.gameOverReason
-      )) {
-        setSelectedGame(updated);
-      }
-    }
-  }, [games, selectedGame]);
-
   // Default game selection logic
   useEffect(() => {
     if (location.pathname === '/') {
