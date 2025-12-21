@@ -1,11 +1,11 @@
 # Implementation Plan - Admin Auth & Dynamic LLM Configuration
 
-## Phase 1: Database & Backend Foundation
+## Phase 1: Database & Backend Foundation [checkpoint: 2cc4a04]
 - [x] Task: Create `llm_configurations` table schema with Drizzle (Provider, ModelID, APIKey, IsActive, IsHardcoded) [0c42a03]
 - [x] Task: Implement BetterAuth server-side setup with Email/Password and SQLite [e93b8b5]
 - [x] Task: Implement Admin Middleware in Hono to restrict access by `ADMIN_EMAIL` [06b2640]
 - [x] Task: Create CRUD API endpoints for `llm_configurations` (GET /api/admin/models, POST /api/admin/models, PATCH /api/admin/models/:id) [99c554c]
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Foundation' (Protocol in workflow.md) [2cc4a04]
 
 ## Phase 2: Frontend Auth & Routing
 - [ ] Task: Initialize BetterAuth client in the React frontend
