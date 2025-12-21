@@ -4,7 +4,7 @@
 - [x] Task: Install `@hono/node-ws` dependency in `server/`. 3d9e8f7
 - [x] Task: Create `server/src/game/socket.service.ts` to handle WebSocket logic (connections, room management, broadcasting). 98cbbee
 - [x] Task: Integrate `socket.service.ts` into the main Hono app in `server/src/index.ts` and configure the WebSocket route upgrade. 6964f54
-- [ ] Task: Update `GameLoopService` (`server/src/game/game-loop.service.ts`) to emit "Move Made" and "Game Over" events to `socket.service.ts`.
+- [x] Task: Update `GameLoopService` (`server/src/game/game-loop.service.ts`) to emit "Move Made" and "Game Over" events to `socket.service.ts`. 0c06e14
 - [ ] Task: Update `GameManager` (`server/src/game/game-manager.ts`) to emit "Game Started" events.
 - [ ] Task: Add test coverage for `socket.service.ts` (mocking the WebSocket connection).
 - [ ] Task: Conductor - User Manual Verification 'Backend WebSocket Implementation' (Protocol in workflow.md)
