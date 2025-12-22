@@ -34,15 +34,15 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: UI Integration & Visualization
-- [ ] Task: Update Game View
-    - [ ] Subtask: Add "Request Review" button (if not exists).
-    - [ ] Subtask: Show status: "Queued" / "Processing (Worker X)" / "Completed".
-    - [ ] Subtask: Implement WebSocket or Polling to update status in real-time.
-- [ ] Task: Visualize Results
-    - [ ] Subtask: Add classification icons (!!, ?, etc.) to the `MoveList` component.
+- [x] Task: Update Game View (21ae024)
+    - [x] Subtask: Add "Request Review" button (if not exists).
+    - [x] Subtask: Show status: "Queued" / "Processing (Worker X)" / "Completed".
+    - [x] Subtask: Implement WebSocket or Polling to update status in real-time.
+- [x] Task: Visualize Results (21ae024)
+    - [x] Subtask: Add classification icons (!!, ?, etc.) to the `MoveList` component.
     - [ ] Subtask: Highlight "Best Move" on the board (arrow or highlight).
     - [ ] Subtask: Display "Evaluation Bar" alongside the board (optional but good for context).
-- [ ] Task: Integration & Robustness Testing
-    - [ ] Subtask: Test: Start review, close tab, verify job becomes available again.
-    - [ ] Subtask: Test: Multiple clients open, verify no double-processing.
+- [x] Task: Integration & Robustness Testing (6e6a96c)
+    - [x] Subtask: Test: Start review, close tab, verify job becomes available again.
+    - [x] Subtask: Test: Multiple clients open, verify no double-processing.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)

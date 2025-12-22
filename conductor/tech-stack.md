@@ -8,8 +8,9 @@
 - **Notifications:** `sonner` for robust toast alerts
 - **Chess Logic:** `chess.js`
 - **Chessboard UI:** `react-chessboard`
-- **Engine:** `stockfish.js` (WASM + Web Workers). Dual-worker architecture: one for UI analysis and one for automated move generation.
+- **Engine:** `stockfish.js` (WASM + Web Workers). Multi-worker architecture: one for live UI analysis, one for automated move generation, and one for background game reviews.
 - **Bot Controller:** `useGameBot` hook for responding to server-side `REQUEST_MOVE` commands via WebSockets.
+- **Analysis Engine:** `ClassificationEngine` utility for heuristic-based move quality assessment (Brilliant to Blunder).
 - **Data Visualization:** `recharts` for ELO history and performance tracking
 - **Testing:** Vitest + React Testing Library + JSDOM
 

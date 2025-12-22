@@ -365,6 +365,11 @@ function App() {
     }
   };
 
+  const fetchAllGames = useCallback(async () => {
+    const allGames = await getGames();
+    setGames(allGames);
+  }, []);
+
   useEffect(() => {
     if (!selectedGame || selectedGame.status === 'ongoing' || selectedGame.status === 'paused') {
       setReview(null);
@@ -383,7 +388,7 @@ function App() {
     fetchStatus();
 
     // Polling for review status if it's not completed
-    let pollInterval: NodeJS.Timeout | null = null;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
     if (review && review.status !== 'completed' && review.status !== 'failed') {
       pollInterval = setInterval(fetchStatus, 3000);
     }
@@ -391,7 +396,7 @@ function App() {
     return () => {
       if (pollInterval) clearInterval(pollInterval);
     };
-  }, [selectedGame?.id, selectedGame?.status, review?.status]);
+  }, [selectedGame?.id, selectedGame?.status, review?.status, selectedGame, review]);
 
   const fetchLeaderboard = useCallback(async () => {
     try {

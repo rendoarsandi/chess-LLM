@@ -20,7 +20,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
     
     if (!analysis) return null;
 
-    const iconMap: Record<string, { icon: any, color: string, label: string }> = {
+    const iconMap: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
       brilliant: { icon: Zap, color: "text-cyan-400", label: "!!" },
       great: { icon: Star, color: "text-blue-400", label: "!" },
       best: { icon: CheckCheck, color: "text-green-400", label: "★" },

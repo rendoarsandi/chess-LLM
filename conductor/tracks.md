@@ -15,6 +15,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Archived Tracks
 
+### [x] Track: Distributed Game Review System
+*Link: [./conductor/archive/distributed_game_review_20251222/](./conductor/archive/distributed_game_review_20251222/)*
+
 ### [x] Track: Move Stockfish execution to client side via WebSockets to simulate Durable Object architecture and save costs.
 *Link: [./conductor/archive/stockfish_client_do_20251222/](./conductor/archive/stockfish_client_do_20251222/)*
 
@@ -29,8 +32,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ### [x] Track: Routing & Robust Error Handling
 *Link: [./conductor/archive/routing_robustness_20251220/](./conductor/archive/routing_robustness_20251220/)*
-
----
-
-## [~] Track: Distributed Game Review System
-*Link: [./conductor/tracks/distributed_game_review_20251222/](./conductor/tracks/distributed_game_review_20251222/)*

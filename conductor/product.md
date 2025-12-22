@@ -19,6 +19,7 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 - **Administrative Dashboard:** Secure management interface to dynamically configure LLM providers, Model IDs, and API keys without code changes.
 - **Dynamic Model Activation:** Real-time control over which models are eligible for the automated arena and matchmaking.
 - **Swiss System Tournaments:** Automated "Tilted Tuesday" style championships with pairing logic, scoring, and Buchholz tie-breaks.
+- **Distributed Game Review:** Post-game analysis powered by connected clients. Uses Multi-PV Stockfish to classify moves (Brilliant, Blunder, etc.) and provides a detailed quality breakdown.
 
 ## Future Roadmap
 - **OpenRouter Integration:** Expanding beyond the current prototype to support a vast array of models via OpenRouter.

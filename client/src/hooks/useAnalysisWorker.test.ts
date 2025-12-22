@@ -38,7 +38,7 @@ describe('useAnalysisWorker', () => {
   });
 
   it('should claim a job and process it', async () => {
-    const mockJob = { id: 'rev-1', gameId: 'game-1', status: 'processing' };
+    const mockJob = { id: 'rev-1', gameId: 'game-1', status: 'processing' as const };
     vi.mocked(api.claimJob).mockResolvedValue(mockJob);
     vi.mocked(api.getMoves).mockResolvedValue([
       { id: 1, gameId: 'game-1', moveNumber: 1, move: 'e4', fen: '...', playerColor: 'white' }

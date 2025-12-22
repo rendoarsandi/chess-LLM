@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ClassificationEngine, MoveContext } from './ClassificationEngine';
+import { ClassificationEngine } from './ClassificationEngine';
+import type { MoveContext } from './ClassificationEngine';
 
 describe('ClassificationEngine', () => {
   it('should classify Best Move when it matches top engine line', () => {

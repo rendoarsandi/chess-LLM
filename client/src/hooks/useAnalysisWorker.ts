@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { claimJob, getMoves, sendHeartbeat, submitResults, MoveAnalysis } from '../api';
+import { claimJob, getMoves, sendHeartbeat, submitResults } from '../api';
+import type { MoveAnalysis } from '../api';
 import { AnalysisWorker } from '../lib/stockfish/AnalysisWorker';
 import { ClassificationEngine } from '../lib/ClassificationEngine';
 import { Chess } from 'chess.js';
@@ -19,8 +20,8 @@ export function useAnalysisWorker(enabled: boolean = true) {
       analysisWorkerRef.current = new AnalysisWorker();
     }
 
-    let timeoutId: NodeJS.Timeout;
-    let heartbeatId: NodeJS.Timeout | null = null;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let heartbeatId: ReturnType<typeof setInterval> | null = null;
 
     const poll = async () => {
       if (isProcessingRef.current) return;

@@ -142,10 +142,9 @@ describe('GameReviewService', () => {
     const gameId = await setupGame()
     await service.requestReview(gameId)
     const job = await service.claimJob('worker-1')
-    
     const results = [
-      { moveNumber: 1, classification: 'best', evaluation: '0.3', bestLine: 'e4' },
-      { moveNumber: 2, classification: 'good', evaluation: '0.2', bestLine: 'e5' }
+      { moveNumber: 1, classification: 'best', evaluation: 0.3, bestLine: 'e4' },
+      { moveNumber: 2, classification: 'good', evaluation: 0.2, bestLine: 'e5' }
     ]
     
     await service.submitResults(job!.id, results)
@@ -204,7 +203,7 @@ describe('GameReviewService', () => {
     // Completed
     const job = await service.claimJob('worker-1')
     const results = [
-      { moveNumber: 1, classification: 'best', evaluation: '0.3', bestLine: 'e4' }
+      { moveNumber: 1, classification: 'best', evaluation: 0.3, bestLine: 'e4' }
     ]
     await service.submitResults(job!.id, results)
     

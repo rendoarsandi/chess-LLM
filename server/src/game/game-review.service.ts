@@ -3,7 +3,15 @@ import { gameReviews, moveAnalyses } from '../db/schema'
 import { eq, and, lt, asc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
+export interface MoveAnalysis {
+  moveNumber: number;
+  classification: string;
+  evaluation: number;
+  bestLine?: string;
+}
+
 export class GameReviewService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private db: any
 
   constructor(db = defaultDb) {
@@ -74,7 +82,8 @@ export class GameReviewService {
       .where(eq(gameReviews.id, reviewId))
   }
 
-  async submitResults(reviewId: string, results: any[]) {
+  async submitResults(reviewId: string, results: MoveAnalysis[]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.db.transaction((tx: any) => {
       tx.update(gameReviews)
         .set({
@@ -88,7 +97,7 @@ export class GameReviewService {
         reviewId,
         moveNumber: r.moveNumber,
         classification: r.classification,
-        evaluation: r.evaluation,
+        evaluation: r.evaluation.toString(),
         bestLine: r.bestLine,
         createdAt: new Date()
       }))
