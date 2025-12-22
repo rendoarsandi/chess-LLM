@@ -14,10 +14,10 @@
 *   [x] Task: Update Client WebSocket Types 7e07774
     *   [x] Extend `SocketMessage` type in `useGameSocket.ts` to include `REQUEST_MOVE` payload.
     *   [x] Define `ClientMessage` types for `SUBMIT_MOVE` to ensure type safety when sending data back to server.
-*   [ ] Task: Update Server WebSocket Handling
-    *   [ ] Modify `game-loop.service.ts` (or relevant socket handler) to emit `REQUEST_MOVE` instead of performing internal/HTTP-based move generation when the player provider is 'stockfish'.
-    *   [ ] Add a listener/handler for `SUBMIT_MOVE` messages from the client.
-    *   [ ] Validate that the move received matches the current game state and player turn.
+*   [x] Task: Update Server WebSocket Handling c71586c
+    *   [x] Modify `game-loop.service.ts` (or relevant socket handler) to emit `REQUEST_MOVE` instead of performing internal/HTTP-based move generation when the player provider is 'stockfish'.
+    *   [x] Add a listener/handler for `SUBMIT_MOVE` messages from the client.
+    *   [x] Validate that the move received matches the current game state and player turn.
 *   [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Game Loop
