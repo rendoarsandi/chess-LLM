@@ -49,7 +49,13 @@ export class StockfishWorker {
       this.worker = new Worker('/stockfish/stockfish.js');
       
       this.worker.onerror = (err) => {
-        console.error('[StockfishWorker] Worker error event:', err);
+        console.error('[StockfishWorker] Worker error event:', {
+          message: err.message,
+          filename: err.filename,
+          lineno: err.lineno,
+          colno: err.colno,
+          error: err.error
+        });
       };
 
       this.worker.onmessage = (e) => {

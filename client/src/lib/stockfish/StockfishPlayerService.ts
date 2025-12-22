@@ -13,6 +13,15 @@ export class StockfishPlayerService {
     console.log('[StockfishPlayerService] Initializing worker from /stockfish/stockfish.js');
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
+      this.worker.onerror = (err) => {
+        console.error('[StockfishPlayerService] Worker error event:', {
+          message: err.message,
+          filename: err.filename,
+          lineno: err.lineno,
+          colno: err.colno,
+          error: err.error
+        });
+      };
       this.worker.onmessage = (e) => this.handleMessage(e.data);
       this.sendMessage('uci');
     } catch (error) {
