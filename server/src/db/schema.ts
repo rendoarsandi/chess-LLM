@@ -57,6 +57,29 @@ export const moves = sqliteTable('moves', {
   gameIdx: index('game_idx').on(table.gameId),
 }))
 
+export const gameReviews = sqliteTable('game_reviews', {
+  id: text('id').primaryKey(), // UUID
+  gameId: text('game_id').references(() => games.id).notNull(),
+  status: text('status', { enum: ['queued', 'processing', 'completed', 'failed'] }).default('queued').notNull(),
+  startedAt: integer('started_at', { mode: 'timestamp' }),
+  workerId: text('worker_id'),
+  lastHeartbeat: integer('last_heartbeat', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+})
+
+export const moveAnalyses = sqliteTable('move_analyses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  reviewId: text('review_id').references(() => gameReviews.id).notNull(),
+  moveNumber: integer('move_number').notNull(),
+  classification: text('classification').notNull(),
+  evaluation: text('evaluation').notNull(),
+  bestLine: text('best_line'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => ({
+  reviewIdx: index('review_idx').on(table.reviewId),
+}))
+
 export const llmConfigurations = sqliteTable('llm_configurations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   playerId: text('player_id').references(() => players.id), // UUID of the instantiated player
