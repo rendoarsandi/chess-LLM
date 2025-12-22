@@ -19,7 +19,7 @@
     - [x] Subtask: `POST /api/reviews/worker/submit` (Submit results).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
-## Phase 2: Client-Side Worker & Analysis Logic
+## Phase 2: Client-Side Worker & Analysis Logic [checkpoint: 6e6a96c]
 - [x] Task: Enhance Stockfish Service (ce284bb)
     - [x] Subtask: Update `StockfishService` (Implemented as AnalysisWorker) to support Multi-PV configuration.
     - [x] Subtask: Implement `analyzePosition(fen, depth=20, multipv=3)` method.
