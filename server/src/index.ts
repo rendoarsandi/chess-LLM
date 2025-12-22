@@ -27,6 +27,7 @@ import { llmConfigService, LLMConfig } from './db/llm_config'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
 import { logger } from './game/logger'
+import { GameReviewService } from './game/game-review.service'
 
 const app = new Hono()
 
@@ -40,6 +41,7 @@ const socketService = new SocketService()
 const playerService = new PlayerService(db)
 const tournamentService = new TournamentService(db)
 const gameService = new GameService(db, gameManager, tournamentService, socketService)
+const gameReviewService = new GameReviewService(db)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -398,6 +400,51 @@ app.get('/api/tournaments/:id/games', async (c) => {
   const id = c.req.param('id')
   const results = await db.select().from(games).where(eq(games.tournamentId, id)).orderBy(desc(games.roundNumber), desc(games.createdAt))
   return c.json(results)
+})
+
+// Game Review Routes
+app.post('/api/reviews/:gameId', async (c) => {
+  const gameId = c.req.param('gameId')
+  const review = await gameReviewService.requestReview(gameId)
+  return c.json(review)
+})
+
+app.get('/api/reviews/:gameId', async (c) => {
+  const gameId = c.req.param('gameId')
+  const status = await gameReviewService.getReviewStatus(gameId)
+  if (!status) return c.json({ error: 'Not found' }, 404)
+  return c.json(status)
+})
+
+app.post('/api/reviews/worker/claim', async (c) => {
+  try {
+    const { workerId } = await c.req.json()
+    const job = await gameReviewService.claimJob(workerId)
+    if (!job) return c.json({ message: 'No jobs available' }, 200)
+    return c.json(job)
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
+app.post('/api/reviews/worker/heartbeat', async (c) => {
+  try {
+    const { reviewId } = await c.req.json()
+    await gameReviewService.heartbeat(reviewId)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
+app.post('/api/reviews/worker/submit', async (c) => {
+  try {
+    const { reviewId, results } = await c.req.json()
+    await gameReviewService.submitResults(reviewId, results)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
 })
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
