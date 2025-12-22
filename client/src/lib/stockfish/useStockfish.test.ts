@@ -124,6 +124,10 @@ describe('useStockfish', () => {
     const checkmateFen = 'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 0 1';
     const { result } = renderHook(() => useStockfish(checkmateFen));
 
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
     // Should update immediately (no need to wait for debounce)
     expect(result.current.evaluation).toEqual(expect.objectContaining({
       isMate: true,
