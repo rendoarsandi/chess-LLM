@@ -96,6 +96,31 @@ describe('Game Review API Endpoints', () => {
     expect(data.success).toBe(true)
   })
 
+  it('POST /api/reviews/worker/progress should update progress', async () => {
+    // Request and claim
+    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    const claimRes = await app.request('/api/reviews/worker/claim', {
+      method: 'POST',
+      body: JSON.stringify({ workerId: testWorkerId }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    const { id: reviewId } = await claimRes.json()
+
+    const res = await app.request('/api/reviews/worker/progress', {
+      method: 'POST',
+      body: JSON.stringify({ reviewId, current: 10, total: 40 }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.success).toBe(true)
+
+    // Verify in DB
+    const review = await db.select().from(gameReviews).where(eq(gameReviews.id, reviewId)).limit(1)
+    expect(review[0].progressCurrent).toBe(10)
+    expect(review[0].progressTotal).toBe(40)
+  })
+
   it('POST /api/reviews/worker/submit should submit results', async () => {
     // Request and claim
     await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })

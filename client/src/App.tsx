@@ -11,6 +11,7 @@ import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { GameReviewDashboard } from "@/components/GameReviewDashboard"
+import { AnalysisMode } from "@/components/AnalysisMode"
 import { AdminLogin } from "@/components/AdminLogin"
 import { AdminSettings } from "@/components/AdminSettings"
 import { TournamentManagement } from "@/components/TournamentManagement"
@@ -416,16 +417,19 @@ function App() {
 
     fetchStatus();
 
-    // Polling for review status if it's not completed
+    // Polling for review status if it's active
     let pollInterval: ReturnType<typeof setInterval> | null = null;
     if (review && review.status !== 'completed' && review.status !== 'failed') {
-      pollInterval = setInterval(fetchStatus, 3000);
+      pollInterval = setInterval(fetchStatus, 2000);
+    } else if (isRequestingReview) {
+      // Also poll while we are waiting for the initial response or worker to claim
+      pollInterval = setInterval(fetchStatus, 2000);
     }
 
     return () => {
       if (pollInterval) clearInterval(pollInterval);
     };
-  }, [selectedGame?.id, selectedGame?.status, review?.status, selectedGame, review]);
+  }, [selectedGame?.id, selectedGame?.status, review?.status, selectedGame, review, isRequestingReview]);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -801,6 +805,7 @@ function App() {
             </div>
           </div>
         } />
+        <Route path="/analysis/:gameId" element={<AnalysisMode />} />
         <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/login" element={<AdminLogin />} />

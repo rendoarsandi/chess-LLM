@@ -48,6 +48,8 @@ describe('GameReviewService', () => {
         id TEXT PRIMARY KEY,
         game_id TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'queued',
+        progress_current INTEGER NOT NULL DEFAULT 0,
+        progress_total INTEGER NOT NULL DEFAULT 0,
         started_at INTEGER,
         worker_id TEXT,
         last_heartbeat INTEGER,
@@ -115,6 +117,8 @@ describe('GameReviewService', () => {
     expect(job?.gameId).toBe(gameId)
     expect(job?.status).toBe('processing')
     expect(job?.workerId).toBe(workerId)
+    expect(job?.progressCurrent).toBe(0)
+    expect(job?.progressTotal).toBe(0)
     expect(job?.startedAt).toBeDefined()
     expect(job?.lastHeartbeat).toBeDefined()
   })
@@ -136,6 +140,17 @@ describe('GameReviewService', () => {
     await service.heartbeat(job!.id)
     const updatedJob = (await db.select().from(gameReviews).where(eq(gameReviews.id, job!.id)))[0]
     expect(updatedJob.lastHeartbeat!.getTime()).toBeGreaterThanOrEqual(job!.lastHeartbeat!.getTime())
+  })
+
+  it('should update progress', async () => {
+    const gameId = await setupGame()
+    await service.requestReview(gameId)
+    const job = await service.claimJob('worker-1')
+    
+    await service.updateProgress(job!.id, 5, 20)
+    const updatedJob = (await db.select().from(gameReviews).where(eq(gameReviews.id, job!.id)))[0]
+    expect(updatedJob.progressCurrent).toBe(5)
+    expect(updatedJob.progressTotal).toBe(20)
   })
 
   it('should submit results', async () => {

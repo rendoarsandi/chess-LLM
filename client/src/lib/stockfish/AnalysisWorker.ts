@@ -112,12 +112,20 @@ export class AnalysisWorker {
   public async analyzePosition(fen: string, depth: number = 20, multipv: number = 3): Promise<AnalysisResult> {
     if (this.isTerminated) throw new Error('Worker terminated');
     
-    // Wait for engine to be ready if it isn't
+    // Wait for engine to be ready with a timeout (10 seconds)
+    const startWait = Date.now();
     while (!this.isEngineReady && !this.isTerminated) {
+      if (Date.now() - startWait > 10000) {
+        throw new Error('Engine initialization timed out');
+      }
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      if (this.isTerminated) {
+        reject(new Error('Worker terminated during wait'));
+        return;
+      }
       this.currentAnalysis = { resolve, pvs: [], depth };
       this.sendMessage(`setoption name MultiPV value ${multipv}`);
       this.sendMessage(`position fen ${fen}`);

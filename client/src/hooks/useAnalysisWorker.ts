@@ -27,20 +27,28 @@ export function useAnalysisWorker(enabled: boolean = true) {
       if (isProcessingRef.current) return;
 
       try {
+        console.debug(`[useAnalysisWorker] Polling for jobs... (ID: ${WORKER_ID})`);
         const job = await claimJob(WORKER_ID);
         if ('id' in job && job.status === 'processing') {
           isProcessingRef.current = true;
-          console.log(`[useAnalysisWorker] Claimed job: ${job.id} for game ${job.gameId}`);
+          console.info(`[useAnalysisWorker] Claimed job: ${job.id} for game ${job.gameId}`);
 
           // Start heartbeat
           heartbeatId = setInterval(() => {
             sendHeartbeat(job.id).catch(err => console.error('[useAnalysisWorker] Heartbeat failed:', err));
           }, HEARTBEAT_INTERVAL);
 
-          await processJob(job.id, job.gameId);
-
-          if (heartbeatId) clearInterval(heartbeatId);
-          isProcessingRef.current = false;
+          try {
+            await processJob(job.id, job.gameId);
+            console.info(`[useAnalysisWorker] Successfully finished job: ${job.id}`);
+          } catch (processError) {
+            console.error(`[useAnalysisWorker] Error processing job ${job.id}:`, processError);
+          } finally {
+            if (heartbeatId) clearInterval(heartbeatId);
+            isProcessingRef.current = false;
+          }
+        } else {
+          console.debug('[useAnalysisWorker] No jobs available');
         }
       } catch (error) {
         console.error('[useAnalysisWorker] Polling error:', error);

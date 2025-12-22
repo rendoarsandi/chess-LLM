@@ -1,7 +1,9 @@
 import React from 'react';
 import type { GameReview, MoveAnalysis, Player } from '@/api';
-import { Zap, Star, CheckCheck, Check, Info, AlertTriangle, XCircle, Search, Loader2 } from 'lucide-react';
+import { Zap, Star, CheckCheck, Check, Info, AlertTriangle, XCircle, Search, Loader2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router';
+import { Button } from './ui/button';
 
 interface GameReviewDashboardProps {
   review: (GameReview & { analyses?: MoveAnalysis[] }) | null;
@@ -14,6 +16,8 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
   whitePlayer,
   blackPlayer
 }) => {
+  const isLocalWorkerActive = review?.workerId?.startsWith('worker-');
+
   if (!review) return null;
 
   const isCompleted = review.status === 'completed';
@@ -101,6 +105,15 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
         )}
       </div>
 
+      {isProcessing && (
+        <div className="px-4 py-1 bg-primary/5 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">
+            <div className={cn("w-1.5 h-1.5 rounded-full", isLocalWorkerActive ? "bg-primary animate-pulse" : "bg-muted")} />
+            {isLocalWorkerActive ? "Your browser is analyzing" : "Remote worker active"}
+          </div>
+        </div>
+      )}
+
       <div className="p-6 space-y-6">
         {(!isCompleted && !isProcessing) && (
           <div className="py-8 text-center space-y-4">
@@ -164,6 +177,15 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {isCompleted && (
+          <Link to={`/analysis/${review.gameId}`} className="block">
+            <Button variant="default" className="w-full font-black tracking-widest text-[10px] h-8 gap-2">
+              VIEW FULL ANALYSIS
+              <ArrowRight className="w-3 h-3" />
+            </Button>
+          </Link>
         )}
       </div>
     </div>

@@ -19,6 +19,7 @@ vi.mock('../api', () => ({
   claimJob: vi.fn(),
   getMoves: vi.fn(),
   sendHeartbeat: vi.fn(),
+  updateProgress: vi.fn(),
   submitResults: vi.fn()
 }));
 
