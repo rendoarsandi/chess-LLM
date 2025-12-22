@@ -44,7 +44,7 @@ export class GameReviewService {
     // Reset stuck jobs first
     const timeout = new Date(Date.now() - 5000) // 5 seconds heartbeat timeout
     await this.db.update(gameReviews)
-      .set({ status: 'queued', workerId: null, startedAt: null, lastHeartbeat: null })
+      .set({ status: 'queued', workerId: null, startedAt: null, lastHeartbeat: null, progressCurrent: 0, progressTotal: 0 })
       .where(and(
         eq(gameReviews.status, 'processing'),
         lt(gameReviews.lastHeartbeat, timeout)
@@ -66,7 +66,9 @@ export class GameReviewService {
       status: 'processing' as const,
       workerId,
       startedAt: new Date(),
-      lastHeartbeat: new Date()
+      lastHeartbeat: new Date(),
+      progressCurrent: 0,
+      progressTotal: 0
     }
 
     await this.db.update(gameReviews)
@@ -74,6 +76,16 @@ export class GameReviewService {
       .where(eq(gameReviews.id, job.id))
 
     return { ...job, ...updated }
+  }
+
+  async updateProgress(reviewId: string, current: number, total: number) {
+    await this.db.update(gameReviews)
+      .set({ 
+        progressCurrent: current, 
+        progressTotal: total,
+        lastHeartbeat: new Date() 
+      })
+      .where(eq(gameReviews.id, reviewId))
   }
 
   async heartbeat(reviewId: string) {

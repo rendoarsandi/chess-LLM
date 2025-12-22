@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { claimJob, getMoves, sendHeartbeat, submitResults } from '../api';
+import { claimJob, getMoves, sendHeartbeat, submitResults, updateProgress } from '../api';
 import type { MoveAnalysis } from '../api';
 import { AnalysisWorker } from '../lib/stockfish/AnalysisWorker';
 import { ClassificationEngine } from '../lib/ClassificationEngine';
@@ -51,11 +51,13 @@ export function useAnalysisWorker(enabled: boolean = true) {
 
     const processJob = async (reviewId: string, gameId: string) => {
       const moves = await getMoves(gameId);
+      const totalMoves = moves.length;
       const analyses: MoveAnalysis[] = [];
       const chess = new Chess();
 
       // Analyze each move
-      for (const move of moves) {
+      for (let i = 0; i < totalMoves; i++) {
+        const move = moves[i];
         // We need the FEN BEFORE the move to know what the best move was
         const beforeFen = chess.fen();
         
@@ -85,6 +87,9 @@ export function useAnalysisWorker(enabled: boolean = true) {
           evaluation: moveEval / 100,
           bestLine: result.pvs[0].pv
         });
+
+        // Report progress
+        await updateProgress(reviewId, i + 1, totalMoves);
       }
 
       await submitResults(reviewId, analyses);

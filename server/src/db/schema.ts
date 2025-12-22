@@ -61,6 +61,8 @@ export const gameReviews = sqliteTable('game_reviews', {
   id: text('id').primaryKey(), // UUID
   gameId: text('game_id').references(() => games.id).notNull(),
   status: text('status', { enum: ['queued', 'processing', 'completed', 'failed'] }).default('queued').notNull(),
+  progressCurrent: integer('progress_current').default(0).notNull(),
+  progressTotal: integer('progress_total').default(0).notNull(),
   startedAt: integer('started_at', { mode: 'timestamp' }),
   workerId: text('worker_id'),
   lastHeartbeat: integer('last_heartbeat', { mode: 'timestamp' }),

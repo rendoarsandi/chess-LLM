@@ -248,6 +248,8 @@ export interface GameReview {
   gameId: string;
   status: 'queued' | 'processing' | 'completed' | 'failed';
   workerId?: string;
+  progressCurrent: number;
+  progressTotal: number;
 }
 
 export interface MoveAnalysis {
@@ -280,6 +282,15 @@ export async function sendHeartbeat(reviewId: string): Promise<{ success: boolea
   const res = await fetch(`${API_URL}/reviews/worker/heartbeat`, {
     method: 'POST',
     body: JSON.stringify({ reviewId }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+}
+
+export async function updateProgress(reviewId: string, current: number, total: number): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/reviews/worker/progress`, {
+    method: 'POST',
+    body: JSON.stringify({ reviewId, current, total }),
     headers: { 'Content-Type': 'application/json' }
   });
   return res.json();

@@ -10,6 +10,7 @@ import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
+import { GameReviewDashboard } from "@/components/GameReviewDashboard"
 import { AdminLogin } from "@/components/AdminLogin"
 import { AdminSettings } from "@/components/AdminSettings"
 import { TournamentManagement } from "@/components/TournamentManagement"
@@ -226,7 +227,7 @@ function ArenaContent({
                         {review && (
                           <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded border border-primary/20">
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                              Review: {review.status === 'completed' ? 'COMPLETED' : review.status === 'processing' ? 'ANALYZING' : 'QUEUED'}
+                              Review: {review.status === 'completed' ? 'COMPLETED' : review.status === 'processing' ? `ANALYZING (${Math.round((review.progressCurrent / review.progressTotal) * 100)}%)` : 'QUEUED'}
                             </span>
                             {review.status === 'processing' && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
                           </div>
@@ -248,6 +249,15 @@ function ArenaContent({
             )}
 
             <div className="mt-8 w-full lg:hidden space-y-4">
+              {review && (
+                <div className="mb-4">
+                  <GameReviewDashboard 
+                    review={review} 
+                    whitePlayer={whitePlayer} 
+                    blackPlayer={blackPlayer} 
+                  />
+                </div>
+              )}
               <CollapsibleSection title="White Thinking" className="md:hidden">
                 <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
               </CollapsibleSection>
@@ -289,6 +299,15 @@ function ArenaContent({
               {...blackThinking} 
               isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
             />
+            
+            {review && (
+              <GameReviewDashboard 
+                review={review} 
+                whitePlayer={whitePlayer} 
+                blackPlayer={blackPlayer} 
+              />
+            )}
+
             {selectedGame && (
               <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
                 <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} analyses={review?.analyses} />

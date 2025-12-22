@@ -439,6 +439,16 @@ app.post('/api/reviews/worker/heartbeat', async (c) => {
   }
 })
 
+app.post('/api/reviews/worker/progress', async (c) => {
+  try {
+    const { reviewId, current, total } = await c.req.json()
+    await gameReviewService.updateProgress(reviewId, current, total)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
 app.post('/api/reviews/worker/submit', async (c) => {
   try {
     const { reviewId, results } = await c.req.json()
