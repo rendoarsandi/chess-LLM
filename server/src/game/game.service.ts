@@ -177,21 +177,23 @@ export class GameService {
     }
 
     // Update PGN
-    let pgn = "";
+    let pgn = game.pgn || "";
     try {
-      const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
-      const pgnChess = new Chess()
-      for (const m of allMoves) {
-        try {
-          pgnChess.move(m.move)
-        } catch {
-          logger.warn(`[GameService] Skipping invalid move in PGN history for game ${gameId}: ${m.move}`);
+      const pgnChess = new Chess();
+      if (pgn) {
+        pgnChess.loadPgn(pgn);
+      } else {
+        // Fallback to rebuilding if PGN is empty (should only happen for first move or legacy data)
+        const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
+        for (const m of allMoves) {
+          try { pgnChess.move(m.move); } catch { /* ignore */ }
         }
       }
       pgnChess.move(moveResult.san)
       pgn = pgnChess.pgn()
     } catch (e) {
-      logger.debug(`[GameService] Error generating PGN for game ${gameId}:`, e);
+      logger.debug(`[GameService] Error updating PGN for game ${gameId}:`, e);
+      // Fallback: don't break the move if PGN fails
     }
 
     await this.db.update(games)

@@ -307,6 +307,7 @@ function App() {
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white")
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null)
   const [showResultOverlay, setShowResultOverlay] = useState(true)
+  const [lastMoveFromUpdate, setLastMoveFromUpdate] = useState<{ from: string; to: string } | null>(null)
 
   const { lastUpdate, thinkingStatus, spectatorCount, lastMessage, sendMessage } = useGameSocket(selectedGame?.id)
 
@@ -318,6 +319,7 @@ function App() {
     setSelectedGame(game);
     setMoves([]);
     setActiveMoveIndex(null);
+    setLastMoveFromUpdate(null);
     setShowResultOverlay(true);
     navigate(`/arena/${game.id}`);
   }, [navigate]);
@@ -352,6 +354,7 @@ function App() {
     setIsCreatingGame(true);
     setWhitePlayerId(whiteId);
     setBlackPlayerId(blackId);
+    setLastMoveFromUpdate(null);
     try {
       const { id } = await createGame(whiteId, blackId);
       const newGame = await getGame(id);
@@ -373,6 +376,7 @@ function App() {
     if (selectedGame?.id === id) {
       setSelectedGame(null);
       setActiveMoveIndex(null);
+      setLastMoveFromUpdate(null);
     }
     fetchAllGames();
   };
@@ -407,13 +411,30 @@ function App() {
 
   useEffect(() => {
     if (lastUpdate && selectedGame) {
-      setSelectedGame(prev => prev ? ({
-        ...prev,
-        fen: lastUpdate.fen,
-        status: lastUpdate.status,
-        winnerId: lastUpdate.winnerId,
-        gameOverReason: lastUpdate.gameOverReason
-      }) : null);
+      setSelectedGame(prev => {
+        if (!prev) return null;
+        
+        // Derive last move squares from SAN if provided
+        if (lastUpdate.san) {
+          try {
+            const chess = new Chess(prev.fen);
+            const move = chess.move(lastUpdate.san);
+            if (move) {
+              setLastMoveFromUpdate({ from: move.from, to: move.to });
+            }
+          } catch {
+            console.warn('[App] Could not derive squares for SAN:', lastUpdate.san);
+          }
+        }
+
+        return {
+          ...prev,
+          fen: lastUpdate.fen,
+          status: lastUpdate.status,
+          winnerId: lastUpdate.winnerId,
+          gameOverReason: lastUpdate.gameOverReason
+        };
+      });
       
       // Refresh moves to get thinking data and full history
       getMoves(selectedGame.id).then(setMoves);
@@ -431,6 +452,12 @@ function App() {
   }, []);
 
   const currentDisplayFen = useMemo(() => {
+    // If we are live (activeMoveIndex is null) and have a selected game, use its FEN directly
+    // This allows instant updates from WebSocket without waiting for the full move list fetch
+    if (activeMoveIndex === null && selectedGame) {
+      return selectedGame.fen;
+    }
+
     const chess = new Chess();
     if (moves.length === 0) return chess.fen();
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
@@ -438,7 +465,7 @@ function App() {
       try { chess.move(moves[i].move); } catch { /* ignore */ }
     }
     return chess.fen();
-  }, [moves, activeMoveIndex]);
+  }, [moves, activeMoveIndex, selectedGame]);
 
   const currentPgn = useMemo(() => {
     const chess = new Chess();
@@ -451,6 +478,11 @@ function App() {
   }, [moves, activeMoveIndex]);
 
   const lastMoveSquares = useMemo(() => {
+    // If we are live and have a WebSocket update square, use it immediately
+    if (activeMoveIndex === null && lastMoveFromUpdate) {
+      return lastMoveFromUpdate;
+    }
+
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
     if (index < 0 || moves.length === 0) return undefined;
     const chess = new Chess();
@@ -463,7 +495,7 @@ function App() {
     } catch {
       return undefined;
     }
-  }, [moves, activeMoveIndex]);
+  }, [moves, activeMoveIndex, lastMoveFromUpdate]);
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1;
 

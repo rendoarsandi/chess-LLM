@@ -96,8 +96,8 @@ export class GameLoopService {
         constraints = { depth: 22, skillLevel: 20, movetime: 3000 }
       }
 
-      // Throttle requests: only re-send every 10 seconds if we haven't received a move
-      if (now - lastRequest > 10000) {
+      // Throttle requests: only re-send every 2 seconds if we haven't received a move
+      if (now - lastRequest > 2000) {
         if (this.socketService) {
           logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} (Skill: ${constraints.skillLevel}, Depth: ${constraints.depth}) in game ${game.id}`)
           this.socketService.broadcast(game.id, { 
@@ -110,8 +110,8 @@ export class GameLoopService {
         }
       }
       
-      // Re-poll in 5 seconds to check if we need to re-request or if game state changed
-      this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id));
+      // Re-poll in 1 second to check if we need to re-request or if game state changed
+      this.alarmService.setAlarm(`game:${game.id}`, 1000, () => this.advanceGame(game.id));
       return;
     }
 
@@ -149,8 +149,8 @@ export class GameLoopService {
         const result = await this.gameService.makeMove(game.id, move, { ...thinking, thinkingMs })
         logger.info(`[GameLoop] Made move ${result.san} in game ${game.id} (${thinkingMs}ms)`)
         
-        // Schedule next move check
-        this.alarmService.setAlarm(`game:${game.id}`, 2000, () => this.advanceGame(game.id));
+        // Schedule next move check - reduced to 100ms for faster gameplay
+        this.alarmService.setAlarm(`game:${game.id}`, 100, () => this.advanceGame(game.id));
       } catch (e) {
         logger.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
         // Retry later

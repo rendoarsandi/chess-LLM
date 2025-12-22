@@ -46,6 +46,10 @@ export function useGameSocket(gameId: string | undefined) {
     if (host.startsWith('0.0.0.0')) {
       host = host.replace('0.0.0.0', 'localhost')
     }
+    // If we are on the Vite dev port, target the backend port directly for WS
+    if (host.includes(':5173')) {
+      host = host.replace(':5173', ':3001')
+    }
     const wsUrl = `${protocol}//${host}/ws?gameId=${gameId}`
     console.log(`[WebSocket] Connecting to: ${wsUrl}`)
 
