@@ -15,11 +15,24 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.error('[Vite Proxy] API Error:', err);
+          });
+        },
       },
       '/ws': {
         target: 'http://localhost:3001',
         ws: true,
-        changeOrigin: true,
+        changeOrigin: false,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.error('[Vite Proxy] WS Error:', err);
+          });
+          proxy.on('proxyReqWs', (_proxyReq, _req, _socket, _options, _head) => {
+            console.log('[Vite Proxy] Forwarding WS upgrade request');
+          });
+        },
       }
     }
   },

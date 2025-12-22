@@ -37,7 +37,8 @@ export class SocketService {
       room.forEach((ws) => {
         try {
           ws.send(payload)
-        } catch {
+        } catch (e) {
+          console.error(`[SocketService] Failed to send message to client in room ${gameId}:`, e)
           // Handle cases where socket might be closed but still in our set
           room.delete(ws)
         }
