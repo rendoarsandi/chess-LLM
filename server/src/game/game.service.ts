@@ -218,6 +218,36 @@ export class GameService {
     return result
   }
 
+  async finishGame(gameId: string, winnerId: string | null, reason: string) {
+    const game = await this.getGame(gameId)
+    if (!game || game.status !== 'ongoing') return
+
+    const status = winnerId ? 'completed' : 'draw'
+    
+    await this.db.update(games)
+      .set({ 
+        status, 
+        winnerId,
+        gameOverReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(games.id, gameId))
+
+    await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as 'completed' | 'draw', winnerId, gameId)
+
+    if (this.socketService) {
+      this.socketService.broadcast(gameId, { 
+        type: 'UPDATE', 
+        fen: game.fen,
+        status,
+        winnerId,
+        gameOverReason: reason,
+        san: '',
+        pgn: game.pgn || ''
+      })
+    }
+  }
+
   private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {
     const whitePlayer = (await this.db.select().from(players).where(eq(players.id, whiteId)))[0]
     const blackPlayer = (await this.db.select().from(players).where(eq(players.id, blackId)))[0]

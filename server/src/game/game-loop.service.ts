@@ -8,6 +8,9 @@ import { SocketService } from './socket.service'
 import { AlarmService } from './alarm.service'
 
 export class GameLoopService {
+  private alarmService: AlarmService = new AlarmService()
+  private lastRequestTime: Map<string, number> = new Map()
+
   constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any,
@@ -29,6 +32,7 @@ export class GameLoopService {
       blackPlayerId: games.blackPlayerId,
       whitePlayerType: whitePlayer.type,
       blackPlayerType: blackPlayer.type,
+      updatedAt: games.updatedAt,
     })
     .from(games)
     .where(eq(games.id, gameId))
@@ -40,6 +44,7 @@ export class GameLoopService {
 
     if (game.status !== 'ongoing') {
       this.alarmService.cancelAlarm(`game:${game.id}`);
+      this.lastRequestTime.delete(game.id);
       return;
     }
 
@@ -60,19 +65,41 @@ export class GameLoopService {
 
     // If it's a client-side Stockfish player, we emit REQUEST_MOVE and wait
     if (currentPlayerId && STOCKFISH_IDS.includes(currentPlayerId)) {
-      if (this.socketService) {
-        logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} in game ${game.id}`)
-        this.socketService.broadcast(game.id, { 
-          type: 'REQUEST_MOVE', 
-          gameId: game.id, 
-          fen: game.fen,
-          constraints: { depth: 18 } // Standard depth
-        })
+      const now = Date.now()
+      const lastRequest = this.lastRequestTime.get(game.id) || 0
+      
+      // Check for timeout (60 seconds)
+      const timeSinceLastUpdate = now - game.updatedAt.getTime()
+      if (timeSinceLastUpdate > 60000) {
+        logger.warn(`[GameLoop] Timeout detected for player ${currentPlayerId} in game ${game.id}`)
+        const winnerId = turn === 'w' ? game.blackPlayerId : game.whitePlayerId
+        await this.gameService.finishGame(game.id, winnerId, 'timeout')
+        this.lastRequestTime.delete(game.id)
+        this.alarmService.cancelAlarm(`game:${game.id}`)
+        return
       }
-      // Re-poll in 5 seconds to ensure we don't get stuck if client disconnects/misses it
+
+      // Throttle requests: only re-send every 10 seconds if we haven't received a move
+      if (now - lastRequest > 10000) {
+        if (this.socketService) {
+          logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} in game ${game.id}`)
+          this.socketService.broadcast(game.id, { 
+            type: 'REQUEST_MOVE', 
+            gameId: game.id, 
+            fen: game.fen,
+            constraints: { depth: 18 } // Standard depth
+          })
+          this.lastRequestTime.set(game.id, now)
+        }
+      }
+      
+      // Re-poll in 5 seconds to check if we need to re-request or if game state changed
       this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id));
       return;
     }
+
+    // Clear last request time if we are not in a Stockfish turn anymore
+    this.lastRequestTime.delete(game.id)
 
     // Broadcast thinking status for server-side players
     if (this.socketService) {

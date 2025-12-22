@@ -188,20 +188,23 @@ app.get(
     const gameId = c.req.query('gameId')
 
     return {
-      onOpen(event, ws) {
+      onOpen(_event, ws) {
         if (gameId) {
           socketService.joinRoom(gameId, ws)
           // Trigger a loop check immediately but with a small delay to ensure connection is stable
           setTimeout(() => gameLoopService.advanceGame(gameId), 500)
         }
       },
-      onMessage(event, ws) {
+      onMessage(event) {
         try {
           const data = JSON.parse(event.data as string)
           if (data.type === 'SUBMIT_MOVE') {
             const { gameId: msgGameId, move } = data
             logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
-            gameService.makeMove(msgGameId, move).catch(err => {
+            gameService.makeMove(msgGameId, move).then(() => {
+              // Trigger loop advance immediately to handle next turn
+              gameLoopService.advanceGame(msgGameId);
+            }).catch(err => {
               logger.error(`[WebSocket] Failed to apply move from client: ${err.message}`)
             })
           }

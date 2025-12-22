@@ -30,7 +30,7 @@ export class SocketService {
       room.forEach((ws) => {
         try {
           ws.send(payload)
-        } catch (e) {
+        } catch {
           // Handle cases where socket might be closed but still in our set
           room.delete(ws)
         }

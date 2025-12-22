@@ -1,5 +1,5 @@
-import { tournaments, tournamentParticipants, games } from '../db/schema'
-import { eq, and, lte, sql } from 'drizzle-orm'
+import { tournaments, games, tournamentParticipants } from '../db/schema'
+import { eq, and } from 'drizzle-orm'
 import { generatePairings } from './swiss'
 import { logger } from './logger'
 import { AlarmService } from './alarm.service'

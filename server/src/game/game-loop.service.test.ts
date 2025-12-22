@@ -196,6 +196,222 @@ describe('GameLoopService', () => {
     await vi.advanceTimersByTimeAsync(1000)
     expect(runSpy).toHaveBeenCalledTimes(3)
     
-    vi.useRealTimers()
-  })
-})
+        vi.useRealTimers()
+    
+      })
+    
+    
+    
+      it('should request move from client if Stockfish player and throttle subsequent requests', async () => {
+    
+        const socketService = { broadcast: vi.fn() }
+    
+        loopService = new GameLoopService(db, gameService, player, socketService as any, alarmService)
+    
+    
+    
+        const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+    
+        await db.insert(players).values([
+    
+          { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
+    
+          { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    
+        ])
+    
+    
+    
+        await db.insert(games).values({
+    
+          id: 'game_stockfish',
+    
+          whitePlayerId: STOCKFISH_LOW_ID,
+    
+          blackPlayerId: 'p2',
+    
+          status: 'ongoing',
+    
+          fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    
+          createdAt: new Date(),
+    
+          updatedAt: new Date()
+    
+        })
+    
+    
+    
+        // First call: should broadcast
+    
+        await loopService.runIteration()
+    
+        await alarmService.executeAlarm('game:game_stockfish')
+    
+    
+    
+        expect(socketService.broadcast).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
+    
+          type: 'REQUEST_MOVE'
+    
+        }))
+    
+        socketService.broadcast.mockClear()
+    
+    
+    
+        // Second call immediately: should NOT broadcast (throttled)
+    
+        await loopService.runIteration()
+    
+        await alarmService.executeAlarm('game:game_stockfish')
+    
+        expect(socketService.broadcast).not.toHaveBeenCalled()
+    
+    
+    
+        // Fast-forward time (11 seconds)
+    
+        vi.useFakeTimers()
+    
+        vi.setSystemTime(Date.now() + 11000)
+    
+        
+    
+        // Third call after delay: should broadcast again
+    
+        await loopService.runIteration()
+    
+        await alarmService.executeAlarm('game:game_stockfish')
+    
+        expect(socketService.broadcast).toHaveBeenCalled()
+    
+        
+    
+            vi.useRealTimers()
+    
+        
+    
+          })
+    
+        
+    
+        
+    
+        
+    
+          it('should flag timeout if client fails to respond within 60 seconds', async () => {
+    
+        
+    
+            gameService.finishGame = vi.fn().mockResolvedValue({})
+    
+        
+    
+            loopService = new GameLoopService(db, gameService, player, undefined, alarmService)
+    
+        
+    
+        
+    
+        
+    
+            const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+    
+        
+    
+            await db.insert(players).values([
+    
+        
+    
+              { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
+    
+        
+    
+              { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    
+        
+    
+            ])
+    
+        
+    
+        
+    
+        
+    
+            // Create a game with updatedAt in the past (e.g. 70 seconds ago)
+    
+        
+    
+            const oldDate = new Date(Date.now() - 70000)
+    
+        
+    
+            await db.insert(games).values({
+    
+        
+    
+              id: 'game_timeout',
+    
+        
+    
+              whitePlayerId: STOCKFISH_LOW_ID,
+    
+        
+    
+              blackPlayerId: 'p2',
+    
+        
+    
+              status: 'ongoing',
+    
+        
+    
+              fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    
+        
+    
+              createdAt: oldDate,
+    
+        
+    
+              updatedAt: oldDate
+    
+        
+    
+            })
+    
+        
+    
+        
+    
+        
+    
+            await loopService.runIteration()
+    
+        
+    
+            await alarmService.executeAlarm('game:game_timeout')
+    
+        
+    
+        
+    
+        
+    
+            expect(gameService.finishGame).toHaveBeenCalledWith('game_timeout', 'p2', 'timeout')
+    
+        
+    
+          })
+    
+        
+    
+        })
+    
+        
+    
+        
+    
+    
