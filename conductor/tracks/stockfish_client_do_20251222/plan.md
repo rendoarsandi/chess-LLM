@@ -18,7 +18,7 @@
     *   [x] Modify `game-loop.service.ts` (or relevant socket handler) to emit `REQUEST_MOVE` instead of performing internal/HTTP-based move generation when the player provider is 'stockfish'.
     *   [x] Add a listener/handler for `SUBMIT_MOVE` messages from the client.
     *   [x] Validate that the move received matches the current game state and player turn.
-*   [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+*   [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Game Loop
 *   [ ] Task: Implement Client-Side Command Handler

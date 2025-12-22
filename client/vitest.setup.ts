@@ -1,5 +1,13 @@
 import "@testing-library/jest-dom";
-import { vi } from 'vitest';
+import { vi, beforeAll } from 'vitest';
+
+beforeAll(() => {
+  // Silence standard console methods to reduce noise
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+  vi.spyOn(console, 'info').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'debug').mockImplementation(() => {})
+})
 
 // Mock Worker for JSDOM
 if (typeof window !== 'undefined' && !window.Worker) {
