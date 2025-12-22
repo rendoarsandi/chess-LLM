@@ -52,25 +52,29 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
         const chess = new Chess(fen);
         if (chess.isGameOver()) {
           const sideToMove = fen.split(' ')[1] as 'w' | 'b';
-          if (chess.isCheckmate()) {
-            setEvaluation({
-              score: 0,
-              isMate: true,
-              mateIn: 0,
-              depth: 0,
-              sideToMove
-            });
-          } else {
-            // Draw
-            setEvaluation({
-              score: 0,
-              isMate: false,
-              depth: 0,
-              sideToMove
-            });
-          }
-          setIsThinking(false);
-          setVariations({});
+          
+          // Use setTimeout to avoid synchronous setState in effect
+          setTimeout(() => {
+            if (chess.isCheckmate()) {
+              setEvaluation({
+                score: 0,
+                isMate: true,
+                mateIn: 0,
+                depth: 0,
+                sideToMove
+              });
+            } else {
+              // Draw
+              setEvaluation({
+                score: 0,
+                isMate: false,
+                depth: 0,
+                sideToMove
+              });
+            }
+            setIsThinking(false);
+            setVariations({});
+          }, 0);
           return;
         }
       } catch (e) {
