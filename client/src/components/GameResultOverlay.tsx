@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { Trophy, Scale, RotateCcw } from 'lucide-react';
+import { Trophy, Scale, RotateCcw, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface GameResultOverlayProps {
@@ -12,6 +12,7 @@ interface GameResultOverlayProps {
   blackPlayerName?: string;
   reason?: string | null;
   onNewMatch: () => void;
+  onReview?: () => void;
   onClose?: () => void;
 }
 
@@ -23,6 +24,7 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
   blackPlayerName,
   reason,
   onNewMatch,
+  onReview,
   onClose
 }) => {
   const isGameOver = status === 'completed' || status === 'draw';
@@ -92,13 +94,25 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
             </div>
           )}
 
-          <Button 
-            onClick={onNewMatch}
-            className="w-full h-12 font-black tracking-widest gap-2 text-md"
-          >
-            <RotateCcw className="w-4 h-4" />
-            NEW MATCH
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={onNewMatch}
+              className="w-full h-12 font-black tracking-widest gap-2 text-md"
+            >
+              <RotateCcw className="w-4 h-4" />
+              NEW MATCH
+            </Button>
+            {onReview && (
+              <Button 
+                onClick={onReview}
+                variant="secondary"
+                className="w-full h-10 font-black tracking-widest gap-2 text-xs"
+              >
+                <Search className="w-3 h-3" />
+                REVIEW GAME
+              </Button>
+            )}
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

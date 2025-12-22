@@ -192,7 +192,17 @@ function ArenaContent({
                       <ChessboardContainer fen={currentDisplayFen} boardOrientation={boardOrientation} highlightSquares={lastMoveSquares} gameId={selectedGame?.id} pgn={currentPgn} />
                     </ErrorBoundary>
                     {selectedGame && showResultOverlay && (
-                      <GameResultOverlay status={selectedGame.status} winnerId={selectedGame.winnerId} whitePlayerId={selectedGame.whitePlayerId} whitePlayerName={whitePlayer?.name} blackPlayerName={blackPlayer?.name} reason={selectedGame.gameOverReason} onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} onClose={() => setShowResultOverlay(false)} />
+                      <GameResultOverlay 
+                        status={selectedGame.status} 
+                        winnerId={selectedGame.winnerId} 
+                        whitePlayerId={selectedGame.whitePlayerId} 
+                        whitePlayerName={whitePlayer?.name} 
+                        blackPlayerName={blackPlayer?.name} 
+                        reason={selectedGame.gameOverReason} 
+                        onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} 
+                        onReview={review ? undefined : handleRequestReview}
+                        onClose={() => setShowResultOverlay(false)} 
+                      />
                     )}
                     {!isLive && <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-black shadow-lg animate-pulse">HISTORY MODE</div>}
                   </div>
