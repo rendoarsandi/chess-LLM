@@ -404,6 +404,7 @@ console.log(`Server is running on port ${port}`)
 if (process.env.NODE_ENV !== 'test') {
   const server = serve({
     fetch: app.fetch,
+    hostname: '0.0.0.0',
     port
   })
   injectWebSocket(server)
