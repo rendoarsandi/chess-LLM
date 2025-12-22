@@ -29,6 +29,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary"
 import { toast } from "sonner"
 import type { ThinkingData } from "./types"
 import { useGameSocket } from "./hooks/useGameSocket"
+import { useGameBot } from "./hooks/useGameBot"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -312,7 +313,7 @@ function App() {
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null)
   const [showResultOverlay, setShowResultOverlay] = useState(true)
 
-  const { lastUpdate, thinkingStatus, spectatorCount } = useGameSocket(selectedGame?.id)
+  const { lastUpdate, thinkingStatus, spectatorCount, lastMessage, sendMessage } = useGameSocket(selectedGame?.id)
 
   const [whitePlayerId, setWhitePlayerId] = useState(GEMINI_3_0_ID)
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
@@ -468,6 +469,9 @@ function App() {
   }, [moves, activeMoveIndex]);
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1;
+
+  // Enable bot handler for automated move requests from server
+  useGameBot(selectedGame?.id, lastMessage, sendMessage, isLive && !!selectedGame)
 
   const handleBestMove = useCallback(async (move: string) => {
     if (!selectedGame || selectedGame.status !== 'ongoing') return;

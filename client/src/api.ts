@@ -101,6 +101,13 @@ export async function getGame(id: string): Promise<Game> {
   return res.json()
 }
 
+export async function deleteGame(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games/${id}`, {
+    method: 'DELETE'
+  })
+  return res.json()
+}
+
 export async function pauseGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}/pause`, {
     method: 'POST'

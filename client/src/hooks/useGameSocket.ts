@@ -24,7 +24,14 @@ export function useGameSocket(gameId: string | undefined) {
   const [thinkingStatus, setThinkingStatus] = useState<'thinking' | 'idle'>('idle')
   const [spectatorCount, setSpectatorCount] = useState<number>(0)
   const [isConnected, setIsConnected] = useState(false)
+  const [lastMessage, setLastMessage] = useState<SocketMessage | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
+
+  const sendMessage = useCallback((message: ClientMessage) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message))
+    }
+  }, [])
 
   const connect = useCallback(() => {
     if (!gameId) {
@@ -47,6 +54,7 @@ export function useGameSocket(gameId: string | undefined) {
     socket.onmessage = (event) => {
       try {
         const message: SocketMessage = JSON.parse(event.data)
+        setLastMessage(message)
         switch (message.type) {
           case 'UPDATE':
             setLastUpdate({
@@ -98,6 +106,8 @@ export function useGameSocket(gameId: string | undefined) {
     lastUpdate,
     thinkingStatus,
     spectatorCount,
-    isConnected
+    isConnected,
+    sendMessage,
+    lastMessage
   }
 }
