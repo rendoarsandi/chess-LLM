@@ -29,3 +29,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ### [x] Track: Routing & Robust Error Handling
 *Link: [./conductor/archive/routing_robustness_20251220/](./conductor/archive/routing_robustness_20251220/)*
+
+---
+
+## [ ] Track: Distributed Game Review System
+*Link: [./conductor/tracks/distributed_game_review_20251222/](./conductor/tracks/distributed_game_review_20251222/)*

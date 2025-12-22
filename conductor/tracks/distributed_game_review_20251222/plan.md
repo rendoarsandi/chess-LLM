@@ -1,0 +1,48 @@
+# Plan: Distributed Game Review System
+
+## Phase 1: Database & Backend Foundation
+- [ ] Task: Create database schema for Game Reviews
+    - [ ] Subtask: Create `game_reviews` table (game_id, status, started_at, worker_id, completed_at).
+    - [ ] Subtask: Create `move_analyses` table (review_id, move_number, classification, evaluation, best_line).
+    - [ ] Subtask: Run database migration.
+- [ ] Task: Implement Game Review API Service
+    - [ ] Subtask: Create `GameReviewService` class to handle queue logic.
+    - [ ] Subtask: Implement `requestReview(gameId)` - adds to queue or returns existing.
+    - [ ] Subtask: Implement `claimJob(workerId)` - finds oldest queued job, sets to 'processing', sets heartbeat.
+    - [ ] Subtask: Implement `submitResults(jobId, results)` - saves to DB, marks complete.
+    - [ ] Subtask: Implement `heartbeat(jobId)` - updates `last_heartbeat` timestamp.
+    - [ ] Subtask: Implement background cleanup (or check on claim) to reset 'stuck' jobs (heartbeat > 5s ago).
+- [ ] Task: Expose API Endpoints
+    - [ ] Subtask: `POST /api/reviews/:gameId` (Request/Check status).
+    - [ ] Subtask: `POST /api/reviews/worker/claim` (Worker claims job).
+    - [ ] Subtask: `POST /api/reviews/worker/heartbeat` (Worker keep-alive).
+    - [ ] Subtask: `POST /api/reviews/worker/submit` (Submit results).
+- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+
+## Phase 2: Client-Side Worker & Analysis Logic
+- [ ] Task: Enhance Stockfish Service
+    - [ ] Subtask: Update `StockfishService` to support Multi-PV configuration.
+    - [ ] Subtask: Implement `analyzePosition(fen, depth=20, multipv=3)` method.
+- [ ] Task: Implement Move Classification Logic
+    - [ ] Subtask: Create `ClassificationEngine` utility.
+    - [ ] Subtask: Implement rules for Brilliant, Great, Best, etc. based on centipawn loss and win probability shifts.
+    - [ ] Subtask: Write unit tests for classification rules (e.g., "Prove -2.0 to +1.0 is a Blunder").
+- [ ] Task: Build the "Analysis Worker"
+    - [ ] Subtask: Create `useAnalysisWorker` hook.
+    - [ ] Subtask: Implement polling loop: Check for jobs -> Claim -> Analyze -> Heartbeat -> Submit.
+    - [ ] Subtask: Ensure analysis runs in a Web Worker to prevent UI freeze.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+
+## Phase 3: UI Integration & Visualization
+- [ ] Task: Update Game View
+    - [ ] Subtask: Add "Request Review" button (if not exists).
+    - [ ] Subtask: Show status: "Queued" / "Processing (Worker X)" / "Completed".
+    - [ ] Subtask: Implement WebSocket or Polling to update status in real-time.
+- [ ] Task: Visualize Results
+    - [ ] Subtask: Add classification icons (!!, ?, etc.) to the `MoveList` component.
+    - [ ] Subtask: Highlight "Best Move" on the board (arrow or highlight).
+    - [ ] Subtask: Display "Evaluation Bar" alongside the board (optional but good for context).
+- [ ] Task: Integration & Robustness Testing
+    - [ ] Subtask: Test: Start review, close tab, verify job becomes available again.
+    - [ ] Subtask: Test: Multiple clients open, verify no double-processing.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
