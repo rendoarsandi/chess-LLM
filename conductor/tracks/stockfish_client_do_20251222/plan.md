@@ -5,9 +5,9 @@
     *   [x] Create `StockfishPlayerService.ts` to manage the specialized "Player Worker" instance (distinct from the existing hook used for analysis).
     *   [x] Implement method `calculateMove(fen: string, depth: number): Promise<string>` that resolves when the worker returns `bestmove`.
     *   [x] Ensure proper cleanup/termination of this second worker when the component unmounts.
-*   [ ] Task: Test Dual Worker Concurrency
-    *   [ ] Create a temporary test component that runs both the existing `useStockfish` (Analysis) and the new `StockfishPlayerService` simultaneously.
-    *   [ ] Verify that the Analysis evaluation bar keeps updating while the Player service is calculating a move.
+*   [x] Task: Test Dual Worker Concurrency b87e316
+    *   [x] Create a temporary test component that runs both the existing `useStockfish` (Analysis) and the new `StockfishPlayerService` simultaneously.
+    *   [x] Verify that the Analysis evaluation bar keeps updating while the Player service is calculating a move.
 *   [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: WebSocket Protocol Expansion
