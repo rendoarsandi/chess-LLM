@@ -30,12 +30,12 @@
     *   [x] Ensure the Alarm/Timeout system correctly flags the game if `SUBMIT_MOVE` never arrives.
 *   [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
-## Phase 4: End-to-End Verification
-*   [ ] Task: "Bot vs Bot" Manual Test
-    *   [ ] Start a game with White=Stockfish(Client) and Black=Stockfish(Client).
-    *   [ ] Verify the game plays out automatically move-by-move.
-    *   [ ] Verify performance (no UI lag).
-*   [ ] Task: Cleanup
-    *   [ ] Remove any temporary test components.
-    *   [ ] Ensure logging is appropriate (debug level).
-*   [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+## Phase 4: End-to-End Verification [checkpoint: bfc1970]
+*   [x] Task: "Bot vs Bot" Manual Test bfc1970
+    *   [x] Start a game with White=Stockfish(Client) and Black=Stockfish(Client).
+    *   [x] Verify the game plays out automatically move-by-move.
+    *   [x] Verify performance (no UI lag).
+*   [x] Task: Cleanup bfc1970
+    *   [x] Remove any temporary test components.
+    *   [x] Ensure logging is appropriate (debug level).
+*   [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
