@@ -90,6 +90,14 @@ export const DevConsole: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
+  const copyErrors = () => {
+    const text = logs
+      .filter(l => l.type === 'error')
+      .map((l) => `[${l.timestamp.toISOString()}] [ERROR] ${l.message}`)
+      .join('\n');
+    navigator.clipboard.writeText(text);
+  };
+
   const clearLogs = () => {
     setLogs([]);
   };
@@ -138,7 +146,12 @@ export const DevConsole: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white" onClick={copyLogs} title="Copy Logs">
+          {logs.filter(l => l.type === 'error').length > 0 && (
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-950/30" onClick={copyErrors} title="Copy Errors Only">
+              <Copy size={14} />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white" onClick={copyLogs} title="Copy All Logs">
             <Copy size={14} />
           </Button>
           <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white" onClick={clearLogs} title="Clear Logs">
@@ -166,7 +179,7 @@ export const DevConsole: React.FC = () => {
               <div 
                 key={log.id} 
                 className={cn(
-                  "p-1 rounded-sm border-l-2 break-all",
+                  "group relative p-1 rounded-sm border-l-2 break-all pr-8",
                   log.type === 'error' ? "bg-red-950/30 border-red-500 text-red-200" :
                   log.type === 'warn' ? "bg-yellow-950/30 border-yellow-500 text-yellow-200" :
                   log.type === 'info' ? "bg-blue-950/30 border-blue-500 text-blue-200" :
@@ -177,6 +190,13 @@ export const DevConsole: React.FC = () => {
                   {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
                 {log.message}
+                <button 
+                  onClick={() => navigator.clipboard.writeText(log.message)}
+                  className="absolute right-1 top-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-opacity"
+                  title="Copy this log"
+                >
+                  <Copy size={12} />
+                </button>
               </div>
             ))
           )}
