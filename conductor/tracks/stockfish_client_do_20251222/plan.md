@@ -25,9 +25,9 @@
     *   [x] In `useGameSocket.ts` (or a new `useGameBot.ts` hook), listen for `REQUEST_MOVE`.
     *   [x] When triggered, call `StockfishPlayerService.calculateMove`.
     *   [x] Upon result, emit `SUBMIT_MOVE` back to the server.
-*   [ ] Task: Server Game Loop Refactor
-    *   [ ] Update the `GameManager` or `GameLoopService` to support the "Async Wait" state for Stockfish players (waiting for socket response rather than immediate function return).
-    *   [ ] Ensure the Alarm/Timeout system correctly flags the game if `SUBMIT_MOVE` never arrives.
+*   [x] Task: Server Game Loop Refactor 8d9f056
+    *   [x] Update the `GameManager` or `GameLoopService` to support the "Async Wait" state for Stockfish players (waiting for socket response rather than immediate function return).
+    *   [x] Ensure the Alarm/Timeout system correctly flags the game if `SUBMIT_MOVE` never arrives.
 *   [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ## Phase 4: End-to-End Verification
