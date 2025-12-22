@@ -20,9 +20,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Client-Side Worker & Analysis Logic
-- [ ] Task: Enhance Stockfish Service
-    - [ ] Subtask: Update `StockfishService` to support Multi-PV configuration.
-    - [ ] Subtask: Implement `analyzePosition(fen, depth=20, multipv=3)` method.
+- [x] Task: Enhance Stockfish Service (ce284bb)
+    - [x] Subtask: Update `StockfishService` (Implemented as AnalysisWorker) to support Multi-PV configuration.
+    - [x] Subtask: Implement `analyzePosition(fen, depth=20, multipv=3)` method.
 - [ ] Task: Implement Move Classification Logic
     - [ ] Subtask: Create `ClassificationEngine` utility.
     - [ ] Subtask: Implement rules for Brilliant, Great, Best, etc. based on centipawn loss and win probability shifts.
