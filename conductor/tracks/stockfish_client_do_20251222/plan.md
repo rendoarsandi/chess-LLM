@@ -21,10 +21,10 @@
 *   [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Game Loop
-*   [ ] Task: Implement Client-Side Command Handler
-    *   [ ] In `useGameSocket.ts` (or a new `useGameBot.ts` hook), listen for `REQUEST_MOVE`.
-    *   [ ] When triggered, call `StockfishPlayerService.calculateMove`.
-    *   [ ] Upon result, emit `SUBMIT_MOVE` back to the server.
+*   [x] Task: Implement Client-Side Command Handler f0a7e2b
+    *   [x] In `useGameSocket.ts` (or a new `useGameBot.ts` hook), listen for `REQUEST_MOVE`.
+    *   [x] When triggered, call `StockfishPlayerService.calculateMove`.
+    *   [x] Upon result, emit `SUBMIT_MOVE` back to the server.
 *   [ ] Task: Server Game Loop Refactor
     *   [ ] Update the `GameManager` or `GameLoopService` to support the "Async Wait" state for Stockfish players (waiting for socket response rather than immediate function return).
     *   [ ] Ensure the Alarm/Timeout system correctly flags the game if `SUBMIT_MOVE` never arrives.
