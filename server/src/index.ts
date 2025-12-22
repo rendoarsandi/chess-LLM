@@ -17,7 +17,6 @@ import { GameService } from './game/game.service'
 import { PlayerService } from './game/player.service'
 import { RandomPlayer } from './game/random-player'
 import { GameLoopService } from './game/game-loop.service'
-import { StockfishPlayer } from './game/stockfish-player'
 import { TournamentService } from './game/tournament.service'
 import { TournamentLoopService } from './game/tournament-loop.service'
 import { games, players, moves, llmConfigurations, tournaments, tournamentParticipants } from './db/schema'
@@ -110,9 +109,6 @@ const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
 
 // Initialize built-in non-LLM players
 gameManager.setPlayer(RANDOM_BOT_ID, new RandomPlayer())
-gameManager.setPlayer(STOCKFISH_LOW_ID, new StockfishPlayer(10, 1500, 14))
-gameManager.setPlayer(STOCKFISH_MED_ID, new StockfishPlayer(20, 2000, 18))
-gameManager.setPlayer(STOCKFISH_HIGH_ID, new StockfishPlayer(20, 3000, 22))
 
 async function initializePlayers() {
     console.log('[Main] Synchronizing LLM configurations...')

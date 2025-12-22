@@ -6,7 +6,6 @@ import { GeminiPlayer } from './gemini-player'
 import { GroqService } from './groq.service'
 import { GroqPlayer } from './groq-player'
 import { RandomPlayer } from './random-player'
-import { StockfishPlayer } from './stockfish-player'
 import crypto from 'crypto'
 
 export class PlayerService {
@@ -53,9 +52,6 @@ export class PlayerService {
             return new GroqPlayer(new GroqService(apiKey), config.modelId)
         case 'random':
             return new RandomPlayer()
-        case 'stockfish':
-            // Stockfish config usually has ELO/Depth encoded or default
-            return new StockfishPlayer(20, 2500, 18)
         default:
             return null
     }

@@ -17,7 +17,7 @@ import { TournamentList } from "@/components/TournamentList"
 import { TournamentDetail } from "@/components/TournamentDetail"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo } from "react"
-import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
+import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame, makeMove } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
@@ -32,6 +32,11 @@ import { useGameSocket } from "./hooks/useGameSocket"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
+const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
+const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
+
+const STOCKFISH_IDS = [STOCKFISH_LOW_ID, STOCKFISH_MED_ID, STOCKFISH_HIGH_ID];
 
 interface PlayerProfileRouteProps {
   navigate: (path: string) => void;
@@ -463,7 +468,50 @@ function App() {
   }, [moves, activeMoveIndex]);
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1;
-  const { evaluation, variations } = useStockfish(currentDisplayFen);
+
+  const handleBestMove = useCallback(async (move: string) => {
+    if (!selectedGame || selectedGame.status !== 'ongoing') return;
+    
+    // Determine depth based on which Stockfish is playing
+    const turn = currentDisplayFen.split(' ')[1];
+    const currentPlayerId = turn === 'w' ? selectedGame.whitePlayerId : selectedGame.blackPlayerId;
+    
+    let depth = 18;
+    if (currentPlayerId === STOCKFISH_LOW_ID) depth = 14;
+    else if (currentPlayerId === STOCKFISH_HIGH_ID) depth = 22;
+
+    try {
+      await makeMove(selectedGame.id, move, {
+        reasoning: `Selected best move ${move} at depth ${depth} (Client-side WASM)`,
+        thinkingMs: 1000 // Placeholder
+      });
+    } catch (err) {
+      console.error("Failed to make client-side Stockfish move", err);
+    }
+  }, [selectedGame, currentDisplayFen]);
+
+  const { evaluation, variations, getBestMove } = useStockfish(currentDisplayFen, handleBestMove);
+
+  // Trigger Stockfish move if it's its turn
+  useEffect(() => {
+    if (!selectedGame || selectedGame.status !== 'ongoing' || !isLive) return;
+
+    const turn = currentDisplayFen.split(' ')[1];
+    const currentPlayerId = turn === 'w' ? selectedGame.whitePlayerId : selectedGame.blackPlayerId;
+
+    if (STOCKFISH_IDS.includes(currentPlayerId)) {
+      // Small delay to simulate thinking and allow UI to update
+      const timer = setTimeout(() => {
+        let depth = 18;
+        if (currentPlayerId === STOCKFISH_LOW_ID) depth = 14;
+        else if (currentPlayerId === STOCKFISH_HIGH_ID) depth = 22;
+        
+        getBestMove(currentDisplayFen, depth);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedGame?.id, selectedGame?.status, currentDisplayFen, isLive, getBestMove]);
+
   const whitePlayer = players.find(p => p.id === selectedGame?.whitePlayerId);
   const blackPlayer = players.find(p => p.id === selectedGame?.blackPlayerId);
   const hasOngoingGame = games.some(g => g.status === 'ongoing' || g.status === 'paused');

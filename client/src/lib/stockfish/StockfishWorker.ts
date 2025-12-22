@@ -9,17 +9,20 @@ export interface EngineEvaluation {
 }
 
 export type EngineCallback = (evaluation: EngineEvaluation) => void;
+export type BestMoveCallback = (move: string) => void;
 
 interface AnalysisRequest {
   fen: string;
   depth: number;
   generation: number;
   onStart?: () => void;
+  isBestMoveRequest?: boolean;
 }
 
 export class StockfishWorker {
   private worker: Worker | null = null;
   private onEvaluation: EngineCallback | null = null;
+  private onBestMove: BestMoveCallback | null = null;
   private isTerminated: boolean = false;
   private multiPv: number = 3;
   
@@ -33,13 +36,15 @@ export class StockfishWorker {
   private pendingRequest: AnalysisRequest | null = null;
   private currentSideToMove: 'w' | 'b' = 'w';
 
-  constructor(callback: EngineCallback, multiPv: number = 3) {
+  constructor(callback: EngineCallback, multiPv: number = 3, onBestMove?: BestMoveCallback) {
     this.onEvaluation = callback;
+    this.onBestMove = onBestMove || null;
     this.multiPv = multiPv;
     this.init();
   }
 
   private init() {
+
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
       
@@ -80,6 +85,10 @@ export class StockfishWorker {
     if (message.startsWith('bestmove')) {
       this.isSearching = false;
       this.isStopping = false;
+      const parts = message.split(' ');
+      if (parts.length >= 2 && this.onBestMove && this.lastExecutedGeneration === this.currentGeneration) {
+        this.onBestMove(parts[1]);
+      }
       this.processQueue();
       return;
     }
@@ -185,6 +194,36 @@ export class StockfishWorker {
     }
 
     // Engine is idle and ready, execute immediately
+    this.executeAnalysis(request);
+  }
+
+  public getBestMove(fen: string, depth: number = 18, onStart?: () => void) {
+    if (!this.worker || this.isTerminated) return;
+
+    this.currentGeneration++;
+    
+    const request: AnalysisRequest = {
+      fen,
+      depth,
+      generation: this.currentGeneration,
+      onStart,
+      isBestMoveRequest: true
+    };
+
+    if (this.isSearching || this.isStopping) {
+      this.pendingRequest = request;
+      if (!this.isStopping) {
+        this.isStopping = true;
+        this.sendMessage('stop');
+      }
+      return;
+    }
+
+    if (!this.isEngineReady) {
+      this.pendingRequest = request;
+      return;
+    }
+
     this.executeAnalysis(request);
   }
 

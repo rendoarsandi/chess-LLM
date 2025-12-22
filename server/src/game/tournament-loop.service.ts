@@ -2,6 +2,7 @@ import { tournaments, tournamentParticipants, games } from '../db/schema'
 import { eq, and, lte, sql } from 'drizzle-orm'
 import { generatePairings } from './swiss'
 import { logger } from './logger'
+import { AlarmService } from './alarm.service'
 
 export class TournamentLoopService {
   constructor(
@@ -10,69 +11,33 @@ export class TournamentLoopService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private tournamentService: any, 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private gameService: any
+    private gameService: any,
+    private alarmService: AlarmService = new AlarmService()
   ) {}
 
-  async runIteration() {
-    await this.startDueTournaments()
-    await this.advanceTournaments()
-  }
-
-  private async startDueTournaments() {
-    const now = new Date()
-    const dueTournaments = await this.db.select()
+  async advanceTournament(tournamentId: string) {
+    const tResults = await this.db.select()
       .from(tournaments)
-      .where(and(
-        eq(tournaments.status, 'scheduled'),
-        lte(tournaments.startTime, now)
-      ))
+      .where(eq(tournaments.id, tournamentId));
+    
+    if (tResults.length === 0) return;
+    const t = tResults[0];
 
-    for (const t of dueTournaments) {
-      logger.info(`[TournamentLoop] Starting tournament: ${t.name} (${t.id})`)
-      
-      const participants = await this.tournamentService.getParticipants(t.id)
-      if (participants.length < 2) {
-        logger.warn(`[TournamentLoop] Not enough participants for tournament ${t.id}. Skipping.`)
-        continue
+    if (t.status === 'completed') return;
+
+    if (t.status === 'scheduled') {
+      const now = new Date();
+      if (t.startTime <= now) {
+        await this.startTournament(t);
+      } else {
+        // Re-check closer to start time
+        const delay = Math.min(t.startTime.getTime() - now.getTime(), 30000);
+        this.alarmService.setAlarm(`tournament:${t.id}`, Math.max(delay, 5000), () => this.advanceTournament(t.id));
       }
-
-      // Generate Round 1 pairings
-      const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
-      const pairings = generatePairings(playersForSwiss, [])
-
-      // Start the tournament (Update status)
-      await this.db.update(tournaments)
-        .set({ status: 'active', currentRound: 1 })
-        .where(eq(tournaments.id, t.id))
-
-      // Create games for pairings
-      for (const pair of pairings) {
-        if (pair.black === 'BYE') {
-          await this.db.update(tournamentParticipants)
-            .set({ score: sql`${tournamentParticipants.score} + 10` })
-            .where(and(
-              eq(tournamentParticipants.tournamentId, t.id),
-              eq(tournamentParticipants.playerId, pair.white)
-            ))
-          continue
-        }
-
-        await this.gameService.createGame(pair.white, pair.black, {
-          tournamentId: t.id,
-          roundNumber: 1
-        })
-      }
-      
-      logger.info(`[TournamentLoop] Tournament ${t.id} started with ${pairings.length} pairings for Round 1.`)
+      return;
     }
-  }
 
-  private async advanceTournaments() {
-    const activeTournaments = await this.db.select()
-      .from(tournaments)
-      .where(eq(tournaments.status, 'active'))
-
-    for (const t of activeTournaments) {
+    if (t.status === 'active') {
       // Check if all games for the current round are completed
       const roundGames = await this.db.select()
         .from(games)
@@ -81,53 +46,87 @@ export class TournamentLoopService {
           eq(games.roundNumber, t.currentRound)
         ))
 
-      const allFinished = roundGames.every((g: { status: string }) => g.status === 'completed' || g.status === 'draw')
+      const allFinished = roundGames.length > 0 && roundGames.every((g: { status: string }) => g.status === 'completed' || g.status === 'draw')
       
-      if (roundGames.length > 0 && allFinished) {
+      if (allFinished) {
         if (t.currentRound < t.totalRounds) {
-          logger.info(`[TournamentLoop] Advancing tournament ${t.id} to Round ${t.currentRound + 1}`)
-          
-          // Generate next round pairings
-          const participants = await this.tournamentService.getParticipants(t.id)
-          const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
-          
-          // Fetch history of all games in this tournament so far
-          const historyGames = await this.db.select()
-            .from(games)
-            .where(eq(games.tournamentId, t.id))
-          
-          const history = historyGames.map((g: { whitePlayerId: string, blackPlayerId: string }) => ({ white: g.whitePlayerId, black: g.blackPlayerId }))
-          
-          const pairings = generatePairings(playersForSwiss, history)
-
-          // Update tournament round
-          await this.db.update(tournaments)
-            .set({ currentRound: t.currentRound + 1 })
-            .where(eq(tournaments.id, t.id))
-
-          // Create games for pairings
-          for (const pair of pairings) {
-            if (pair.black === 'BYE') {
-              await this.db.update(tournamentParticipants)
-                .set({ score: sql`${tournamentParticipants.score} + 10` })
-                .where(and(
-                  eq(tournamentParticipants.tournamentId, t.id),
-                  eq(tournamentParticipants.playerId, pair.white)
-                ))
-              continue
-            }
-
-            await this.gameService.createGame(pair.white, pair.black, {
-              tournamentId: t.id,
-              roundNumber: t.currentRound + 1
-            })
-          }
+          await this.pairNextRound(t);
+          this.alarmService.setAlarm(`tournament:${t.id}`, 10000, () => this.advanceTournament(t.id));
         } else {
           logger.info(`[TournamentLoop] Tournament ${t.id} completed.`)
           await this.db.update(tournaments)
             .set({ status: 'completed' })
             .where(eq(tournaments.id, t.id))
         }
+      } else {
+        // Check again later
+        this.alarmService.setAlarm(`tournament:${t.id}`, 15000, () => this.advanceTournament(t.id));
+      }
+    }
+  }
+
+  private async startTournament(t: any) {
+    logger.info(`[TournamentLoop] Starting tournament: ${t.name} (${t.id})`)
+    
+    const participants = await this.tournamentService.getParticipants(t.id)
+    if (participants.length < 2) {
+      logger.warn(`[TournamentLoop] Not enough participants for tournament ${t.id}. Marking as completed.`)
+      await this.db.update(tournaments).set({ status: 'completed' }).where(eq(tournaments.id, t.id));
+      return
+    }
+
+    const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
+    const pairings = generatePairings(playersForSwiss, [])
+
+    await this.db.update(tournaments)
+      .set({ status: 'active', currentRound: 1 })
+      .where(eq(tournaments.id, t.id))
+
+    for (const pair of pairings) {
+      if (pair.black === 'BYE') {
+        await this.db.update(tournamentParticipants)
+          .set({ score: sql`${tournamentParticipants.score} + 10` })
+          .where(and(
+            eq(tournamentParticipants.tournamentId, t.id),
+            eq(tournamentParticipants.playerId, pair.white)
+          ))
+        continue
+      }
+      await this.gameService.createGame(pair.white, pair.black, {
+        tournamentId: t.id,
+        roundNumber: 1
+      })
+    }
+    this.alarmService.setAlarm(`tournament:${t.id}`, 10000, () => this.advanceTournament(t.id));
+  }
+
+  private async pairNextRound(t: any) {
+    logger.info(`[TournamentLoop] Advancing tournament ${t.id} to Round ${t.currentRound + 1}`)
+    const participants = await this.tournamentService.getParticipants(t.id)
+    const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))
+    const historyGames = await this.db.select().from(games).where(eq(games.tournamentId, t.id))
+    const history = historyGames.map((g: { whitePlayerId: string, blackPlayerId: string }) => ({ white: g.whitePlayerId, black: g.blackPlayerId }))
+    const pairings = generatePairings(playersForSwiss, history)
+
+    await this.db.update(tournaments).set({ currentRound: t.currentRound + 1 }).where(eq(tournaments.id, t.id))
+
+    for (const pair of pairings) {
+      if (pair.black === 'BYE') {
+        await this.db.update(tournamentParticipants).set({ score: sql`${tournamentParticipants.score} + 10` }).where(and(eq(tournamentParticipants.tournamentId, t.id), eq(tournamentParticipants.playerId, pair.white)))
+        continue
+      }
+      await this.gameService.createGame(pair.white, pair.black, { tournamentId: t.id, roundNumber: t.currentRound + 1 })
+    }
+  }
+
+  async runIteration() {
+    const activeOrScheduled = await this.db.select({ id: tournaments.id })
+      .from(tournaments)
+      .where(sql`${tournaments.status} IN ('active', 'scheduled')`)
+
+    for (const t of activeOrScheduled) {
+      if (!this.alarmService.hasAlarm(`tournament:${t.id}`)) {
+        this.advanceTournament(t.id);
       }
     }
   }
@@ -137,7 +136,7 @@ export class TournamentLoopService {
   start(intervalMs: number = 10000) {
     if (this.isRunning) return;
     this.isRunning = true;
-    logger.info(`[TournamentLoop] Starting tournament loop with interval ${intervalMs}ms`)
+    logger.info(`[TournamentLoop] Starting tournament monitor with interval ${intervalMs}ms`)
     
     const loop = async () => {
       if (!this.isRunning) return;
@@ -157,3 +156,4 @@ export class TournamentLoopService {
     this.isRunning = false;
   }
 }
+

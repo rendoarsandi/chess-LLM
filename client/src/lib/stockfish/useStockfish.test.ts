@@ -5,17 +5,24 @@ import type { EngineEvaluation } from './StockfishWorker';
 
 // Mock StockfishWorker
 const mockAnalyze = vi.fn();
+const mockGetBestMove = vi.fn();
 const mockTerminate = vi.fn();
 let mockCallback: ((evaluation: EngineEvaluation) => void) | null = null;
+let mockBestMoveCallback: ((move: string) => void) | null = null;
 
 vi.mock('./StockfishWorker', () => {
   return {
     StockfishWorker: class {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      constructor(callback: (evaluation: EngineEvaluation) => void, _multiPv: number) {
+      constructor(
+        callback: (evaluation: EngineEvaluation) => void, 
+        _multiPv: number,
+        onBestMove?: (move: string) => void
+      ) {
         mockCallback = callback;
+        mockBestMoveCallback = onBestMove || null;
       }
       analyze = mockAnalyze;
+      getBestMove = mockGetBestMove;
       terminate = mockTerminate;
     },
   };
@@ -26,6 +33,7 @@ describe('useStockfish', () => {
     vi.useFakeTimers();
     vi.clearAllMocks();
     mockCallback = null;
+    mockBestMoveCallback = null;
   });
 
   afterEach(() => {
@@ -49,7 +57,7 @@ describe('useStockfish', () => {
     expect(mockAnalyze).toHaveBeenCalledWith(fen, 18);
   });
 
-  it('should update evaluation state and clear thinking when engine reports', () => {
+  it('should update evaluation state when engine reports info', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     const { result } = renderHook(() => useStockfish(fen));
 
@@ -64,6 +72,22 @@ describe('useStockfish', () => {
     });
 
     expect(result.current.evaluation).toEqual(mockEval);
+  });
+
+  it('should clear thinking when engine reports bestmove', () => {
+    const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    const { result } = renderHook(() => useStockfish(fen));
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(result.current.isThinking).toBe(true);
+
+    act(() => {
+      if (mockBestMoveCallback) mockBestMoveCallback('e2e4');
+    });
+
     expect(result.current.isThinking).toBe(false);
   });
 

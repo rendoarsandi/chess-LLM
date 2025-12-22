@@ -4,12 +4,14 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { games, players } from '../db/schema'
 import { logger } from './logger'
+import { AlarmService } from './alarm.service'
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
   let gameService: any
   let player: any
   let db: any
+  let alarmService: AlarmService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
@@ -70,7 +72,10 @@ describe('GameLoopService', () => {
       makeMove: vi.fn().mockResolvedValue('e4'),
     }
     
-    loopService = new GameLoopService(db, gameService, player)
+    alarmService = new AlarmService()
+    vi.spyOn(alarmService, 'setAlarm')
+    
+    loopService = new GameLoopService(db, gameService, player, undefined, alarmService)
   })
 
   it('should advance an ongoing game if it is an LLM turn', async () => {
@@ -93,6 +98,12 @@ describe('GameLoopService', () => {
 
     await loopService.runIteration()
     
+    // With Alarms, it should have called setAlarm, but not makeMove yet
+    expect(alarmService.setAlarm).toHaveBeenCalledWith('game:game1', expect.any(Number), expect.any(Function))
+    
+    // Now manually trigger the alarm
+    await alarmService.executeAlarm('game:game1')
+
     expect(gameService.makeMove).toHaveBeenCalledWith('game1', 'e4', expect.objectContaining({ thinkingMs: expect.any(Number) }))
   })
 
@@ -116,6 +127,7 @@ describe('GameLoopService', () => {
     })
 
     await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_fail')
     
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Player failed to provide a move'))
     warnSpy.mockRestore()
@@ -141,6 +153,7 @@ describe('GameLoopService', () => {
     })
 
     await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_err')
     
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Error applying move'), expect.any(Error))
     errorSpy.mockRestore()

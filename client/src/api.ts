@@ -129,16 +129,11 @@ export async function createGame(whitePlayerId: string, blackPlayerId: string): 
   return res.json()
 }
 
-export async function deleteGame(id: string): Promise<{ success: boolean }> {
-  const res = await fetch(`${API_URL}/games/${id}`, {
-    method: 'DELETE'
-  })
-  return res.json()
-}
-
-export async function clearHistory(): Promise<{ success: boolean }> {
-  const res = await fetch(`${API_URL}/games`, {
-    method: 'DELETE'
+export async function makeMove(id: string, move: string, thinking?: { reasoning?: string, candidates?: string, opening?: string, thinkingMs?: number }): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games/${id}/move`, {
+    method: 'POST',
+    body: JSON.stringify({ move, thinking }),
+    headers: { 'Content-Type': 'application/json' }
   })
   return res.json()
 }

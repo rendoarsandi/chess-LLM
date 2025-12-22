@@ -147,6 +147,8 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     let game = await gameService.getGame(gameId)
     while (game.status === 'ongoing' && attempts < maxIterations) {
       await gameLoopService.runIteration()
+      // Manually trigger the alarm that was set in runIteration -> advanceGame
+      await (gameLoopService as any).alarmService.executeAlarm(`game:${gameId}`)
       game = await gameService.getGame(gameId)
       attempts++
     }

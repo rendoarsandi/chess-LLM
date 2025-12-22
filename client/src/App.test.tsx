@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest'
-import { render, screen, waitFor, fireEvent, findByText } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import App from './App'
 import * as api from './api'
 import { MemoryRouter } from 'react-router'

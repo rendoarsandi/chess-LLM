@@ -8,7 +8,7 @@
 *   [x] Task: Test Dual Worker Concurrency b87e316
     *   [x] Create a temporary test component that runs both the existing `useStockfish` (Analysis) and the new `StockfishPlayerService` simultaneously.
     *   [x] Verify that the Analysis evaluation bar keeps updating while the Player service is calculating a move.
-*   [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+*   [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: WebSocket Protocol Expansion
 *   [ ] Task: Update Client WebSocket Types
