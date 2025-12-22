@@ -30,7 +30,12 @@ export function useGameBot(
       
       console.log(`[GameBot] Received REQUEST_MOVE for game ${gameId}, FEN: ${fen}`)
       
-      playerServiceRef.current.calculateMove(fen, constraints.depth).then((move) => {
+      playerServiceRef.current.calculateMove(
+        fen, 
+        constraints.depth, 
+        constraints.skillLevel, 
+        constraints.movetime
+      ).then((move) => {
         console.log(`[GameBot] Calculated move: ${move}`)
         sendMessage({
           type: 'SUBMIT_MOVE',

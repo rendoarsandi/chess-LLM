@@ -7,31 +7,29 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    /*
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
-    */
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://127.0.0.1:3001',
         changeOrigin: true,
         configure: (proxy) => {
-          proxy.on('error', (err, _req, _res) => {
+          proxy.on('error', (err) => {
             console.error('[Vite Proxy] API Error:', err);
           });
         },
       },
       '/ws': {
-        target: 'http://localhost:3001',
+        target: 'http://127.0.0.1:3001',
         ws: true,
-        changeOrigin: false,
+        changeOrigin: true,
         configure: (proxy) => {
-          proxy.on('error', (err, _req, _res) => {
+          proxy.on('error', (err) => {
             console.error('[Vite Proxy] WS Error:', err);
           });
-          proxy.on('proxyReqWs', (_proxyReq, _req, _socket, _options, _head) => {
+          proxy.on('proxyReqWs', () => {
             console.log('[Vite Proxy] Forwarding WS upgrade request');
           });
         },

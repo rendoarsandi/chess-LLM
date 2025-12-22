@@ -24,21 +24,29 @@ describe('StockfishWorker', () => {
   let activeWorker: MockWorker;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     mockCallback = vi.fn();
     worker = new StockfishWorker(mockCallback);
     activeWorker = (worker as unknown as { worker: MockWorker }).worker;
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should initialize with UCI command', () => {
+    vi.advanceTimersByTime(100);
     expect(activeWorker.postMessage).toHaveBeenCalledWith('uci');
   });
 
   it('should send isready after uciok', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     expect(activeWorker.postMessage).toHaveBeenCalledWith('isready');
   });
 
   it('should parse CP scores correctly', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
     
@@ -57,6 +65,7 @@ describe('StockfishWorker', () => {
   });
 
   it('should parse mate scores correctly', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
     worker.analyze('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
@@ -73,6 +82,7 @@ describe('StockfishWorker', () => {
   });
 
   it('should send analyze commands correctly', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
     
@@ -84,6 +94,7 @@ describe('StockfishWorker', () => {
   });
 
   it('should normalize scores for Black perspective', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
 
@@ -103,6 +114,7 @@ describe('StockfishWorker', () => {
   });
 
   it('should normalize mate for Black perspective', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
 
@@ -121,6 +133,7 @@ describe('StockfishWorker', () => {
   });
 
   it('should wait for bestmove after stop before starting next analysis', () => {
+    vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
     activeWorker.simulateMessage('readyok');
 

@@ -44,7 +44,7 @@ describe('useGameBot', () => {
       type: 'REQUEST_MOVE' as const,
       gameId: 'game-1',
       fen: 'startpos',
-      constraints: { depth: 10 }
+      constraints: { depth: 10, skillLevel: 15, movetime: 1000 }
     }
 
     const { rerender } = renderHook(
@@ -57,7 +57,7 @@ describe('useGameBot', () => {
 
     // Wait for promise resolution
     await vi.waitFor(() => {
-      expect(mockPlayerServiceInstance.calculateMove).toHaveBeenCalledWith('startpos', 10)
+      expect(mockPlayerServiceInstance.calculateMove).toHaveBeenCalledWith('startpos', 10, 15, 1000)
       expect(sendMessage).toHaveBeenCalledWith({
         type: 'SUBMIT_MOVE',
         gameId: 'game-1',

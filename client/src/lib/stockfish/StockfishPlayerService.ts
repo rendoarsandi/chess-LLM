@@ -1,25 +1,25 @@
 export class StockfishPlayerService {
   private worker: Worker | null = null;
   private isEngineReady: boolean = false;
-  private pendingRequest: { resolve: (move: string) => void; fen: string; depth: number } | null = null;
+  private pendingRequest: { resolve: (move: string) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
   private isSearching: boolean = false;
   private isTerminated: boolean = false;
+  private currentSkillLevel: number | null = null;
 
   constructor() {
     this.init();
   }
 
   private init() {
-    console.log('[StockfishPlayerService] Initializing worker. Origin:', window.location.origin, 'Path:', window.location.pathname);
-    console.log('[StockfishPlayerService] Initializing worker from /stockfish/stockfish.js');
+    console.log('[StockfishPlayerService] Initializing worker. Origin:', window.location.origin, 'Isolated:', window.crossOriginIsolated);
     if (typeof Worker === 'undefined') {
       console.error('[StockfishPlayerService] Web Workers are not supported in this environment.');
       this.isTerminated = true;
       return;
     }
     try {
-      console.log('[StockfishPlayerService] Attempting to create Worker...');
-      const workerUrl = new URL('/stockfish/stockfish-17.1-lite-single-03e3232.js', window.location.origin).href;
+      console.log('[StockfishPlayerService] Attempting to create Worker from /stockfish/stockfish.js');
+      const workerUrl = '/stockfish/stockfish.js';
 
       // Pre-flight check to see if the script is accessible
       fetch(workerUrl, { method: 'HEAD' })
@@ -88,13 +88,25 @@ export class StockfishPlayerService {
   private processQueue() {
     if (!this.isEngineReady || this.isSearching || !this.pendingRequest) return;
     
-    const { fen, depth } = this.pendingRequest;
+    const { fen, depth, skillLevel, movetime } = this.pendingRequest;
     this.isSearching = true;
+
+    // Apply skill level if it has changed
+    if (this.currentSkillLevel !== skillLevel) {
+      this.sendMessage(`setoption name Skill Level value ${skillLevel}`);
+      this.currentSkillLevel = skillLevel;
+    }
+
     this.sendMessage(`position fen ${fen}`);
-    this.sendMessage(`go depth ${depth}`);
+    
+    let goCommand = `go depth ${depth}`;
+    if (movetime) {
+      goCommand += ` movetime ${movetime}`;
+    }
+    this.sendMessage(goCommand);
   }
 
-  public calculateMove(fen: string, depth: number = 18): Promise<string> {
+  public calculateMove(fen: string, depth: number = 18, skillLevel: number = 20, movetime?: number): Promise<string> {
     return new Promise((resolve) => {
       // If there was a pending request, we might want to reject it or just overwrite it
       // For the Player role, we expect only one REQUEST_MOVE at a time from the server.
@@ -102,7 +114,7 @@ export class StockfishPlayerService {
         console.warn('[StockfishPlayerService] Overwriting pending move request');
       }
       
-      this.pendingRequest = { resolve, fen, depth };
+      this.pendingRequest = { resolve, fen, depth, skillLevel, movetime };
       this.processQueue();
     });
   }

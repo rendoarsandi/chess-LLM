@@ -51,10 +51,16 @@ export class GameLoopService {
     const currentPlayerType = turn === 'w' ? game.whitePlayerType : game.blackPlayerType
     const currentPlayerId = turn === 'w' ? game.whitePlayerId : game.blackPlayerId
 
+    const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+    const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
+    const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
+    const STOCKFISH_VERY_HIGH_ID = '00000000-0000-0000-0000-000000000013'
+
     const STOCKFISH_IDS = [
-      '00000000-0000-0000-0000-000000000010',
-      '00000000-0000-0000-0000-000000000011',
-      '00000000-0000-0000-0000-000000000012'
+      STOCKFISH_LOW_ID,
+      STOCKFISH_MED_ID,
+      STOCKFISH_HIGH_ID,
+      STOCKFISH_VERY_HIGH_ID
     ];
 
     // If it's a human player, we just wait (no auto-move)
@@ -78,15 +84,27 @@ export class GameLoopService {
         return
       }
 
+      // Determine constraints based on Stockfish level
+      let constraints = { depth: 18, skillLevel: 20, movetime: 1000 }
+      if (currentPlayerId === STOCKFISH_LOW_ID) {
+        constraints = { depth: 6, skillLevel: 12, movetime: 500 }
+      } else if (currentPlayerId === STOCKFISH_MED_ID) {
+        constraints = { depth: 8, skillLevel: 15, movetime: 1000 }
+      } else if (currentPlayerId === STOCKFISH_HIGH_ID) {
+        constraints = { depth: 10, skillLevel: 18, movetime: 1500 }
+      } else if (currentPlayerId === STOCKFISH_VERY_HIGH_ID) {
+        constraints = { depth: 22, skillLevel: 20, movetime: 3000 }
+      }
+
       // Throttle requests: only re-send every 10 seconds if we haven't received a move
       if (now - lastRequest > 10000) {
         if (this.socketService) {
-          logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} in game ${game.id}`)
+          logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} (Skill: ${constraints.skillLevel}, Depth: ${constraints.depth}) in game ${game.id}`)
           this.socketService.broadcast(game.id, { 
             type: 'REQUEST_MOVE', 
             gameId: game.id, 
             fen: game.fen,
-            constraints: { depth: 18 } // Standard depth
+            constraints
           })
           this.lastRequestTime.set(game.id, now)
         }

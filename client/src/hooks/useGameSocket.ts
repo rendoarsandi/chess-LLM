@@ -14,7 +14,7 @@ export type SocketMessage =
   | { type: 'STATUS'; status: 'thinking' | 'idle' }
   | { type: 'SPECTATORS'; count: number }
   | { type: 'GAME_STARTED'; gameId: string }
-  | { type: 'REQUEST_MOVE'; gameId: string; fen: string; constraints: { depth: number; movetime?: number } }
+  | { type: 'REQUEST_MOVE'; gameId: string; fen: string; constraints: { depth: number; skillLevel?: number; movetime?: number } }
 
 export type ClientMessage = 
   | { type: 'SUBMIT_MOVE'; gameId: string; move: string }

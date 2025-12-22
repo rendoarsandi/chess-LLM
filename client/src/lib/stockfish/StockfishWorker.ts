@@ -44,16 +44,15 @@ export class StockfishWorker {
   }
 
   private init() {
-    console.log('[StockfishWorker] Initializing worker. Origin:', window.location.origin, 'Path:', window.location.pathname);
-    console.log('[StockfishWorker] Initializing worker from /stockfish/stockfish.js');
+    console.log('[StockfishWorker] Initializing worker. Origin:', window.location.origin, 'Isolated:', window.crossOriginIsolated);
     if (typeof Worker === 'undefined') {
       console.error('[StockfishWorker] Web Workers are not supported in this environment.');
       this.isTerminated = true;
       return;
     }
     try {
-      console.log('[StockfishWorker] Attempting to create Worker...');
-      const workerUrl = new URL('/stockfish/stockfish-17.1-lite-single-03e3232.js', window.location.origin).href;
+      console.log('[StockfishWorker] Attempting to create Worker from /stockfish/stockfish.js');
+      const workerUrl = '/stockfish/stockfish.js';
       
       // Pre-flight check to see if the script is accessible
       fetch(workerUrl, { method: 'HEAD' })

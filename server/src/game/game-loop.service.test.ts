@@ -250,11 +250,12 @@ describe('GameLoopService', () => {
     
     
     
-        expect(socketService.broadcast).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
-    
-          type: 'REQUEST_MOVE'
-    
-        }))
+          expect(socketService.broadcast).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
+            type: 'REQUEST_MOVE',
+            gameId: 'game_stockfish',
+            fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            constraints: { depth: 6, skillLevel: 12, movetime: 500 }
+          }))
     
         socketService.broadcast.mockClear()
     
