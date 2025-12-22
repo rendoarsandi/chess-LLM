@@ -53,12 +53,28 @@ export class GameLoopService {
       '00000000-0000-0000-0000-000000000012'
     ];
 
-    // If it's a human player or client-side stockfish, we just wait (no auto-move)
-    if (currentPlayerType === 'human' || (currentPlayerId && STOCKFISH_IDS.includes(currentPlayerId))) {
+    // If it's a human player, we just wait (no auto-move)
+    if (currentPlayerType === 'human') {
       return;
     }
 
-    // Broadcast thinking status
+    // If it's a client-side Stockfish player, we emit REQUEST_MOVE and wait
+    if (currentPlayerId && STOCKFISH_IDS.includes(currentPlayerId)) {
+      if (this.socketService) {
+        logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} in game ${game.id}`)
+        this.socketService.broadcast(game.id, { 
+          type: 'REQUEST_MOVE', 
+          gameId: game.id, 
+          fen: game.fen,
+          constraints: { depth: 18 } // Standard depth
+        })
+      }
+      // Re-poll in 5 seconds to ensure we don't get stuck if client disconnects/misses it
+      this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id));
+      return;
+    }
+
+    // Broadcast thinking status for server-side players
     if (this.socketService) {
       this.socketService.broadcast(game.id, { type: 'STATUS', status: 'thinking' })
     }
@@ -110,7 +126,7 @@ export class GameLoopService {
 
     for (const game of ongoingGames) {
       if (!this.alarmService.hasAlarm(`game:${game.id}`)) {
-        this.advanceGame(game.id);
+        await this.advanceGame(game.id);
       }
     }
   }
@@ -140,4 +156,3 @@ export class GameLoopService {
     this.isRunning = false;
   }
 }
-

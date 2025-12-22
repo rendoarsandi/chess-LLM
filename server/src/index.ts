@@ -26,6 +26,7 @@ import { adminMiddleware } from './middleware/admin'
 import { llmConfigService, LLMConfig } from './db/llm_config'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
+import { logger } from './game/logger'
 
 const app = new Hono()
 
@@ -190,6 +191,22 @@ app.get(
       onOpen(event, ws) {
         if (gameId) {
           socketService.joinRoom(gameId, ws)
+          // Trigger a loop check immediately but with a small delay to ensure connection is stable
+          setTimeout(() => gameLoopService.advanceGame(gameId), 500)
+        }
+      },
+      onMessage(event, ws) {
+        try {
+          const data = JSON.parse(event.data as string)
+          if (data.type === 'SUBMIT_MOVE') {
+            const { gameId: msgGameId, move } = data
+            logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
+            gameService.makeMove(msgGameId, move).catch(err => {
+              logger.error(`[WebSocket] Failed to apply move from client: ${err.message}`)
+            })
+          }
+        } catch (e) {
+          logger.error('[WebSocket] Error processing message:', e)
         }
       },
       onClose(event, ws) {

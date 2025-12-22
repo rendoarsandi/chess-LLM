@@ -126,7 +126,7 @@ export class TournamentLoopService {
 
     for (const t of activeOrScheduled) {
       if (!this.alarmService.hasAlarm(`tournament:${t.id}`)) {
-        this.advanceTournament(t.id);
+        await this.advanceTournament(t.id);
       }
     }
   }
