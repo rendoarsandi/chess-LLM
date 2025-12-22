@@ -155,11 +155,13 @@ async function initializePlayers() {
     ] as string[]
 
     // 4. Remove any players NOT in the allowed list (orphaned test profiles)
-    const allDbPlayers = await db.select().from(players)
-    for (const p of allDbPlayers) {
-        if (!activePlayerIds.includes(p.id)) {
-            await db.delete(players).where(eq(players.id, p.id))
-            console.log(`[Main] Deleted orphaned player profile: ${p.name} (${p.id})`)
+    if (process.env.NODE_ENV !== 'test') {
+        const allDbPlayers = await db.select().from(players)
+        for (const p of allDbPlayers) {
+            if (!activePlayerIds.includes(p.id)) {
+                await db.delete(players).where(eq(players.id, p.id))
+                console.log(`[Main] Deleted orphaned player profile: ${p.name} (${p.id})`)
+            }
         }
     }
 

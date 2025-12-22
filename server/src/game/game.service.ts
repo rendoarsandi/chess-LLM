@@ -1,5 +1,5 @@
 import { GameManager } from './game-manager'
-import { games, moves, players, ratingHistory } from '../db/schema'
+import { gameReviews, games, moveAnalyses, moves, players, ratingHistory } from '../db/schema'
 import { eq, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
@@ -64,6 +64,13 @@ export class GameService {
   }
 
   async deleteGame(gameId: string) {
+    // Delete associated reviews and analyses first
+    const reviews = await this.db.select().from(gameReviews).where(eq(gameReviews.gameId, gameId))
+    for (const r of reviews) {
+      await this.db.delete(moveAnalyses).where(eq(moveAnalyses.reviewId, r.id))
+    }
+    await this.db.delete(gameReviews).where(eq(gameReviews.gameId, gameId))
+
     // Delete associated moves first
     await this.db.delete(moves).where(eq(moves.gameId, gameId))
     // Delete associated rating history
@@ -73,6 +80,8 @@ export class GameService {
   }
 
   async clearHistory() {
+    await this.db.delete(moveAnalyses)
+    await this.db.delete(gameReviews)
     await this.db.delete(moves)
     await this.db.delete(ratingHistory)
     await this.db.delete(games)
