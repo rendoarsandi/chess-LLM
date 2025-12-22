@@ -32,5 +32,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Distributed Game Review System
+## [~] Track: Distributed Game Review System
 *Link: [./conductor/tracks/distributed_game_review_20251222/](./conductor/tracks/distributed_game_review_20251222/)*

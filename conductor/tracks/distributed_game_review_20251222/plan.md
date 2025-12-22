@@ -1,10 +1,10 @@
 # Plan: Distributed Game Review System
 
 ## Phase 1: Database & Backend Foundation
-- [ ] Task: Create database schema for Game Reviews
-    - [ ] Subtask: Create `game_reviews` table (game_id, status, started_at, worker_id, completed_at).
-    - [ ] Subtask: Create `move_analyses` table (review_id, move_number, classification, evaluation, best_line).
-    - [ ] Subtask: Run database migration.
+- [x] Task: Create database schema for Game Reviews (2c847f9)
+    - [x] Subtask: Create `game_reviews` table (game_id, status, started_at, worker_id, completed_at).
+    - [x] Subtask: Create `move_analyses` table (review_id, move_number, classification, evaluation, best_line).
+    - [x] Subtask: Run database migration.
 - [ ] Task: Implement Game Review API Service
     - [ ] Subtask: Create `GameReviewService` class to handle queue logic.
     - [ ] Subtask: Implement `requestReview(gameId)` - adds to queue or returns existing.
