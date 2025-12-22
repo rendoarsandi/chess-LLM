@@ -10,7 +10,7 @@
     *   [x] Verify that the Analysis evaluation bar keeps updating while the Player service is calculating a move.
 *   [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
-## Phase 2: WebSocket Protocol Expansion
+## Phase 2: WebSocket Protocol Expansion [checkpoint: 5d1891f]
 *   [x] Task: Update Client WebSocket Types 7e07774
     *   [x] Extend `SocketMessage` type in `useGameSocket.ts` to include `REQUEST_MOVE` payload.
     *   [x] Define `ClientMessage` types for `SUBMIT_MOVE` to ensure type safety when sending data back to server.
