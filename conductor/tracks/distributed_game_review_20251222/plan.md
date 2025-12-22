@@ -5,18 +5,18 @@
     - [x] Subtask: Create `game_reviews` table (game_id, status, started_at, worker_id, completed_at).
     - [x] Subtask: Create `move_analyses` table (review_id, move_number, classification, evaluation, best_line).
     - [x] Subtask: Run database migration.
-- [ ] Task: Implement Game Review API Service
-    - [ ] Subtask: Create `GameReviewService` class to handle queue logic.
-    - [ ] Subtask: Implement `requestReview(gameId)` - adds to queue or returns existing.
-    - [ ] Subtask: Implement `claimJob(workerId)` - finds oldest queued job, sets to 'processing', sets heartbeat.
-    - [ ] Subtask: Implement `submitResults(jobId, results)` - saves to DB, marks complete.
-    - [ ] Subtask: Implement `heartbeat(jobId)` - updates `last_heartbeat` timestamp.
-    - [ ] Subtask: Implement background cleanup (or check on claim) to reset 'stuck' jobs (heartbeat > 5s ago).
-- [ ] Task: Expose API Endpoints
-    - [ ] Subtask: `POST /api/reviews/:gameId` (Request/Check status).
-    - [ ] Subtask: `POST /api/reviews/worker/claim` (Worker claims job).
-    - [ ] Subtask: `POST /api/reviews/worker/heartbeat` (Worker keep-alive).
-    - [ ] Subtask: `POST /api/reviews/worker/submit` (Submit results).
+- [x] Task: Implement Game Review API Service (6122564)
+    - [x] Subtask: Create `GameReviewService` class to handle queue logic.
+    - [x] Subtask: Implement `requestReview(gameId)` - adds to queue or returns existing.
+    - [x] Subtask: Implement `claimJob(workerId)` - finds oldest queued job, sets to 'processing', sets heartbeat.
+    - [x] Subtask: Implement `submitResults(jobId, results)` - saves to DB, marks complete.
+    - [x] Subtask: Implement `heartbeat(jobId)` - updates `last_heartbeat` timestamp.
+    - [x] Subtask: Implement background cleanup (or check on claim) to reset 'stuck' jobs (heartbeat > 5s ago).
+- [x] Task: Expose API Endpoints (541284f)
+    - [x] Subtask: `POST /api/reviews/:gameId` (Request/Check status).
+    - [x] Subtask: `POST /api/reviews/worker/claim` (Worker claims job).
+    - [x] Subtask: `POST /api/reviews/worker/heartbeat` (Worker keep-alive).
+    - [x] Subtask: `POST /api/reviews/worker/submit` (Submit results).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Client-Side Worker & Analysis Logic
