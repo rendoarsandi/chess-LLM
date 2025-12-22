@@ -17,12 +17,12 @@ import { TournamentList } from "@/components/TournamentList"
 import { TournamentDetail } from "@/components/TournamentDetail"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo } from "react"
-import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
-import type { Game, Move, Player } from "./api"
+import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame, requestReview, getReviewStatus } from "./api"
+import type { Game, Move, Player, GameReview, MoveAnalysis } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
-import { RotateCcw, Pause, Play } from "lucide-react"
+import { RotateCcw, Pause, Play, Search } from "lucide-react"
 import { cn } from "./lib/utils"
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router"
 import { ErrorBoundary } from "./components/ErrorBoundary"
@@ -30,6 +30,7 @@ import { toast } from "sonner"
 import type { ThinkingData } from "./types"
 import { useGameSocket } from "./hooks/useGameSocket"
 import { useGameBot } from "./hooks/useGameBot"
+import { useAnalysisWorker } from "./hooks/useAnalysisWorker"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -75,6 +76,9 @@ interface ArenaContentProps {
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
+  review: (GameReview & { analyses?: MoveAnalysis[] }) | null;
+  handleRequestReview: () => Promise<void>;
+  isRequestingReview: boolean;
 }
 
 function ArenaContent({ 
@@ -83,7 +87,8 @@ function ArenaContent({
   currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
-  moves, players, setBoardOrientation, spectatorCount, thinkingStatus
+  moves, players, setBoardOrientation, spectatorCount, thinkingStatus,
+  review, handleRequestReview, isRequestingReview
 }: ArenaContentProps) {
   const turn = currentDisplayFen.split(' ')[1];
   const isWhiteTurn = turn === 'w';
@@ -203,6 +208,19 @@ function ArenaContent({
                             {selectedGame.status === 'ongoing' ? <><Pause className="h-3 w-3 mr-1" /> PAUSE</> : <><Play className="h-3 w-3 mr-1" /> RESUME</>}
                           </Button>
                         )}
+                        {(selectedGame.status === 'completed' || selectedGame.status === 'draw') && !review && (
+                          <Button size="sm" variant="default" className="h-7 text-[10px] font-black" onClick={handleRequestReview} disabled={isRequestingReview}>
+                            <Search className="h-3 w-3 mr-1" /> {isRequestingReview ? 'REQUESTING...' : 'REQUEST REVIEW'}
+                          </Button>
+                        )}
+                        {review && (
+                          <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded border border-primary/20">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                              Review: {review.status === 'completed' ? 'COMPLETED' : review.status === 'processing' ? 'ANALYZING' : 'QUEUED'}
+                            </span>
+                            {review.status === 'processing' && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
+                          </div>
+                        )}
                       </div>
                       {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
                     </div>
@@ -228,7 +246,7 @@ function ArenaContent({
               </CollapsibleSection>
               <CollapsibleSection title="Move List">
                 <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} analyses={review?.analyses} />
                 </ErrorBoundary>
               </CollapsibleSection>
               <CollapsibleSection title="Arena Controls">
@@ -263,7 +281,7 @@ function ArenaContent({
             />
             {selectedGame && (
               <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} analyses={review?.analyses} />
               </ErrorBoundary>
             )}
             <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
@@ -315,19 +333,65 @@ function App() {
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
   const [isCreatingGame, setIsCreatingGame] = useState(false)
 
+  const [review, setReview] = useState<(GameReview & { analyses?: MoveAnalysis[] }) | null>(null)
+  const [isRequestingReview, setIsRequestingReview] = useState(false)
+
+  // Global analysis worker - always enabled to help process other people's games
+  useAnalysisWorker(true)
+
   const handleSelectGame = useCallback((game: Game) => {
     setSelectedGame(game);
     setMoves([]);
+    setReview(null);
     setActiveMoveIndex(null);
     setLastMoveFromUpdate(null);
     setShowResultOverlay(true);
     navigate(`/arena/${game.id}`);
   }, [navigate]);
 
-  const fetchAllGames = useCallback(async () => {
-    const allGames = await getGames();
-    setGames(allGames);
-  }, []);
+  const handleRequestReview = async () => {
+    if (!selectedGame) return;
+    setIsRequestingReview(true);
+    try {
+      const newReview = await requestReview(selectedGame.id);
+      setReview(newReview);
+      toast.success("Game review requested", {
+        description: "The analysis will be processed by available workers."
+      });
+    } catch {
+      toast.error("Failed to request review");
+    } finally {
+      setIsRequestingReview(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedGame || selectedGame.status === 'ongoing' || selectedGame.status === 'paused') {
+      setReview(null);
+      return;
+    }
+
+    const fetchStatus = async () => {
+      try {
+        const status = await getReviewStatus(selectedGame.id);
+        setReview(status);
+      } catch {
+        // Ignore not found
+      }
+    };
+
+    fetchStatus();
+
+    // Polling for review status if it's not completed
+    let pollInterval: NodeJS.Timeout | null = null;
+    if (review && review.status !== 'completed' && review.status !== 'failed') {
+      pollInterval = setInterval(fetchStatus, 3000);
+    }
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [selectedGame?.id, selectedGame?.status, review?.status]);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -640,6 +704,8 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
+            review={review} handleRequestReview={handleRequestReview}
+            isRequestingReview={isRequestingReview}
           />
         } />
         <Route path="/arena/:gameId" element={
@@ -658,6 +724,8 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
+            review={review} handleRequestReview={handleRequestReview}
+            isRequestingReview={isRequestingReview}
           />
         } />
         <Route path="/leaderboard" element={

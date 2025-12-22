@@ -1,13 +1,50 @@
-import type { Move } from "@/api";
+import type { Move, MoveAnalysis } from "@/api";
+import { Star, Zap, Check, CheckCheck, Info, AlertTriangle, XCircle, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MoveListProps {
   moves: Move[]
   onMoveClick: (index: number) => void
   selectedMoveIndex?: number
   isLive?: boolean
+  analyses?: MoveAnalysis[]
 }
 
-export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive }: MoveListProps) {
+export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analyses }: MoveListProps) {
+  const renderClassificationIcon = (moveNumber: number, playerColor: 'white' | 'black') => {
+    if (!analyses) return null;
+    
+    // Analyses are sequential: 1w, 1b, 2w, 2b...
+    const index = (moveNumber - 1) * 2 + (playerColor === 'white' ? 0 : 1);
+    const analysis = analyses[index];
+    
+    if (!analysis) return null;
+
+    const iconMap: Record<string, { icon: any, color: string, label: string }> = {
+      brilliant: { icon: Zap, color: "text-cyan-400", label: "!!" },
+      great: { icon: Star, color: "text-blue-400", label: "!" },
+      best: { icon: CheckCheck, color: "text-green-400", label: "★" },
+      excellent: { icon: Check, color: "text-green-500", label: "" },
+      good: { icon: Check, color: "text-slate-400", label: "" },
+      book: { icon: Info, color: "text-orange-400", label: "📖" },
+      inaccuracy: { icon: Info, color: "text-yellow-400", label: "?!" },
+      mistake: { icon: AlertTriangle, color: "text-orange-500", label: "?" },
+      blunder: { icon: XCircle, color: "text-red-500", label: "??" },
+      miss: { icon: Search, color: "text-purple-400", label: "X" },
+    };
+
+    const cfg = iconMap[analysis.classification];
+    if (!cfg) return null;
+
+    const Icon = cfg.icon;
+    return (
+      <div className={cn("flex items-center gap-0.5", cfg.color)} title={analysis.classification.toUpperCase()}>
+        <Icon className="w-3 h-3" />
+        {cfg.label && <span className="text-[8px] font-black">{cfg.label}</span>}
+      </div>
+    );
+  };
+
   // Group into rows
   const pairs: { number: number, white?: { m: Move, idx: number }, black?: { m: Move, idx: number } }[] = []
   
@@ -49,22 +86,28 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive }: Move
                 </td>
                 <td className="w-1/2">
                   {pair.white && (
-                    <button
-                      onClick={() => onMoveClick(pair.white!.idx)}
-                      className={`w-full text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                    >
-                      {pair.white.m.move}
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onMoveClick(pair.white!.idx)}
+                        className={`flex-1 text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                      >
+                        {pair.white.m.move}
+                      </button>
+                      {renderClassificationIcon(pair.number, 'white')}
+                    </div>
                   )}
                 </td>
                 <td className="w-1/2">
                   {pair.black && (
-                    <button
-                      onClick={() => onMoveClick(pair.black!.idx)}
-                      className={`w-full text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                    >
-                      {pair.black.m.move}
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onMoveClick(pair.black!.idx)}
+                        className={`flex-1 text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                      >
+                        {pair.black.m.move}
+                      </button>
+                      {renderClassificationIcon(pair.number, 'black')}
+                    </div>
                   )}
                 </td>
               </tr>
