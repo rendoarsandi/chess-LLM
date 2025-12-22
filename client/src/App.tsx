@@ -10,7 +10,6 @@ import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
-import { GameReviewDashboard } from "@/components/GameReviewDashboard"
 import { AnalysisMode } from "@/components/AnalysisMode"
 import { AdminLogin } from "@/components/AdminLogin"
 import { AdminSettings } from "@/components/AdminSettings"
@@ -19,8 +18,8 @@ import { TournamentList } from "@/components/TournamentList"
 import { TournamentDetail } from "@/components/TournamentDetail"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo } from "react"
-import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame, requestReview, getReviewStatus } from "./api"
-import type { Game, Move, Player, GameReview, MoveAnalysis } from "./api"
+import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
+import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
@@ -78,9 +77,7 @@ interface ArenaContentProps {
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
-  review: (GameReview & { analyses?: MoveAnalysis[] }) | null;
   handleRequestReview: () => Promise<void>;
-  isRequestingReview: boolean;
 }
 
 function ArenaContent({ 
@@ -90,7 +87,7 @@ function ArenaContent({
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
   moves, players, setBoardOrientation, spectatorCount, thinkingStatus,
-  review, handleRequestReview, isRequestingReview
+  handleRequestReview
 }: ArenaContentProps) {
   const turn = currentDisplayFen.split(' ')[1];
   const isWhiteTurn = turn === 'w';
@@ -202,7 +199,7 @@ function ArenaContent({
                         blackPlayerName={blackPlayer?.name} 
                         reason={selectedGame.gameOverReason} 
                         onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} 
-                        onReview={review ? undefined : handleRequestReview}
+                        onReview={handleRequestReview}
                         onClose={() => setShowResultOverlay(false)} 
                       />
                     )}
@@ -220,18 +217,10 @@ function ArenaContent({
                             {selectedGame.status === 'ongoing' ? <><Pause className="h-3 w-3 mr-1" /> PAUSE</> : <><Play className="h-3 w-3 mr-1" /> RESUME</>}
                           </Button>
                         )}
-                        {(selectedGame.status === 'completed' || selectedGame.status === 'draw') && !review && (
-                          <Button size="sm" variant="default" className="h-7 text-[10px] font-black" onClick={handleRequestReview} disabled={isRequestingReview}>
-                            <Search className="h-3 w-3 mr-1" /> {isRequestingReview ? 'REQUESTING...' : 'REQUEST REVIEW'}
+                        {(selectedGame.status === 'completed' || selectedGame.status === 'draw') && (
+                          <Button size="sm" variant="default" className="h-7 text-[10px] font-black" onClick={handleRequestReview}>
+                            <Search className="h-3 w-3 mr-1" /> REQUEST REVIEW
                           </Button>
-                        )}
-                        {review && (
-                          <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded border border-primary/20">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                              Review: {review.status === 'completed' ? 'COMPLETED' : review.status === 'processing' ? `ANALYZING (${Math.round((review.progressCurrent / review.progressTotal) * 100)}%)` : 'QUEUED'}
-                            </span>
-                            {review.status === 'processing' && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />}
-                          </div>
                         )}
                       </div>
                       {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
@@ -250,15 +239,6 @@ function ArenaContent({
             )}
 
             <div className="mt-8 w-full lg:hidden space-y-4">
-              {review && (
-                <div className="mb-4">
-                  <GameReviewDashboard 
-                    review={review} 
-                    whitePlayer={whitePlayer} 
-                    blackPlayer={blackPlayer} 
-                  />
-                </div>
-              )}
               <CollapsibleSection title="White Thinking" className="md:hidden">
                 <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
               </CollapsibleSection>
@@ -267,7 +247,7 @@ function ArenaContent({
               </CollapsibleSection>
               <CollapsibleSection title="Move List">
                 <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} analyses={review?.analyses} />
+                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
                 </ErrorBoundary>
               </CollapsibleSection>
               <CollapsibleSection title="Arena Controls">
@@ -300,18 +280,10 @@ function ArenaContent({
               {...blackThinking} 
               isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
             />
-            
-            {review && (
-              <GameReviewDashboard 
-                review={review} 
-                whitePlayer={whitePlayer} 
-                blackPlayer={blackPlayer} 
-              />
-            )}
 
             {selectedGame && (
               <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} analyses={review?.analyses} />
+                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
               </ErrorBoundary>
             )}
             <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
@@ -363,16 +335,12 @@ function App() {
   const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
   const [isCreatingGame, setIsCreatingGame] = useState(false)
 
-  const [review, setReview] = useState<(GameReview & { analyses?: MoveAnalysis[] }) | null>(null)
-  const [isRequestingReview, setIsRequestingReview] = useState(false)
-
   // Global analysis worker - always enabled to help process other people's games
   useAnalysisWorker(true)
 
   const handleSelectGame = useCallback((game: Game) => {
     setSelectedGame(game);
     setMoves([]);
-    setReview(null);
     setActiveMoveIndex(null);
     setLastMoveFromUpdate(null);
     setShowResultOverlay(true);
@@ -381,55 +349,13 @@ function App() {
 
   const handleRequestReview = async () => {
     if (!selectedGame) return;
-    setIsRequestingReview(true);
-    try {
-      const newReview = await requestReview(selectedGame.id);
-      setReview(newReview);
-      toast.success("Game review requested", {
-        description: "The analysis will be processed by available workers."
-      });
-    } catch {
-      toast.error("Failed to request review");
-    } finally {
-      setIsRequestingReview(false);
-    }
+    navigate(`/analysis/${selectedGame.id}`);
   };
 
   const fetchAllGames = useCallback(async () => {
     const allGames = await getGames();
     setGames(allGames);
   }, []);
-
-  useEffect(() => {
-    if (!selectedGame || selectedGame.status === 'ongoing' || selectedGame.status === 'paused') {
-      setReview(null);
-      return;
-    }
-
-    const fetchStatus = async () => {
-      try {
-        const status = await getReviewStatus(selectedGame.id);
-        setReview(status);
-      } catch {
-        // Ignore not found
-      }
-    };
-
-    fetchStatus();
-
-    // Polling for review status if it's active
-    let pollInterval: ReturnType<typeof setInterval> | null = null;
-    if (review && review.status !== 'completed' && review.status !== 'failed') {
-      pollInterval = setInterval(fetchStatus, 2000);
-    } else if (isRequestingReview) {
-      // Also poll while we are waiting for the initial response or worker to claim
-      pollInterval = setInterval(fetchStatus, 2000);
-    }
-
-    return () => {
-      if (pollInterval) clearInterval(pollInterval);
-    };
-  }, [selectedGame?.id, selectedGame?.status, review?.status, selectedGame, review, isRequestingReview]);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -742,8 +668,7 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
-            review={review} handleRequestReview={handleRequestReview}
-            isRequestingReview={isRequestingReview}
+            handleRequestReview={handleRequestReview}
           />
         } />
         <Route path="/arena/:gameId" element={
@@ -762,8 +687,7 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
-            review={review} handleRequestReview={handleRequestReview}
-            isRequestingReview={isRequestingReview}
+            handleRequestReview={handleRequestReview}
           />
         } />
         <Route path="/leaderboard" element={

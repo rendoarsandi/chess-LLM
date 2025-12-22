@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { getGame, getMoves, getReviewStatus, type Game, type Move, type GameReview, type MoveAnalysis, type Player, getPlayers } from '../api';
+import { getGame, getMoves, getReviewStatus, requestReview, type Game, type Move, type GameReview, type MoveAnalysis, type Player, getPlayers } from '../api';
 import { AnalysisBoard } from './AnalysisBoard';
 import { MoveList } from './MoveList';
 import { PlaybackControls } from './PlaybackControls';
@@ -9,6 +9,7 @@ import { useStockfish } from '../lib/stockfish/useStockfish';
 import { Button } from './ui/button';
 import { ChevronLeft, Share2, Download } from 'lucide-react';
 import { Chess } from 'chess.js';
+import { toast } from "sonner"
 
 export const AnalysisMode: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -21,23 +22,46 @@ export const AnalysisMode: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [boardOrientation] = useState<'white' | 'black'>('white');
 
+  const fetchStatus = useCallback(async () => {
+    if (!gameId) return;
+    try {
+      const status = await getReviewStatus(gameId);
+      setReview(status);
+    } catch {
+      // Ignore not found
+    }
+  }, [gameId]);
+
   useEffect(() => {
     if (!gameId) return;
     
     const fetchData = async () => {
       try {
-        const [gameData, movesData, playersData, reviewData] = await Promise.all([
+        const [gameData, movesData, playersData] = await Promise.all([
           getGame(gameId),
           getMoves(gameId),
-          getPlayers(),
-          getReviewStatus(gameId).catch(() => null)
+          getPlayers()
         ]);
         
         setGame(gameData);
         setMoves(movesData);
         setPlayers(playersData);
-        setReview(reviewData);
         setActiveIndex(movesData.length - 1);
+
+        // Initial check for review
+        try {
+          const reviewData = await getReviewStatus(gameId);
+          setReview(reviewData);
+        } catch {
+          // If no review exists, request one automatically
+          try {
+            const newReview = await requestReview(gameId);
+            setReview(newReview);
+            toast.info("Starting automatic game review...");
+          } catch {
+            toast.error("Failed to start game review");
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch analysis data:', error);
       }
@@ -45,6 +69,13 @@ export const AnalysisMode: React.FC = () => {
     
     fetchData();
   }, [gameId]);
+
+  useEffect(() => {
+    if (!gameId || !review || review.status === 'completed' || review.status === 'failed') return;
+
+    const interval = setInterval(fetchStatus, 2000);
+    return () => clearInterval(interval);
+  }, [gameId, review?.status, review, fetchStatus]);
 
   const currentDisplayFen = useMemo(() => {
     const chess = new Chess();
@@ -164,7 +195,7 @@ export const AnalysisMode: React.FC = () => {
             <MoveList 
               moves={moves}
               onMoveClick={setActiveIndex}
-              selectedMoveIndex={activeIndex ?? undefined}
+              selectedMoveIndex={activeIndex !== null ? activeIndex : undefined}
               analyses={review?.analyses}
             />
           </div>
