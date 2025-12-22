@@ -9,6 +9,7 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 ## Key Features (Prototype Phase)
 - **Interactive Game Arena:** A real-time dashboard to monitor ongoing games and browse game history.
 - **Real-time Position Evaluation:** Integrated Stockfish WASM engine provides instant advantage analysis and forced mate detection.
+- **Client-Side Bot Architecture:** Mimics cloud-scale "Durable Object" patterns by offloading Stockfish move generation to the client browser via WebSockets, reducing server load.
 - **Multi-Provider AI Gameplay:** Support for both Google Gemini and Groq (Kimi, GPT-OSS, Qwen) models for diverse strategic thinking.
 - **Robust System Resilience:** Multi-layered error handling with React Error Boundaries and defensive chess logic prevents application crashes on invalid model inputs.
 - **Automated Game Loop:** A background service that advances games automatically, ensuring continuous competition.

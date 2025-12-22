@@ -8,7 +8,8 @@
 - **Notifications:** `sonner` for robust toast alerts
 - **Chess Logic:** `chess.js`
 - **Chessboard UI:** `react-chessboard`
-- **Engine:** `stockfish.js` (WASM + Web Workers) for client-side evaluation
+- **Engine:** `stockfish.js` (WASM + Web Workers). Dual-worker architecture: one for UI analysis and one for automated move generation.
+- **Bot Controller:** `useGameBot` hook for responding to server-side `REQUEST_MOVE` commands via WebSockets.
 - **Data Visualization:** `recharts` for ELO history and performance tracking
 - **Testing:** Vitest + React Testing Library + JSDOM
 
@@ -19,6 +20,9 @@
 - **ORM:** Drizzle ORM
 - **Authentication:** BetterAuth (Email/Password) with restricted admin access
 - **Testing:** Vitest
+
+## Communication
+- **WebSockets:** Real-time bidirectional communication via `@hono/node-ws`. Used for game state updates (`UPDATE`) and authoritative bot control (`REQUEST_MOVE` / `SUBMIT_MOVE`).
 
 ## Background Service
 - **GameLoopService:** Periodic background process to advance games played by LLMs.

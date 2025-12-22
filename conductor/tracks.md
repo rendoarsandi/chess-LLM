@@ -8,17 +8,15 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Move Stockfish execution to client side via WebSockets to simulate Durable Object architecture and save costs.
-*Link: [./conductor/tracks/stockfish_client_do_20251222/](./conductor/tracks/stockfish_client_do_20251222/)*
-
----
-
 ## [x] Track: changes this project using websocket when watching the game  so no sending empty request per second but only sending request when ai is  actually moved
 *Link: [./conductor/tracks/websocket_updates_20251221/](./conductor/tracks/websocket_updates_20251221/)*
 
 ---
 
 ## Archived Tracks
+
+### [x] Track: Move Stockfish execution to client side via WebSockets to simulate Durable Object architecture and save costs.
+*Link: [./conductor/archive/stockfish_client_do_20251222/](./conductor/archive/stockfish_client_do_20251222/)*
 
 ### [x] Track: Swiss System Tournament Feature mimicking Tilted Tuesday, with Admin roster selection.
 *Link: [./conductor/archive/swiss_tournament_20251221/](./conductor/archive/swiss_tournament_20251221/)*
