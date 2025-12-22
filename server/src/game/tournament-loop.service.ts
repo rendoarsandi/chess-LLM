@@ -3,15 +3,15 @@ import { eq, and, sql } from 'drizzle-orm'
 import { generatePairings } from './swiss'
 import { logger } from './logger'
 import { AlarmService } from './alarm.service'
+import { TournamentService } from './tournament.service'
+import { GameService } from './game.service'
 
 export class TournamentLoopService {
   constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private db: any, 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private tournamentService: any, 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private gameService: any,
+    private tournamentService: TournamentService, 
+    private gameService: GameService,
     private alarmService: AlarmService = new AlarmService()
   ) {}
 
@@ -65,7 +65,7 @@ export class TournamentLoopService {
     }
   }
 
-  private async startTournament(t: any) {
+  private async startTournament(t: typeof tournaments.$inferSelect) {
     logger.info(`[TournamentLoop] Starting tournament: ${t.name} (${t.id})`)
     
     const participants = await this.tournamentService.getParticipants(t.id)
@@ -100,7 +100,7 @@ export class TournamentLoopService {
     this.alarmService.setAlarm(`tournament:${t.id}`, 10000, () => this.advanceTournament(t.id));
   }
 
-  private async pairNextRound(t: any) {
+  private async pairNextRound(t: typeof tournaments.$inferSelect) {
     logger.info(`[TournamentLoop] Advancing tournament ${t.id} to Round ${t.currentRound + 1}`)
     const participants = await this.tournamentService.getParticipants(t.id)
     const playersForSwiss = participants.map((p: { playerId: string, score: number }) => ({ id: p.playerId, score: p.score }))

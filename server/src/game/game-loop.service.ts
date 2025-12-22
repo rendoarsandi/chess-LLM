@@ -8,7 +8,6 @@ import { SocketService } from './socket.service'
 import { AlarmService } from './alarm.service'
 
 export class GameLoopService {
-  private alarmService: AlarmService = new AlarmService()
   private lastRequestTime: Map<string, number> = new Map()
 
   constructor(

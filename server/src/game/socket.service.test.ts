@@ -23,7 +23,15 @@ describe('SocketService', () => {
     socketService.joinRoom('game1', mockWs)
     socketService.joinRoom('game1', mockWs2)
 
-    const message = { type: 'MOVE', fen: 'some-fen' }
+    const message = { 
+      type: 'UPDATE' as const, 
+      fen: 'some-fen',
+      status: 'ongoing' as const,
+      winnerId: null,
+      gameOverReason: null,
+      san: 'e4',
+      pgn: '1. e4'
+    }
     socketService.broadcast('game1', message)
 
     expect(mockWs.send).toHaveBeenCalledWith(JSON.stringify(message))

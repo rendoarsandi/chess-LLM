@@ -186,9 +186,11 @@ app.get(
   '/ws',
   upgradeWebSocket((c) => {
     const gameId = c.req.query('gameId')
+    console.log(`[WebSocket] Upgrade request for gameId: ${gameId}`)
 
     return {
       onOpen(_event, ws) {
+        console.log(`[WebSocket] Connection opened for gameId: ${gameId}`)
         if (gameId) {
           socketService.joinRoom(gameId, ws)
           // Trigger a loop check immediately but with a small delay to ensure connection is stable

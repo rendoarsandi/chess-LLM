@@ -44,7 +44,7 @@ export class StockfishWorker {
   }
 
   private init() {
-
+    console.log('[StockfishWorker] Initializing worker from /stockfish/stockfish.js');
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
       
@@ -54,6 +54,7 @@ export class StockfishWorker {
 
       this.worker.onmessage = (e) => {
         if (this.isTerminated) return;
+        // console.debug('[StockfishWorker] Raw message:', e.data);
         this.handleMessage(e.data);
       };
       
@@ -68,6 +69,7 @@ export class StockfishWorker {
     if (typeof message !== 'string') return;
 
     if (message.startsWith('uciok')) {
+      console.log('[StockfishWorker] Engine UCI ready');
       this.sendMessage('setoption name Threads value 1');
       this.sendMessage('setoption name Hash value 32'); 
       this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);

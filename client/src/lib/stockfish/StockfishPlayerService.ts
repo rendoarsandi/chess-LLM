@@ -10,6 +10,7 @@ export class StockfishPlayerService {
   }
 
   private init() {
+    console.log('[StockfishPlayerService] Initializing worker from /stockfish/stockfish.js');
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
       this.worker.onmessage = (e) => this.handleMessage(e.data);
@@ -24,11 +25,13 @@ export class StockfishPlayerService {
     if (this.isTerminated || typeof message !== 'string') return;
 
     if (message.startsWith('uciok')) {
+      console.log('[StockfishPlayerService] Engine UCI ready');
       this.sendMessage('setoption name Threads value 1');
       this.sendMessage('setoption name Hash value 32');
       this.sendMessage('ucinewgame');
       this.sendMessage('isready');
     } else if (message.startsWith('readyok')) {
+      console.log('[StockfishPlayerService] Engine Ready (readyok)');
       this.isEngineReady = true;
       this.processQueue();
     } else if (message.startsWith('bestmove')) {

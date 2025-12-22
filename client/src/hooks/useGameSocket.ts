@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 
 export interface GameUpdate {
   fen: string
-  status: 'ongoing' | 'completed' | 'draw'
+  status: 'ongoing' | 'completed' | 'draw' | 'paused'
   winnerId: string | null
   gameOverReason: string | null
   san: string
@@ -10,7 +10,7 @@ export interface GameUpdate {
 }
 
 export type SocketMessage = 
-  | { type: 'UPDATE'; fen: string; status: any; winnerId: any; gameOverReason: any; san: string; pgn: string }
+  | { type: 'UPDATE'; fen: string; status: 'ongoing' | 'completed' | 'draw' | 'paused'; winnerId: string | null; gameOverReason: string | null; san: string; pgn: string }
   | { type: 'STATUS'; status: 'thinking' | 'idle' }
   | { type: 'SPECTATORS'; count: number }
   | { type: 'GAME_STARTED'; gameId: string }
@@ -26,6 +26,7 @@ export function useGameSocket(gameId: string | undefined) {
   const [isConnected, setIsConnected] = useState(false)
   const [lastMessage, setLastMessage] = useState<SocketMessage | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
+  const connectRef = useRef<(() => void) | null>(null)
 
   const sendMessage = useCallback((message: ClientMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -40,7 +41,11 @@ export function useGameSocket(gameId: string | undefined) {
     if (socketRef.current?.readyState === WebSocket.OPEN) return
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.host
+    let host = window.location.host
+    // Normalize 0.0.0.0 to localhost for browsers that don't like 0.0.0.0 in WS URLs
+    if (host.startsWith('0.0.0.0')) {
+      host = host.replace('0.0.0.0', 'localhost')
+    }
     const wsUrl = `${protocol}//${host}/ws?gameId=${gameId}`
 
     const socket = new WebSocket(wsUrl)
@@ -79,19 +84,27 @@ export function useGameSocket(gameId: string | undefined) {
       }
     }
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       setIsConnected(false)
       socketRef.current = null
-      console.log(`[WebSocket] Disconnected from game ${gameId}`)
+      console.log(`[WebSocket] Disconnected from game ${gameId}. Code: ${event.code}, Reason: ${event.reason}`)
       // Reconnect after 3 seconds
-      setTimeout(connect, 3000)
+      setTimeout(() => {
+        if (connectRef.current) connectRef.current()
+      }, 3000)
     }
 
-    socket.onerror = (error) => {
-      console.error('[WebSocket] Error:', error)
-      socket.close()
+    socket.onerror = () => {
+      // WebSocket error events are generic and don't contain much info, 
+      // but we can at least log that it occurred.
+      console.error('[WebSocket] Error occurred on connection to:', wsUrl);
+      // Don't close manually here, as onclose will be triggered anyway if it's fatal
     }
   }, [gameId])
+
+  useEffect(() => {
+    connectRef.current = connect
+  }, [connect])
 
   useEffect(() => {
     connect()

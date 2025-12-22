@@ -12,7 +12,7 @@ window.onerror = function(message, source, lineno, colno) {
   const msg = message.toString();
   // Ignore the "unreachable" error from Stockfish if it's not actually crashing the app
   if (msg.includes('RuntimeError: unreachable') || msg.includes('stockfish.wasm')) {
-    console.warn('Suppressed non-fatal Stockfish error:', msg);
+    console.error('CRITICAL: Stockfish engine hit unreachable state:', msg);
     return true; // Prevents the error from showing the default alert/log
   }
   
@@ -25,6 +25,9 @@ window.onunhandledrejection = function(event) {
 };
 
 // Render main app
+console.log('[Main] Secure Context:', window.isSecureContext);
+console.log('[Main] SharedArrayBuffer support:', typeof SharedArrayBuffer !== 'undefined');
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

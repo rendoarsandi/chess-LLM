@@ -33,11 +33,6 @@ import { useGameBot } from "./hooks/useGameBot"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
-const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
-const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
-const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
-
-const STOCKFISH_IDS = [STOCKFISH_LOW_ID, STOCKFISH_MED_ID, STOCKFISH_HIGH_ID];
 
 interface PlayerProfileRouteProps {
   navigate: (path: string) => void;
@@ -422,7 +417,7 @@ function App() {
       // Refresh moves to get thinking data and full history
       getMoves(selectedGame.id).then(setMoves);
     }
-  }, [lastUpdate, selectedGame?.id]);
+  }, [lastUpdate, selectedGame]);
 
   useEffect(() => {
     const handleResize = () => {
