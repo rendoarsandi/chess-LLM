@@ -74,7 +74,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
     if (evaluation.isMate) {
       const m = evaluation.mateIn || 0;
       // Absolute value for display, sign handled by position/color
-      return m === 0 ? '0.0' : `M${Math.abs(m)}`;
+      return m === 0 ? 'M0' : `M${Math.abs(m)}`;
     }
     
     const score = evaluation.score / 100;

@@ -118,8 +118,8 @@ export class StockfishWorker {
       return;
     }
 
-    // Only process info messages that have a score AND a PV
-    if (message.startsWith('info') && message.includes('score') && message.includes(' pv ')) {
+    // Process info messages that have a score
+    if (message.startsWith('info') && message.includes('score')) {
       const evaluation = this.parseInfo(message);
       
       // Safety check: only emit evaluations for the most recent FEN request

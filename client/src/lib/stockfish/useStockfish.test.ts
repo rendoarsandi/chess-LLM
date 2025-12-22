@@ -118,4 +118,19 @@ describe('useStockfish', () => {
     unmount();
     expect(mockTerminate).toHaveBeenCalled();
   });
+
+  it('should detect terminal FEN immediately without engine analysis', () => {
+    // Fool's mate position (White is checkmated)
+    const checkmateFen = 'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 0 1';
+    const { result } = renderHook(() => useStockfish(checkmateFen));
+
+    // Should update immediately (no need to wait for debounce)
+    expect(result.current.evaluation).toEqual(expect.objectContaining({
+      isMate: true,
+      mateIn: 0,
+      sideToMove: 'w'
+    }));
+    expect(result.current.isThinking).toBe(false);
+    expect(mockAnalyze).not.toHaveBeenCalled();
+  });
 });

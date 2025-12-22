@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { StockfishWorker } from './StockfishWorker';
 import type { EngineEvaluation } from './StockfishWorker';
+import { Chess } from 'chess.js';
 
 export function useStockfish(fen: string | null, onBestMove?: (move: string) => void) {
   const [evaluation, setEvaluation] = useState<EngineEvaluation | null>(null);
@@ -46,6 +47,36 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
     if (fen && engineRef.current && fen !== lastFenRef.current) {
       lastFenRef.current = fen;
       
+      // Immediate detection of terminal positions to avoid stale evaluations
+      try {
+        const chess = new Chess(fen);
+        if (chess.isGameOver()) {
+          const sideToMove = fen.split(' ')[1] as 'w' | 'b';
+          if (chess.isCheckmate()) {
+            setEvaluation({
+              score: 0,
+              isMate: true,
+              mateIn: 0,
+              depth: 0,
+              sideToMove
+            });
+          } else {
+            // Draw
+            setEvaluation({
+              score: 0,
+              isMate: false,
+              depth: 0,
+              sideToMove
+            });
+          }
+          setIsThinking(false);
+          setVariations({});
+          return;
+        }
+      } catch (e) {
+        console.warn('[useStockfish] Invalid FEN:', fen, e);
+      }
+
       // We use a small timeout to avoid "setState in effect" lint error for synchronous calls
       setTimeout(() => setIsThinking(true), 0);
       

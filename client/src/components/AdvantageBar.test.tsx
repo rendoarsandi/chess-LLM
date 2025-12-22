@@ -53,6 +53,18 @@ describe('AdvantageBar', () => {
     expect(whiteBar).toHaveStyle({ height: '0%' });
   });
 
+  it('handles mateIn: 0 (checkmate) correctly', () => {
+    const { container, rerender } = render(<AdvantageBar evaluation={{ score: 0, isMate: true, mateIn: 0, sideToMove: 'w', depth: 0 }} />);
+    let whiteBar = container.querySelector('.bg-white');
+    expect(whiteBar).toHaveStyle({ height: '0%' }); // White is checkmated
+    expect(screen.getByText('M0')).toBeInTheDocument();
+
+    rerender(<AdvantageBar evaluation={{ score: 0, isMate: true, mateIn: 0, sideToMove: 'b', depth: 0 }} />);
+    whiteBar = container.querySelector('.bg-white');
+    expect(whiteBar).toHaveStyle({ height: '100%' }); // Black is checkmated
+    expect(screen.getByText('M0')).toBeInTheDocument();
+  });
+
   it('renders horizontal orientation correctly', () => {
     const evalData = { score: 100, isMate: false, depth: 10 }; // +1.0
     const { container } = render(<AdvantageBar evaluation={evalData} orientation="horizontal" />);

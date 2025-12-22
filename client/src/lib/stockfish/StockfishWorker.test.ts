@@ -132,6 +132,25 @@ describe('StockfishWorker', () => {
     }));
   });
 
+  it('should parse mate 0 (checkmate) even without PV', () => {
+    vi.advanceTimersByTime(100);
+    activeWorker.simulateMessage('uciok');
+    activeWorker.simulateMessage('readyok');
+
+    const fen = 'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 0 1';
+    worker.analyze(fen, 10);
+    
+    // Checkmate position - Stockfish might report mate 0 without PV
+    const infoMessage = 'info depth 0 score mate 0';
+    activeWorker.simulateMessage(infoMessage);
+
+    expect(mockCallback).toHaveBeenCalledWith(expect.objectContaining({
+      isMate: true,
+      mateIn: 0,
+      sideToMove: 'w'
+    }));
+  });
+
   it('should wait for bestmove after stop before starting next analysis', () => {
     vi.advanceTimersByTime(100);
     activeWorker.simulateMessage('uciok');
