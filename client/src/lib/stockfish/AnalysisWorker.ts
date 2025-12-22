@@ -48,9 +48,11 @@ export class AnalysisWorker {
       this.sendMessage('setoption name Hash value 32');
       this.sendMessage('ucinewgame');
       this.sendMessage('isready');
-    } else if (message.startsWith('readyok')) {
-      this.isEngineReady = true;
-    } else if (message.startsWith('info') && this.currentAnalysis) {
+        } else if (message.startsWith('readyok')) {
+          console.log('[AnalysisWorker] Engine is READY');
+          this.isEngineReady = true;
+        }
+     else if (message.startsWith('info') && this.currentAnalysis) {
       const parsed = this.parseInfoLine(message);
       if (parsed) {
         // Only keep the highest depth info for each multipv

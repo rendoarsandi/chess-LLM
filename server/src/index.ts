@@ -459,6 +459,16 @@ app.post('/api/reviews/worker/submit', async (c) => {
   }
 })
 
+app.post('/api/reviews/worker/failure', async (c) => {
+  try {
+    const { reviewId } = await c.req.json()
+    await gameReviewService.reportFailure(reviewId)
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 400)
+  }
+})
+
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 console.log(`Server is running on port ${port}`)
 

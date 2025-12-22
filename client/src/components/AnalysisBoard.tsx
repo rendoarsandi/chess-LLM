@@ -12,6 +12,9 @@ interface AnalysisBoardProps {
   lastMoveSquares?: { from: string; to: string };
   gameId?: string;
   pgn?: string;
+  gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
+  winnerId?: string | null;
+  whitePlayerId?: string;
 }
 
 export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
@@ -21,7 +24,10 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   variations,
   lastMoveSquares,
   gameId,
-  pgn
+  pgn,
+  gameStatus,
+  winnerId,
+  whitePlayerId
 }) => {
   return (
     <div className="flex gap-4 w-full h-full max-h-[600px]">
@@ -31,6 +37,9 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
           variations={variations}
           orientation="vertical"
           boardOrientation={orientation}
+          gameStatus={gameStatus}
+          winnerId={winnerId}
+          whitePlayerId={whitePlayerId}
         />
       </div>
       <div className="flex-1 aspect-square relative group">

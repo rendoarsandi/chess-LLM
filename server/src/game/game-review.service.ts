@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto'
 
 export interface MoveAnalysis {
   moveNumber: number;
+  playerColor: 'white' | 'black';
   classification: string;
   evaluation: number;
   bestLine?: string;
@@ -25,30 +26,63 @@ export class GameReviewService {
       .limit(1)
 
     if (existing.length > 0) {
-      return existing[0]
+      const review = existing[0]
+      if (review.status === 'failed') {
+        // Reset failed review
+        await this.db.update(gameReviews)
+          .set({ 
+            status: 'queued', 
+            workerId: null, 
+            startedAt: null, 
+            lastHeartbeat: null, 
+            progressCurrent: 0, 
+            progressTotal: 0,
+            completedAt: null 
+          })
+          .where(eq(gameReviews.id, review.id))
+        return { ...review, status: 'queued', workerId: null }
+      }
+      return review
     }
 
     const id = randomUUID()
+    console.log(`[GameReviewService] Creating new review ${id} for game ${gameId}`);
     const newReview = {
       id,
       gameId,
       status: 'queued' as const,
-      createdAt: new Date()
+      // Let database handle createdAt default
     }
 
-    await this.db.insert(gameReviews).values(newReview)
+    try {
+        await this.db.insert(gameReviews).values(newReview)
+        console.log(`[GameReviewService] Successfully persisted review ${id}`);
+    } catch (e) {
+        console.error(`[GameReviewService] Failed to persist review ${id}:`, e);
+        throw e; // Rethrow so the API returns an error instead of a fake success
+    }
     return newReview
   }
 
   async claimJob(workerId: string) {
     // Reset stuck jobs first
-    const timeout = new Date(Date.now() - 5000) // 5 seconds heartbeat timeout
-    await this.db.update(gameReviews)
-      .set({ status: 'queued', workerId: null, startedAt: null, lastHeartbeat: null, progressCurrent: 0, progressTotal: 0 })
+    const timeout = new Date(Date.now() - 10000) // 10 seconds heartbeat timeout
+    const stuckJobs = await this.db.select()
+      .from(gameReviews)
       .where(and(
         eq(gameReviews.status, 'processing'),
         lt(gameReviews.lastHeartbeat, timeout)
       ))
+
+    if (stuckJobs.length > 0) {
+      console.log(`[GameReviewService] Resetting ${stuckJobs.length} stuck jobs`);
+      await this.db.update(gameReviews)
+        .set({ status: 'queued', workerId: null, startedAt: null, lastHeartbeat: null, progressCurrent: 0, progressTotal: 0 })
+        .where(and(
+          eq(gameReviews.status, 'processing'),
+          lt(gameReviews.lastHeartbeat, timeout)
+        ))
+    }
 
     // Find oldest queued job
     const jobs = await this.db.select()
@@ -62,6 +96,8 @@ export class GameReviewService {
     }
 
     const job = jobs[0]
+    console.log(`[GameReviewService] Worker ${workerId} attempting to claim job ${job.id}`);
+    
     const updated = {
       status: 'processing' as const,
       workerId,
@@ -73,9 +109,27 @@ export class GameReviewService {
 
     await this.db.update(gameReviews)
       .set(updated)
-      .where(eq(gameReviews.id, job.id))
+      .where(and(
+        eq(gameReviews.id, job.id),
+        eq(gameReviews.status, 'queued')
+      ))
 
+    // For better-sqlite3, drizzle might return the result or we might need to check differently
+    // Actually, in drizzle-orm with better-sqlite3, .run() returns { changes: number }
+    // Let's use a try-catch or a more generic check
+    console.log(`[GameReviewService] Worker ${workerId} claim attempt finished for job ${job.id}`);
+    
     return { ...job, ...updated }
+  }
+
+  async reportFailure(reviewId: string) {
+    await this.db.update(gameReviews)
+      .set({ 
+        status: 'failed',
+        completedAt: new Date(),
+        // We could add an error column to gameReviews if we wanted to store it
+      })
+      .where(eq(gameReviews.id, reviewId))
   }
 
   async updateProgress(reviewId: string, current: number, total: number) {
@@ -108,6 +162,7 @@ export class GameReviewService {
       const analyses = results.map(r => ({
         reviewId,
         moveNumber: r.moveNumber,
+        playerColor: r.playerColor,
         classification: r.classification,
         evaluation: r.evaluation.toString(),
         bestLine: r.bestLine,

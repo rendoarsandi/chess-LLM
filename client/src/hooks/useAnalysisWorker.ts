@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { claimJob, getMoves, sendHeartbeat, submitResults, updateProgress } from '../api';
+import { claimJob, getMoves, sendHeartbeat, submitResults, updateProgress, reportFailure } from '../api';
 import type { MoveAnalysis } from '../api';
 import { AnalysisWorker } from '../lib/stockfish/AnalysisWorker';
 import { ClassificationEngine } from '../lib/ClassificationEngine';
@@ -24,14 +24,22 @@ export function useAnalysisWorker(enabled: boolean = true) {
     let heartbeatId: ReturnType<typeof setInterval> | null = null;
 
     const poll = async () => {
-      if (isProcessingRef.current) return;
+      if (isProcessingRef.current) {
+        console.debug('[useAnalysisWorker] Already processing, skipping poll');
+        return;
+      }
 
       try {
         console.debug(`[useAnalysisWorker] Polling for jobs... (ID: ${WORKER_ID})`);
         const job = await claimJob(WORKER_ID);
-        if ('id' in job && job.status === 'processing') {
+        
+        if (job && 'id' in job && job.status === 'processing') {
+          if (isProcessingRef.current) {
+             console.warn('[useAnalysisWorker] Race condition detected, ignoring second job');
+             return;
+          }
           isProcessingRef.current = true;
-          console.info(`[useAnalysisWorker] Claimed job: ${job.id} for game ${job.gameId}`);
+          console.info(`[useAnalysisWorker] === STARTING JOB: ${job.id} ===`);
 
           // Start heartbeat
           heartbeatId = setInterval(() => {
@@ -40,15 +48,20 @@ export function useAnalysisWorker(enabled: boolean = true) {
 
           try {
             await processJob(job.id, job.gameId);
-            console.info(`[useAnalysisWorker] Successfully finished job: ${job.id}`);
+            console.info(`[useAnalysisWorker] === FINISHED JOB: ${job.id} ===`);
           } catch (processError) {
-            console.error(`[useAnalysisWorker] Error processing job ${job.id}:`, processError);
+            const errorMsg = processError instanceof Error ? processError.message : String(processError);
+            console.error(`[useAnalysisWorker] !!! JOB FAILED: ${job.id} !!!`, errorMsg);
+            await reportFailure(job.id, errorMsg).catch(err => console.error('[useAnalysisWorker] Failed to report failure:', err));
           } finally {
-            if (heartbeatId) clearInterval(heartbeatId);
+            if (heartbeatId) {
+                clearInterval(heartbeatId);
+                heartbeatId = null;
+            }
             isProcessingRef.current = false;
           }
         } else {
-          console.debug('[useAnalysisWorker] No jobs available');
+          console.log('[useAnalysisWorker] No jobs available', job);
         }
       } catch (error) {
         console.error('[useAnalysisWorker] Polling error:', error);
@@ -58,46 +71,97 @@ export function useAnalysisWorker(enabled: boolean = true) {
     };
 
     const processJob = async (reviewId: string, gameId: string) => {
+      console.log(`[useAnalysisWorker] [${reviewId}] Step 1: Fetching moves...`);
       const moves = await getMoves(gameId);
       const totalMoves = moves.length;
+      console.log(`[useAnalysisWorker] [${reviewId}] Step 2: Found ${totalMoves} moves`);
+      
       const analyses: MoveAnalysis[] = [];
       const chess = new Chess();
+
+      const getNumericEval = (pv: { cp?: number; mate?: number } | undefined, isWhiteTurn: boolean) => {
+        if (!pv) return 0;
+        if (pv.mate !== undefined) {
+          // Absolute evaluation: Positive is better for the player whose turn it is in the PV result
+          // But Stockfish returns mate from the perspective of the side to move.
+          // We want to normalize this so Positive is always White advantage.
+          const mateValue = pv.mate > 0 ? 10000 - pv.mate : -10000 - pv.mate;
+          return isWhiteTurn ? mateValue : -mateValue;
+        }
+        return isWhiteTurn ? (pv.cp ?? 0) : -(pv.cp ?? 0);
+      };
 
       // Analyze each move
       for (let i = 0; i < totalMoves; i++) {
         const move = moves[i];
-        // We need the FEN BEFORE the move to know what the best move was
         const beforeFen = chess.fen();
+        const isWhiteTurn = beforeFen.split(' ')[1] === 'w';
         
-        // Use depth 20 for analysis
-        const result = await analysisWorkerRef.current!.analyzePosition(beforeFen, 20, 3);
+        console.log(`[useAnalysisWorker] [${reviewId}] Step 3: Analyzing move ${i + 1}/${totalMoves} (${move.move})`);
         
-        // Update chess board with the move played in the game
-        const moveResult = chess.move(move.move);
-        if (!moveResult) {
-            console.error(`[useAnalysisWorker] Invalid move found in game history: ${move.move}`);
-            break;
+        const result = await analysisWorkerRef.current!.analyzePosition(beforeFen, 18, 3);
+        
+        // Safe result handling
+        const topPV = result.pvs[0];
+        if (!topPV) {
+            console.warn(`[useAnalysisWorker] [${reviewId}] No engine PVs for position: ${beforeFen}`);
+            analyses.push({
+                moveNumber: move.moveNumber,
+                playerColor: move.playerColor,
+                classification: 'good',
+                evaluation: 0,
+                bestLine: ''
+            });
+            continue;
         }
 
-        const moveEval = result.pvs.find(p => p.pv.startsWith(move.move))?.cp ?? result.pvs[0].cp ?? 0;
-        const bestMoveEval = result.pvs[0].cp ?? 0;
+        // Find if played move is in top PVs
+        let movePV = result.pvs.find(p => p.pv.startsWith(move.move));
+        
+        // If move is NOT in top 3, we MUST evaluate it specifically to get its real score
+        if (!movePV) {
+            console.log(`[useAnalysisWorker] [${reviewId}] Move ${move.move} not in top 3, performing dedicated evaluation...`);
+            const chessTemp = new Chess(beforeFen);
+            try {
+                chessTemp.move(move.move);
+                const afterFen = chessTemp.fen();
+                const isAfterWhiteTurn = afterFen.split(' ')[1] === 'w';
+                
+                // Analyze the position AFTER the move
+                const afterResult = await analysisWorkerRef.current!.analyzePosition(afterFen, 18, 1);
+                const afterEval = getNumericEval(afterResult.pvs[0], isAfterWhiteTurn);
+                
+                // The eval for the current move is the same as the position it leads to
+                movePV = { cp: afterEval, pv: move.move, multipv: 0, depth: 18 };
+            } catch (e) {
+                console.warn(`[useAnalysisWorker] [${reviewId}] Failed to evaluate custom move:`, e);
+                movePV = topPV; // Fallback
+            }
+        }
+
+        const moveEval = getNumericEval(movePV, true); // Normalize all to White perspective for classification
+        const bestMoveEval = getNumericEval(topPV, true);
         
         const classification = ClassificationEngine.classify({
-            beforeEval: 0, // Placeholder if not needed for simple logic
+            beforeEval: 0,
             bestMoveEval: bestMoveEval / 100,
             moveEval: moveEval / 100,
-            isBestMove: result.bestMove === move.move || result.pvs[0].pv.startsWith(move.move)
+            isBestMove: result.bestMove === move.move || topPV.pv.startsWith(move.move)
         });
 
         analyses.push({
           moveNumber: move.moveNumber,
+          playerColor: move.playerColor,
           classification,
           evaluation: moveEval / 100,
-          bestLine: result.pvs[0].pv
+          bestLine: topPV.pv
         });
 
         // Report progress
         await updateProgress(reviewId, i + 1, totalMoves);
+
+        // Also update chess instance for next iteration
+        chess.move(move.move);
       }
 
       await submitResults(reviewId, analyses);

@@ -132,8 +132,8 @@ describe('Game Review API Endpoints', () => {
     const { id: reviewId } = await claimRes.json()
 
     const results = [
-      { moveNumber: 1, classification: 'best', evaluation: 0.5, bestLine: 'e4 e5' },
-      { moveNumber: 2, classification: 'excellent', evaluation: 0.4, bestLine: 'd4 d5' }
+      { moveNumber: 1, playerColor: 'white', classification: 'best', evaluation: 0.5, bestLine: 'e4 e5' },
+      { moveNumber: 2, playerColor: 'black', classification: 'excellent', evaluation: 0.4, bestLine: 'd4 d5' }
     ]
 
     const res = await app.request('/api/reviews/worker/submit', {
@@ -151,6 +151,28 @@ describe('Game Review API Endpoints', () => {
     
     const analyses = await db.select().from(moveAnalyses).where(eq(moveAnalyses.reviewId, reviewId))
     expect(analyses.length).toBe(2)
+  })
+
+  it('POST /api/reviews/worker/failure should report failure', async () => {
+    // Request and claim
+    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    const claimRes = await app.request('/api/reviews/worker/claim', {
+      method: 'POST',
+      body: JSON.stringify({ workerId: testWorkerId }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    const { id: reviewId } = await claimRes.json()
+
+    const res = await app.request('/api/reviews/worker/failure', {
+      method: 'POST',
+      body: JSON.stringify({ reviewId }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    expect(res.status).toBe(200)
+    
+    // Verify in DB
+    const review = await db.select().from(gameReviews).where(eq(gameReviews.id, reviewId)).limit(1)
+    expect(review[0].status).toBe('failed')
   })
 
   it('GET /api/reviews/:gameId should return review status and results', async () => {
@@ -174,7 +196,7 @@ describe('Game Review API Endpoints', () => {
       method: 'POST',
       body: JSON.stringify({ 
         reviewId, 
-        results: [{ moveNumber: 1, classification: 'best', evaluation: 0.5, bestLine: 'e4' }] 
+        results: [{ moveNumber: 1, playerColor: 'white', classification: 'best', evaluation: 0.5, bestLine: 'e4' }] 
       }),
       headers: { 'Content-Type': 'application/json' }
     })

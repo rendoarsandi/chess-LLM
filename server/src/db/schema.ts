@@ -74,6 +74,7 @@ export const moveAnalyses = sqliteTable('move_analyses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   reviewId: text('review_id').references(() => gameReviews.id).notNull(),
   moveNumber: integer('move_number').notNull(),
+  playerColor: text('player_color', { enum: ['white', 'black'] }).notNull(),
   classification: text('classification').notNull(),
   evaluation: text('evaluation').notNull(),
   bestLine: text('best_line'),

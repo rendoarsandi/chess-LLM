@@ -9,12 +9,14 @@ interface GameReviewDashboardProps {
   review: (GameReview & { analyses?: MoveAnalysis[] }) | null;
   whitePlayer?: Player;
   blackPlayer?: Player;
+  onRetry?: () => void;
 }
 
 export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
   review,
   whitePlayer,
-  blackPlayer
+  blackPlayer,
+  onRetry
 }) => {
   const isLocalWorkerActive = review?.workerId?.startsWith('worker-');
 
@@ -22,14 +24,14 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
 
   const isCompleted = review.status === 'completed';
   const isProcessing = review.status === 'processing';
+  const isFailed = review.status === 'failed';
   const progress = review.progressTotal > 0 ? (review.progressCurrent / review.progressTotal) * 100 : 0;
 
   const getClassificationCounts = (playerColor: 'white' | 'black') => {
     if (!review.analyses) return {};
     const counts: Record<string, number> = {};
-    review.analyses.forEach((analysis, idx) => {
-      const isWhite = idx % 2 === 0;
-      if ((isWhite && playerColor === 'white') || (!isWhite && playerColor === 'black')) {
+    review.analyses.forEach((analysis) => {
+      if (analysis.playerColor === playerColor) {
         counts[analysis.classification] = (counts[analysis.classification] || 0) + 1;
       }
     });
@@ -38,21 +40,29 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
 
   const calculateAccuracy = (playerColor: 'white' | 'black') => {
     if (!review.analyses) return 0;
-    let totalScore = 0;
+    let totalWeight = 0;
     let count = 0;
-    review.analyses.forEach((analysis, idx) => {
-      const isWhite = idx % 2 === 0;
-      if ((isWhite && playerColor === 'white') || (!isWhite && playerColor === 'black')) {
-        // Simple accuracy formula: map classification to 0-100
-        const scores: Record<string, number> = {
-          brilliant: 100, great: 95, best: 100, excellent: 90, 
-          good: 80, book: 100, inaccuracy: 60, mistake: 40, blunder: 20, miss: 30
+    review.analyses.forEach((analysis) => {
+      if (analysis.playerColor === playerColor) {
+        // Non-linear weights to punish blunders and mistakes more heavily
+        const weights: Record<string, number> = {
+          brilliant: 100,
+          great: 95,
+          best: 100,
+          excellent: 90,
+          good: 75,
+          book: 100,
+          inaccuracy: 40,
+          mistake: 15,
+          blunder: 0,
+          miss: 10
         };
-        totalScore += scores[analysis.classification] || 0;
+        totalWeight += weights[analysis.classification] ?? 70;
         count++;
       }
     });
-    return count > 0 ? Math.round(totalScore / count) : 0;
+    // In very short games, accuracy drops faster if you blunder early
+    return count > 0 ? Math.round(totalWeight / count) : 0;
   };
 
   const ClassificationStat = ({ type, count }: { type: string, count: number }) => {
@@ -106,16 +116,39 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
       </div>
 
       {isProcessing && (
-        <div className="px-4 py-1 bg-primary/5 border-b border-border flex items-center justify-between">
+        <div className="px-4 py-1 bg-primary/5 border-b border-border flex flex-col gap-1">
           <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">
             <div className={cn("w-1.5 h-1.5 rounded-full", isLocalWorkerActive ? "bg-primary animate-pulse" : "bg-muted")} />
             {isLocalWorkerActive ? "Your browser is analyzing" : "Remote worker active"}
+          </div>
+          <div className="text-[6px] font-mono text-muted-foreground opacity-50">
+            Worker ID: {review.workerId}
           </div>
         </div>
       )}
 
       <div className="p-6 space-y-6">
-        {(!isCompleted && !isProcessing) && (
+        {isFailed && (
+          <div className="py-8 text-center space-y-4">
+            <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto">
+              <XCircle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-bold uppercase tracking-widest text-red-500">Analysis Failed</p>
+              <p className="text-xs text-muted-foreground">The worker encountered an error while analyzing this game.</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="font-black text-[10px] tracking-widest uppercase h-8"
+              onClick={onRetry}
+            >
+              RETRY ANALYSIS
+            </Button>
+          </div>
+        )}
+
+        {(!isCompleted && !isProcessing && !isFailed) && (
           <div className="py-8 text-center space-y-4">
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto">
               <Loader2 className="w-6 h-6 animate-spin" />

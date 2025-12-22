@@ -14,9 +14,8 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
   const renderClassificationIcon = (moveNumber: number, playerColor: 'white' | 'black') => {
     if (!analyses) return null;
     
-    // Analyses are sequential: 1w, 1b, 2w, 2b...
-    const index = (moveNumber - 1) * 2 + (playerColor === 'white' ? 0 : 1);
-    const analysis = analyses[index];
+    // Find analysis by moveNumber and playerColor
+    const analysis = analyses.find(a => a.moveNumber === moveNumber && a.playerColor === playerColor);
     
     if (!analysis) return null;
 
@@ -38,9 +37,9 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
 
     const Icon = cfg.icon;
     return (
-      <div className={cn("flex items-center gap-0.5", cfg.color)} title={analysis.classification.toUpperCase()}>
-        <Icon className="w-3 h-3" />
-        {cfg.label && <span className="text-[8px] font-black">{cfg.label}</span>}
+      <div className={cn("inline-flex items-center gap-0.5 ml-1", cfg.color)} title={analysis.classification.toUpperCase()}>
+        <Icon className="w-2.5 h-2.5" />
+        {cfg.label && <span className="text-[7px] font-black">{cfg.label}</span>}
       </div>
     );
   };
@@ -86,28 +85,30 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
                 </td>
                 <td className="w-1/2">
                   {pair.white && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => onMoveClick(pair.white!.idx)}
-                        className={`flex-1 text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                      >
-                        {pair.white.m.move}
-                      </button>
+                    <button
+                      onClick={() => onMoveClick(pair.white!.idx)}
+                      className={cn(
+                        "w-full flex items-center px-2 py-1 rounded font-medium transition-colors text-left",
+                        selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                      )}
+                    >
+                      <span className="truncate">{pair.white.m.move}</span>
                       {renderClassificationIcon(pair.number, 'white')}
-                    </div>
+                    </button>
                   )}
                 </td>
                 <td className="w-1/2">
                   {pair.black && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => onMoveClick(pair.black!.idx)}
-                        className={`flex-1 text-left px-2 py-1 rounded font-medium transition-colors ${selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
-                      >
-                        {pair.black.m.move}
-                      </button>
+                    <button
+                      onClick={() => onMoveClick(pair.black!.idx)}
+                      className={cn(
+                        "w-full flex items-center px-2 py-1 rounded font-medium transition-colors text-left",
+                        selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                      )}
+                    >
+                      <span className="truncate">{pair.black.m.move}</span>
                       {renderClassificationIcon(pair.number, 'black')}
-                    </div>
+                    </button>
                   )}
                 </td>
               </tr>

@@ -73,8 +73,11 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
     if (!evaluation) return '';
     if (evaluation.isMate) {
       const m = evaluation.mateIn || 0;
-      // Absolute value for display, sign handled by position/color
-      return m === 0 ? 'M0' : `M${Math.abs(m)}`;
+      if (m === 0) {
+        // If it's white's turn and they are mated, black wins (0-1)
+        return evaluation.sideToMove === 'w' ? '0-1' : '1-0';
+      }
+      return `M${Math.abs(m)}`;
     }
     
     const score = evaluation.score / 100;

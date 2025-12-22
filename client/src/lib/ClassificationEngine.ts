@@ -28,22 +28,34 @@ export class ClassificationEngine {
     if (context.isBookMove) return 'book';
 
     const { bestMoveEval, moveEval, isBestMove, isSacrifice } = context;
-    const cpLoss = bestMoveEval - moveEval;
+    const cpLoss = Math.abs(bestMoveEval - moveEval);
 
     if (isBestMove) {
       if (isSacrifice && cpLoss <= 0.2) return 'brilliant';
       return 'best';
     }
 
-    // Miss: When you had a winning advantage but played something that lost most of it
+    // Special handling for Mates (values > 90.0)
+    const isBestMoveMate = Math.abs(bestMoveEval) > 90;
+    const isMoveMate = Math.abs(moveEval) > 90;
+
+    if (isBestMoveMate && !isMoveMate) {
+        // You had a mate but lost it
+        return 'blunder';
+    }
+
+    // Miss: When you had a winning advantage (>1.5) but played something that lost it (<0.6)
     if (bestMoveEval > 1.5 && moveEval < 0.6) {
         return 'miss';
     }
+    if (bestMoveEval < -1.5 && moveEval > -0.6) {
+        return 'miss';
+    }
 
-    if (cpLoss > 2.0) return 'blunder';
-    if (cpLoss > 0.8) return 'mistake';
-    if (cpLoss > 0.3) return 'inaccuracy';
-    if (cpLoss < 0.1) return 'excellent';
+    if (cpLoss > 1.0) return 'blunder';
+    if (cpLoss > 0.5) return 'mistake';
+    if (cpLoss > 0.2) return 'inaccuracy';
+    if (cpLoss < 0.05) return 'excellent';
     
     return 'good';
   }

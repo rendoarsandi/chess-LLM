@@ -32,6 +32,17 @@ export const AnalysisMode: React.FC = () => {
     }
   }, [gameId]);
 
+  const handleRetry = async () => {
+    if (!gameId) return;
+    try {
+      const newReview = await requestReview(gameId);
+      setReview(newReview);
+      toast.info("Retrying game review...");
+    } catch {
+      toast.error("Failed to retry game review");
+    }
+  };
+
   useEffect(() => {
     if (!gameId) return;
     
@@ -50,15 +61,20 @@ export const AnalysisMode: React.FC = () => {
 
         // Initial check for review
         try {
+          console.log(`[AnalysisMode] Checking status for game: ${gameId}`);
           const reviewData = await getReviewStatus(gameId);
+          console.log(`[AnalysisMode] Found existing review:`, reviewData);
           setReview(reviewData);
-        } catch {
+        } catch (error) {
+          console.log(`[AnalysisMode] No review found, requesting new one:`, error);
           // If no review exists, request one automatically
           try {
             const newReview = await requestReview(gameId);
+            console.log(`[AnalysisMode] New review requested:`, newReview);
             setReview(newReview);
             toast.info("Starting automatic game review...");
-          } catch {
+          } catch (requestError) {
+            console.error(`[AnalysisMode] Failed to start game review:`, requestError);
             toast.error("Failed to start game review");
           }
         }
@@ -150,6 +166,9 @@ export const AnalysisMode: React.FC = () => {
               lastMoveSquares={lastMoveSquares}
               gameId={game?.id}
               pgn={currentPgn}
+              gameStatus={game?.status}
+              winnerId={game?.winnerId}
+              whitePlayerId={game?.whitePlayerId}
             />
           </div>
           <div className="w-full max-w-[600px] flex flex-col gap-4">
@@ -161,25 +180,6 @@ export const AnalysisMode: React.FC = () => {
               prevDisabled={activeIndex === 0}
               nextDisabled={activeIndex === moves.length - 1}
             />
-            
-            {currentAnalysis && (
-              <div className="p-4 bg-muted/50 rounded-lg border border-border animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Engine Review</span>
-                  <div className="text-[10px] font-mono text-primary">Eval: {(currentAnalysis.evaluation).toFixed(2)}</div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-lg font-bold uppercase italic text-primary">
-                    {currentAnalysis.classification}
-                  </div>
-                  {currentAnalysis.bestLine && (
-                    <div className="text-[10px] font-mono text-muted-foreground truncate">
-                      Best: {currentAnalysis.bestLine.split(' ').slice(0, 5).join(' ')}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -189,6 +189,7 @@ export const AnalysisMode: React.FC = () => {
             review={review}
             whitePlayer={whitePlayer}
             blackPlayer={blackPlayer}
+            onRetry={handleRetry}
           />
           
           <div className="flex-1 min-h-0">

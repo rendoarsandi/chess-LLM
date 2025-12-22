@@ -254,6 +254,7 @@ export interface GameReview {
 
 export interface MoveAnalysis {
   moveNumber: number;
+  playerColor: 'white' | 'black';
   classification: string;
   evaluation: number;
   bestLine?: string;
@@ -261,46 +262,118 @@ export interface MoveAnalysis {
 
 export async function requestReview(gameId: string): Promise<GameReview> {
   const res = await fetch(`${API_URL}/reviews/${gameId}`, { method: 'POST' });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to request review');
+  }
   return res.json();
 }
 
 export async function getReviewStatus(gameId: string): Promise<GameReview & { analyses?: MoveAnalysis[] }> {
   const res = await fetch(`${API_URL}/reviews/${gameId}`);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch review status');
+  }
   return res.json();
 }
 
 export async function claimJob(workerId: string): Promise<GameReview | { message: string }> {
+
   const res = await fetch(`${API_URL}/reviews/worker/claim`, {
+
     method: 'POST',
+
     body: JSON.stringify({ workerId }),
+
     headers: { 'Content-Type': 'application/json' }
+
   });
+
+  if (!res.ok) throw new Error('Failed to claim job');
+
   return res.json();
+
 }
+
+
 
 export async function sendHeartbeat(reviewId: string): Promise<{ success: boolean }> {
+
   const res = await fetch(`${API_URL}/reviews/worker/heartbeat`, {
+
     method: 'POST',
+
     body: JSON.stringify({ reviewId }),
+
     headers: { 'Content-Type': 'application/json' }
+
   });
+
+  if (!res.ok) throw new Error('Failed to send heartbeat');
+
   return res.json();
+
 }
+
+
 
 export async function updateProgress(reviewId: string, current: number, total: number): Promise<{ success: boolean }> {
+
   const res = await fetch(`${API_URL}/reviews/worker/progress`, {
+
     method: 'POST',
+
     body: JSON.stringify({ reviewId, current, total }),
+
     headers: { 'Content-Type': 'application/json' }
+
   });
+
+  if (!res.ok) throw new Error('Failed to update progress');
+
   return res.json();
+
 }
 
+
+
 export async function submitResults(reviewId: string, results: MoveAnalysis[]): Promise<{ success: boolean }> {
+
   const res = await fetch(`${API_URL}/reviews/worker/submit`, {
+
     method: 'POST',
+
     body: JSON.stringify({ reviewId, results }),
+
     headers: { 'Content-Type': 'application/json' }
+
   });
+
+  if (!res.ok) throw new Error('Failed to submit results');
+
   return res.json();
+
 }
+
+
+
+export async function reportFailure(reviewId: string, error: string): Promise<{ success: boolean }> {
+
+  const res = await fetch(`${API_URL}/reviews/worker/failure`, {
+
+    method: 'POST',
+
+    body: JSON.stringify({ reviewId, error }),
+
+    headers: { 'Content-Type': 'application/json' }
+
+  });
+
+  if (!res.ok) throw new Error('Failed to report failure');
+
+  return res.json();
+
+}
+
+
