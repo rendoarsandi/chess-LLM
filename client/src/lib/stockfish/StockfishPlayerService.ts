@@ -10,6 +10,7 @@ export class StockfishPlayerService {
   }
 
   private init() {
+    console.log('[StockfishPlayerService] Initializing worker. Origin:', window.location.origin, 'Path:', window.location.pathname);
     console.log('[StockfishPlayerService] Initializing worker from /stockfish/stockfish.js');
     if (typeof Worker === 'undefined') {
       console.error('[StockfishPlayerService] Web Workers are not supported in this environment.');
@@ -18,16 +19,31 @@ export class StockfishPlayerService {
     }
     try {
       console.log('[StockfishPlayerService] Attempting to create Worker...');
-      this.worker = new Worker('/stockfish/stockfish.js');
+      const workerUrl = new URL('/stockfish/stockfish-17.1-lite-single-03e3232.js', window.location.origin).href;
+
+      // Pre-flight check to see if the script is accessible
+      fetch(workerUrl, { method: 'HEAD' })
+        .then(resp => {
+          console.log('[StockfishPlayerService] Pre-flight check status:', resp.status, resp.statusText);
+          if (!resp.ok) console.error('[StockfishPlayerService] Worker script might not be accessible!');
+        })
+        .catch(err => console.error('[StockfishPlayerService] Pre-flight check failed:', err));
+
+      this.worker = new Worker(workerUrl);
       console.log('[StockfishPlayerService] Worker object created successfully');
       
       this.worker.onerror = (err) => {
+        console.error('[StockfishPlayerService] Worker error event:', err);
         const errorMsg = `[StockfishPlayerService] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
         console.error(errorMsg);
-        if (err.error) console.error('[StockfishPlayerService] Underlying error:', err.error);
+        if (err.error) console.error('[StockfishPlayerService] Error object:', err.error);
       };
       this.worker.onmessage = (e) => this.handleMessage(e.data);
-      this.sendMessage('uci');
+      
+      // Small delay before first command
+      setTimeout(() => {
+        this.sendMessage('uci');
+      }, 100);
     } catch (error) {
       console.error('[StockfishPlayerService] Failed to initialize worker:', error);
       this.isTerminated = true;

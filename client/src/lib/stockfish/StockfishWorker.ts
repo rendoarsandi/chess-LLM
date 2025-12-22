@@ -44,6 +44,7 @@ export class StockfishWorker {
   }
 
   private init() {
+    console.log('[StockfishWorker] Initializing worker. Origin:', window.location.origin, 'Path:', window.location.pathname);
     console.log('[StockfishWorker] Initializing worker from /stockfish/stockfish.js');
     if (typeof Worker === 'undefined') {
       console.error('[StockfishWorker] Web Workers are not supported in this environment.');
@@ -52,14 +53,24 @@ export class StockfishWorker {
     }
     try {
       console.log('[StockfishWorker] Attempting to create Worker...');
-      this.worker = new Worker('/stockfish/stockfish.js');
+      const workerUrl = new URL('/stockfish/stockfish-17.1-lite-single-03e3232.js', window.location.origin).href;
+      
+      // Pre-flight check to see if the script is accessible
+      fetch(workerUrl, { method: 'HEAD' })
+        .then(resp => {
+          console.log('[StockfishWorker] Pre-flight check status:', resp.status, resp.statusText);
+          if (!resp.ok) console.error('[StockfishWorker] Worker script might not be accessible!');
+        })
+        .catch(err => console.error('[StockfishWorker] Pre-flight check failed:', err));
+
+      this.worker = new Worker(workerUrl);
       console.log('[StockfishWorker] Worker object created successfully');
       
       this.worker.onerror = (err) => {
+        console.error('[StockfishWorker] Worker error event:', err);
         const errorMsg = `[StockfishWorker] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
         console.error(errorMsg);
-        // Fallback for some browsers where err.message is empty but error object has info
-        if (err.error) console.error('[StockfishWorker] Underlying error:', err.error);
+        if (err.error) console.error('[StockfishWorker] Error object:', err.error);
       };
 
       this.worker.onmessage = (e) => {
@@ -68,7 +79,10 @@ export class StockfishWorker {
         this.handleMessage(e.data);
       };
       
-      this.sendMessage('uci');
+      // Small delay before first command
+      setTimeout(() => {
+        this.sendMessage('uci');
+      }, 100);
     } catch (error) {
       console.error('[StockfishWorker] Critical failure during initialization:', error);
       this.isTerminated = true;
