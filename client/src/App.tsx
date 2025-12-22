@@ -402,7 +402,8 @@ function App() {
       setMoves(data);
     };
     fetchMovesData();
-  }, [selectedGame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGame?.id]);
 
   useEffect(() => {
     if (lastUpdate && selectedGame) {
@@ -417,7 +418,8 @@ function App() {
       // Refresh moves to get thinking data and full history
       getMoves(selectedGame.id).then(setMoves);
     }
-  }, [lastUpdate, selectedGame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastUpdate, selectedGame?.id]);
 
   useEffect(() => {
     const handleResize = () => {
