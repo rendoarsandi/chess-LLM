@@ -27,10 +27,10 @@
     - [x] Subtask: Create `ClassificationEngine` utility.
     - [x] Subtask: Implement rules for Brilliant, Great, Best, etc. based on centipawn loss and win probability shifts.
     - [x] Subtask: Write unit tests for classification rules (e.g., "Prove -2.0 to +1.0 is a Blunder").
-- [ ] Task: Build the "Analysis Worker"
-    - [ ] Subtask: Create `useAnalysisWorker` hook.
-    - [ ] Subtask: Implement polling loop: Check for jobs -> Claim -> Analyze -> Heartbeat -> Submit.
-    - [ ] Subtask: Ensure analysis runs in a Web Worker to prevent UI freeze.
+- [x] Task: Build the "Analysis Worker" (ce87dc5)
+    - [x] Subtask: Create `useAnalysisWorker` hook.
+    - [x] Subtask: Implement polling loop: Check for jobs -> Claim -> Analyze -> Heartbeat -> Submit.
+    - [x] Subtask: Ensure analysis runs in a Web Worker to prevent UI freeze.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: UI Integration & Visualization
