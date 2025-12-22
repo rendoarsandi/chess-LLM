@@ -11,6 +11,11 @@ export class StockfishPlayerService {
 
   private init() {
     console.log('[StockfishPlayerService] Initializing worker from /stockfish/stockfish.js');
+    if (typeof Worker === 'undefined') {
+      console.error('[StockfishPlayerService] Web Workers are not supported in this environment.');
+      this.isTerminated = true;
+      return;
+    }
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
       this.worker.onerror = (err) => {

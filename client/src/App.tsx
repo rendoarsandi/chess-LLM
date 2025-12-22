@@ -574,7 +574,8 @@ function App() {
         }
       }
     }
-  }, [location.pathname, selectedGame?.id, selectedGame, navigate, games, handleSelectGame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, selectedGame?.id, games, handleSelectGame]);
 
   // Default game selection logic
   useEffect(() => {
