@@ -241,3 +241,55 @@ export async function getTournamentGames(id: string): Promise<Game[]> {
   const res = await fetch(`${API_URL}/tournaments/${id}/games`)
   return res.json()
 }
+
+// Game Review API
+export interface GameReview {
+  id: string;
+  gameId: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  workerId?: string;
+}
+
+export interface MoveAnalysis {
+  moveNumber: number;
+  classification: string;
+  evaluation: number;
+  bestLine?: string;
+}
+
+export async function requestReview(gameId: string): Promise<GameReview> {
+  const res = await fetch(`${API_URL}/reviews/${gameId}`, { method: 'POST' });
+  return res.json();
+}
+
+export async function getReviewStatus(gameId: string): Promise<GameReview & { analyses?: MoveAnalysis[] }> {
+  const res = await fetch(`${API_URL}/reviews/${gameId}`);
+  return res.json();
+}
+
+export async function claimJob(workerId: string): Promise<GameReview | { message: string }> {
+  const res = await fetch(`${API_URL}/reviews/worker/claim`, {
+    method: 'POST',
+    body: JSON.stringify({ workerId }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+}
+
+export async function sendHeartbeat(reviewId: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/reviews/worker/heartbeat`, {
+    method: 'POST',
+    body: JSON.stringify({ reviewId }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+}
+
+export async function submitResults(reviewId: string, results: MoveAnalysis[]): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/reviews/worker/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ reviewId, results }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+}
