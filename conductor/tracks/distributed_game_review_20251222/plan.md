@@ -1,6 +1,6 @@
 # Plan: Distributed Game Review System
 
-## Phase 1: Database & Backend Foundation
+## Phase 1: Database & Backend Foundation [checkpoint: 763e923]
 - [x] Task: Create database schema for Game Reviews (2c847f9)
     - [x] Subtask: Create `game_reviews` table (game_id, status, started_at, worker_id, completed_at).
     - [x] Subtask: Create `move_analyses` table (review_id, move_number, classification, evaluation, best_line).
