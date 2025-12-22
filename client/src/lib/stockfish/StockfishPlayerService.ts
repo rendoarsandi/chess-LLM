@@ -19,13 +19,8 @@ export class StockfishPlayerService {
     try {
       this.worker = new Worker('/stockfish/stockfish.js');
       this.worker.onerror = (err) => {
-        console.error('[StockfishPlayerService] Worker error event:', {
-          message: err.message,
-          filename: err.filename,
-          lineno: err.lineno,
-          colno: err.colno,
-          error: err.error
-        });
+        const errorMsg = `[StockfishPlayerService] Worker Error: ${err.message || 'Unknown'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
+        console.error(errorMsg);
       };
       this.worker.onmessage = (e) => this.handleMessage(e.data);
       this.sendMessage('uci');

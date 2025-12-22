@@ -47,6 +47,7 @@ export function useGameSocket(gameId: string | undefined) {
       host = host.replace('0.0.0.0', 'localhost')
     }
     const wsUrl = `${protocol}//${host}/ws?gameId=${gameId}`
+    console.log(`[WebSocket] Connecting to: ${wsUrl}`)
 
     const socket = new WebSocket(wsUrl)
     socketRef.current = socket
