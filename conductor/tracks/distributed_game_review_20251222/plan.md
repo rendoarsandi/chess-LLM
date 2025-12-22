@@ -23,10 +23,10 @@
 - [x] Task: Enhance Stockfish Service (ce284bb)
     - [x] Subtask: Update `StockfishService` (Implemented as AnalysisWorker) to support Multi-PV configuration.
     - [x] Subtask: Implement `analyzePosition(fen, depth=20, multipv=3)` method.
-- [ ] Task: Implement Move Classification Logic
-    - [ ] Subtask: Create `ClassificationEngine` utility.
-    - [ ] Subtask: Implement rules for Brilliant, Great, Best, etc. based on centipawn loss and win probability shifts.
-    - [ ] Subtask: Write unit tests for classification rules (e.g., "Prove -2.0 to +1.0 is a Blunder").
+- [x] Task: Implement Move Classification Logic (1c64777)
+    - [x] Subtask: Create `ClassificationEngine` utility.
+    - [x] Subtask: Implement rules for Brilliant, Great, Best, etc. based on centipawn loss and win probability shifts.
+    - [x] Subtask: Write unit tests for classification rules (e.g., "Prove -2.0 to +1.0 is a Blunder").
 - [ ] Task: Build the "Analysis Worker"
     - [ ] Subtask: Create `useAnalysisWorker` hook.
     - [ ] Subtask: Implement polling loop: Check for jobs -> Claim -> Analyze -> Heartbeat -> Submit.
