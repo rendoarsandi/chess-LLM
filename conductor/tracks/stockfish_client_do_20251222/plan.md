@@ -1,6 +1,6 @@
 # Implementation Plan - Client-Side Stockfish "Durable Object" Simulation
 
-## Phase 1: Client-Side Dual Worker Architecture
+## Phase 1: Client-Side Dual Worker Architecture [checkpoint: 0f8102a]
 *   [x] Task: Refactor Stockfish Worker Management ba7f067
     *   [x] Create `StockfishPlayerService.ts` to manage the specialized "Player Worker" instance (distinct from the existing hook used for analysis).
     *   [x] Implement method `calculateMove(fen: string, depth: number): Promise<string>` that resolves when the worker returns `bestmove`.
