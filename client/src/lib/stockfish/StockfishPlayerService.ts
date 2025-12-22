@@ -17,10 +17,14 @@ export class StockfishPlayerService {
       return;
     }
     try {
+      console.log('[StockfishPlayerService] Attempting to create Worker...');
       this.worker = new Worker('/stockfish/stockfish.js');
+      console.log('[StockfishPlayerService] Worker object created successfully');
+      
       this.worker.onerror = (err) => {
-        const errorMsg = `[StockfishPlayerService] Worker Error: ${err.message || 'Unknown'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
+        const errorMsg = `[StockfishPlayerService] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
         console.error(errorMsg);
+        if (err.error) console.error('[StockfishPlayerService] Underlying error:', err.error);
       };
       this.worker.onmessage = (e) => this.handleMessage(e.data);
       this.sendMessage('uci');

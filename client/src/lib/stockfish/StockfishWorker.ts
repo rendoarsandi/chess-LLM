@@ -51,11 +51,15 @@ export class StockfishWorker {
       return;
     }
     try {
+      console.log('[StockfishWorker] Attempting to create Worker...');
       this.worker = new Worker('/stockfish/stockfish.js');
+      console.log('[StockfishWorker] Worker object created successfully');
       
       this.worker.onerror = (err) => {
-        const errorMsg = `[StockfishWorker] Worker Error: ${err.message || 'Unknown'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
+        const errorMsg = `[StockfishWorker] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
         console.error(errorMsg);
+        // Fallback for some browsers where err.message is empty but error object has info
+        if (err.error) console.error('[StockfishWorker] Underlying error:', err.error);
       };
 
       this.worker.onmessage = (e) => {

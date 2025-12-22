@@ -26,6 +26,7 @@ window.onunhandledrejection = function(event) {
 
 // Render main app
 console.log('[Main] Secure Context:', window.isSecureContext);
+console.log('[Main] Cross-Origin Isolated:', window.crossOriginIsolated);
 console.log('[Main] SharedArrayBuffer support:', typeof SharedArrayBuffer !== 'undefined');
 
 createRoot(document.getElementById('root')!).render(
