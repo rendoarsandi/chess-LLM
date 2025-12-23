@@ -19,7 +19,7 @@
     - [x] Sub-task: Implement `ThinkingPanel` improvements (smooth scrolling/text appearance).
 - [ ] Task: Conductor - User Manual Verification 'Game Board & Core Controls' (Protocol in workflow.md)
 
-## Phase 3: Dashboards & Data Display [ ]
+## Phase 3: Dashboards & Data Display [checkpoint: f0adfd6]
 - [x] Task: Leaderboard & History Tables (0779c6d)
     - [x] Sub-task: Refactor `Leaderboard.tsx` and `GameHistory.tsx` to use Shadcn `Table`.
     - [x] Sub-task: Adjust column visibility/layout for mobile screens (hide less critical columns).
