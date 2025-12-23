@@ -213,12 +213,9 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
         )}
 
         {isCompleted && (
-          <Link to={`/analysis/${review.gameId}`} className="block">
-            <Button variant="default" className="w-full font-black tracking-widest text-[10px] h-8 gap-2">
-              VIEW FULL ANALYSIS
-              <ArrowRight className="w-3 h-3" />
-            </Button>
-          </Link>
+          <div className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30 py-2 rounded border border-border/50">
+            ANALYSIS SUMMARY ONLY
+          </div>
         )}
       </div>
     </div>

@@ -66,17 +66,7 @@ export const AnalysisMode: React.FC = () => {
           console.log(`[AnalysisMode] Found existing review:`, reviewData);
           setReview(reviewData);
         } catch (error) {
-          console.log(`[AnalysisMode] No review found, requesting new one:`, error);
-          // If no review exists, request one automatically
-          try {
-            const newReview = await requestReview(gameId);
-            console.log(`[AnalysisMode] New review requested:`, newReview);
-            setReview(newReview);
-            toast.info("Starting automatic game review...");
-          } catch (requestError) {
-            console.error(`[AnalysisMode] Failed to start game review:`, requestError);
-            toast.error("Failed to start game review");
-          }
+          console.log(`[AnalysisMode] No review found:`, error);
         }
       } catch (error) {
         console.error('Failed to fetch analysis data:', error);
@@ -183,21 +173,22 @@ export const AnalysisMode: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Review Dashboard & Move List */}
+        {/* Right: Analysis Info & Move List */}
         <div className="flex-1 flex flex-col gap-6 min-w-[350px] max-w-[450px]">
+          {/* Dashboard disabled for now
           <GameReviewDashboard 
             review={review}
             whitePlayer={whitePlayer}
             blackPlayer={blackPlayer}
             onRetry={handleRetry}
           />
+          */}
           
           <div className="flex-1 min-h-0">
             <MoveList 
               moves={moves}
               onMoveClick={setActiveIndex}
               selectedMoveIndex={activeIndex !== null ? activeIndex : undefined}
-              analyses={review?.analyses}
             />
           </div>
         </div>

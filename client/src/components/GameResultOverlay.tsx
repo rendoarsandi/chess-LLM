@@ -102,16 +102,6 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
               <RotateCcw className="w-4 h-4" />
               NEW MATCH
             </Button>
-            {onReview && (
-              <Button 
-                onClick={onReview}
-                variant="secondary"
-                className="w-full h-10 font-black tracking-widest gap-2 text-xs"
-              >
-                <Search className="w-3 h-3" />
-                REVIEW GAME
-              </Button>
-            )}
           </div>
         </motion.div>
       </motion.div>

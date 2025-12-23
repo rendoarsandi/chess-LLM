@@ -78,7 +78,6 @@ interface ArenaContentProps {
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
-  handleRequestReview: () => Promise<void>;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (v: boolean) => void;
 }
@@ -90,7 +89,6 @@ function ArenaContent({
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
   moves, players, setBoardOrientation, spectatorCount, thinkingStatus,
-  handleRequestReview,
   isSidebarCollapsed, setIsSidebarCollapsed
 }: ArenaContentProps) {
   const turn = currentDisplayFen.split(' ')[1];
@@ -223,7 +221,6 @@ function ArenaContent({
                         blackPlayerName={blackPlayer?.name} 
                         reason={selectedGame.gameOverReason} 
                         onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} 
-                        onReview={handleRequestReview}
                         onClose={() => setShowResultOverlay(false)} 
                       />
                     )}
@@ -242,9 +239,9 @@ function ArenaContent({
                           </Button>
                         )}
                         {(selectedGame.status === 'completed' || selectedGame.status === 'draw') && (
-                          <Button size="sm" variant="default" className="h-7 text-[10px] font-black" onClick={handleRequestReview}>
-                            <Search className="h-3 w-3 mr-1" /> REQUEST REVIEW
-                          </Button>
+                          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/50 px-3 py-1 rounded border border-border">
+                            GAME ENDED
+                          </div>
                         )}
                       </div>
                       {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest w-full sm:w-auto" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
@@ -361,8 +358,8 @@ function App() {
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  // Global analysis worker - always enabled to help process other people's games
-  useAnalysisWorker(true)
+  // Global analysis worker - disabled by default
+  useAnalysisWorker(false)
 
   const handleSelectGame = useCallback((game: Game) => {
     setSelectedGame(game);
@@ -372,11 +369,6 @@ function App() {
     setShowResultOverlay(true);
     navigate(`/arena/${game.id}`);
   }, [navigate]);
-
-  const handleRequestReview = async () => {
-    if (!selectedGame) return;
-    navigate(`/analysis/${selectedGame.id}`);
-  };
 
   const fetchAllGames = useCallback(async () => {
     const allGames = await getGames();
@@ -696,7 +688,6 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
-            handleRequestReview={handleRequestReview}
             isSidebarCollapsed={isSidebarCollapsed}
             setIsSidebarCollapsed={setIsSidebarCollapsed}
           />
@@ -717,7 +708,6 @@ function App() {
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
             setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
             thinkingStatus={thinkingStatus}
-            handleRequestReview={handleRequestReview}
             isSidebarCollapsed={isSidebarCollapsed}
             setIsSidebarCollapsed={setIsSidebarCollapsed}
           />
@@ -831,7 +821,7 @@ function App() {
             </div>
           </div>
         } />
-        <Route path="/analysis/:gameId" element={<AnalysisMode />} />
+        {/* <Route path="/analysis/:gameId" element={<AnalysisMode />} /> */}
         <Route path="/tournaments" element={
           <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
              <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
