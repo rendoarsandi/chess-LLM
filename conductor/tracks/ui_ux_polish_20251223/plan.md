@@ -28,7 +28,7 @@
     - [x] Sub-task: Update `recharts` configuration to match the new color palette (including dark mode support).
 - [ ] Task: Conductor - User Manual Verification 'Dashboards & Data Display' (Protocol in workflow.md)
 
-## Phase 4: Feedback & Interactivity [ ]
+## Phase 4: Feedback & Interactivity [checkpoint: 27c62b9]
 - [x] Task: Loading States & Transitions (ebf8996)
     - [x] Sub-task: Replace text loaders with Skeleton components in key areas (Profile, Dashboard).
     - [x] Sub-task: Add page transitions using `framer-motion` (simple fade/slide).
