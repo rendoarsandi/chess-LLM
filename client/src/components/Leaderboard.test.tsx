@@ -38,9 +38,9 @@ describe('Leaderboard', () => {
     expect(screen.getByText('2700')).toBeInTheDocument()
     
     // Check headers
-    expect(screen.getByText('#')).toBeInTheDocument()
-    expect(screen.getByText('Model')).toBeInTheDocument()
-    expect(screen.getByText('Rating')).toBeInTheDocument()
+    expect(screen.getByText('RANK')).toBeInTheDocument()
+    expect(screen.getByText('ARCHITECTURE')).toBeInTheDocument()
+    expect(screen.getByText('ELO RATING')).toBeInTheDocument()
   })
 
   it('sorts players by rating in descending order', () => {
@@ -79,13 +79,13 @@ describe('Leaderboard', () => {
 
   it('displays win/loss/draw records correctly', () => {
     render(<Leaderboard players={mockPlayers} />)
-    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('2').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('5').length).toBeGreaterThan(0)
+    expect(screen.getByText(/10W/i)).toBeInTheDocument()
+    expect(screen.getByText(/2L/i)).toBeInTheDocument()
+    expect(screen.getByText(/5D/i)).toBeInTheDocument()
   })
 
   it('displays an empty message when no players are provided', () => {
     render(<Leaderboard players={[]} />)
-    expect(screen.getByText(/No players found/i)).toBeInTheDocument()
+    expect(screen.getByText(/No data available yet/i)).toBeInTheDocument()
   })
 })
