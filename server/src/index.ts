@@ -29,7 +29,6 @@ import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
 import { logger } from './game/logger'
 import { GameReviewService } from './game/game-review.service'
-import { AppDatabase } from './db/types'
 
 const app = new Hono()
 
@@ -40,10 +39,10 @@ app.use('*', cors())
 // Initialize services
 const gameManager = new GameManager()
 const socketService = new SocketService()
-const playerService = new PlayerService(db as unknown as AppDatabase)
-const tournamentService = new TournamentService(db as unknown as AppDatabase)
-const gameService = new GameService(db as unknown as AppDatabase, gameManager, tournamentService, socketService)
-const gameReviewService = new GameReviewService(db as unknown as AppDatabase)
+const playerService = new PlayerService(db)
+const tournamentService = new TournamentService(db)
+const gameService = new GameService(db, gameManager, tournamentService, socketService)
+const gameReviewService = new GameReviewService(db)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -116,7 +115,7 @@ const STOCKFISH_VERY_HIGH_ID = '00000000-0000-0000-0000-000000000013'
 // Initialize built-in non-LLM players
 gameManager.setPlayer(RANDOM_BOT_ID, new RandomPlayer())
 
-async function initializePlayers() {
+export async function initializePlayers() {
     console.log('[Main] Synchronizing LLM configurations...')
     
     const hardcodedModels = [
@@ -140,10 +139,7 @@ async function initializePlayers() {
 
     // 1. Ensure built-in players exist in 'players' table
     for (const p of builtinPlayers) {
-        const existing = await db.select().from(players).where(eq(players.id, p.id))
-        if (existing.length === 0) {
-            await db.insert(players).values({ ...p, peakRating: p.rating })
-        }
+        await db.insert(players).values({ ...p, peakRating: p.rating }).onConflictDoNothing()
     }
 
     // 2. Sync LLM configurations
@@ -177,8 +173,8 @@ export const initPromise = initializePlayers().catch(console.error)
 
 // Default LLM player for background loop (fallback)
 const defaultLlmPlayer = new RandomPlayer()
-const gameLoopService = new GameLoopService(db as unknown as AppDatabase, gameService, defaultLlmPlayer, socketService)
-const tournamentLoopService = new TournamentLoopService(db as unknown as AppDatabase, tournamentService, gameService)
+const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer, socketService)
+const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
 
 // Start background loop
 if (process.env.NODE_ENV !== 'test') {

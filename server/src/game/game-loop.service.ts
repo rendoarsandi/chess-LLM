@@ -14,7 +14,7 @@ export class GameLoopService {
     constructor(
         private db: AppDatabase,
         private gameService: GameService,
-        private defaultPlayer: { makeMove: (fen: string, history: string[]) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } },
+        private defaultPlayer: { makeMove: (fen: string, history: string[]) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } | null },
         private socketService?: SocketService,
         private alarmService: AlarmService = new AlarmService()
     ) {}

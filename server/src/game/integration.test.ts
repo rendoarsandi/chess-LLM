@@ -10,7 +10,7 @@ import Database from 'better-sqlite3'
 import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
 import { AppDatabase } from '../db/types'
-import { GeminiService } from './gemini.service'
+import { LlmService } from './base-llm-player'
 import * as schema from '../db/schema'
 
 describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
@@ -20,7 +20,6 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
   let gameLoopService: GameLoopService
   let geminiPlayer: GeminiPlayer
   let randomPlayer: RandomPlayer
-  let mockGeminiService: GeminiService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
@@ -98,8 +97,8 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     gameService = new GameService(db, gameManager)
     
     // Mock GeminiService to be a "smart" random player (always legal moves)
-    mockGeminiService = {
-      generateMove: vi.fn().mockImplementation(async (model, prompt) => {
+    const mockLlmService: LlmService = {
+      generateMove: vi.fn().mockImplementation(async (_model, prompt) => {
         // Extract FEN from prompt
         const fenMatch = prompt.match(/Current FEN: (.*)/)
         const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -118,7 +117,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
       })
     }
     
-    geminiPlayer = new GeminiPlayer(mockGeminiService as unknown as GeminiService)
+    geminiPlayer = new GeminiPlayer(mockLlmService)
     randomPlayer = new RandomPlayer()
     
     // Default loop player is RandomPlayer, but we will register Gemini specifically

@@ -22,7 +22,11 @@ describe('API Endpoints', () => {
         emailVerified: true,
         name: 'Admin',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        image: null,
+        role: 'admin',
+        banned: false,
+        banReason: null
       },
       session: {
         id: 'session-id',
@@ -30,9 +34,11 @@ describe('API Endpoints', () => {
         token: 'session-token',
         expiresAt: new Date(Date.now() + 3600000),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        ipAddress: null,
+        userAgent: null
       }
-    } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>)
+    })
     process.env.ADMIN_EMAIL = 'admin@example.com'
   })
 

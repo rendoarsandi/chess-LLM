@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { TournamentService } from './tournament.service'
-import { tournaments, tournamentParticipants } from '../db/schema'
+import { players } from '../db/schema'
+import { drizzle } from 'drizzle-orm/better-sqlite3'
+import Database from 'better-sqlite3'
+import * as schema from '../db/schema'
 import { AppDatabase } from '../db/types'
 
 describe('TournamentService', () => {
@@ -8,78 +11,114 @@ describe('TournamentService', () => {
   let tournamentService: TournamentService
 
   beforeEach(() => {
-    db = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      values: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      set: vi.fn().mockReturnThis(),
-    } as unknown as AppDatabase
+    const sqlite = new Database(':memory:')
+    db = drizzle(sqlite, { schema })
+    
+    // Create tables
+    sqlite.exec(`
+      CREATE TABLE players (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        draws INTEGER NOT NULL DEFAULT 0,
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE tournaments (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'scheduled',
+        start_time INTEGER NOT NULL,
+        time_control_settings TEXT,
+        current_round INTEGER NOT NULL DEFAULT 0,
+        total_rounds INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE tournament_participants (
+        tournament_id TEXT NOT NULL,
+        player_id TEXT NOT NULL,
+        score INTEGER NOT NULL DEFAULT 0,
+        buchholz INTEGER NOT NULL DEFAULT 0,
+        joined_at INTEGER NOT NULL,
+        FOREIGN KEY(tournament_id) REFERENCES tournaments(id),
+        FOREIGN KEY(player_id) REFERENCES players(id)
+      );
+    `)
+
     tournamentService = new TournamentService(db)
   })
 
   it('should create a tournament', async () => {
-    db.insert.mockReturnThis()
-    db.values.mockResolvedValue(undefined)
-
-    const tournament = await tournamentService.createTournament({
+    const data = {
       name: 'Tilted Tuesday Mock',
       startTime: new Date(),
       totalRounds: 5,
       timeControlSettings: '3+2'
-    })
+    }
 
-    expect(tournament.id).toBeDefined()
-    expect(db.insert).toHaveBeenCalledWith(tournaments)
+    const { id } = await tournamentService.createTournament(data)
+    expect(id).toBeDefined()
+
+    const tournament = await tournamentService.getTournament(id)
+    expect(tournament.name).toBe(data.name)
+    expect(tournament.totalRounds).toBe(data.totalRounds)
   })
 
   it('should register a participant', async () => {
-    db.insert.mockReturnThis()
-    db.values.mockResolvedValue(undefined)
+    const { id: tId } = await tournamentService.createTournament({
+      name: 'Tournament',
+      startTime: new Date(),
+      totalRounds: 3
+    })
 
-    await tournamentService.registerParticipant('t-id', 'p-id')
+    const pId = 'p-1'
+    await db.insert(players).values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
 
-    expect(db.insert).toHaveBeenCalledWith(tournamentParticipants)
-    expect(db.values).toHaveBeenCalledWith(expect.objectContaining({
-      tournamentId: 't-id',
-      playerId: 'p-id'
-    }))
+    await tournamentService.registerParticipant(tId, pId)
+
+    const participants = await tournamentService.getParticipants(tId)
+    expect(participants).toHaveLength(1)
+    expect(participants[0].playerId).toBe(pId)
   })
 
   it('should start a tournament', async () => {
-    db.update.mockReturnThis()
-    db.set.mockReturnThis()
-    db.where.mockResolvedValue(undefined)
+    const { id } = await tournamentService.createTournament({
+      name: 'Tournament',
+      startTime: new Date(),
+      totalRounds: 3
+    })
 
-    await tournamentService.startTournament('t-id')
+    await tournamentService.startTournament(id)
 
-    expect(db.update).toHaveBeenCalledWith(tournaments)
-    expect(db.set).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'active'
-    }))
+    const tournament = await tournamentService.getTournament(id)
+    expect(tournament.status).toBe('active')
+    expect(tournament.currentRound).toBe(1)
   })
 
-  it('should get a tournament', async () => {
-    db.select.mockReturnThis()
-    db.from.mockReturnThis()
-    db.where.mockResolvedValue([{ id: 't-id', name: 'Test' }])
+  it('should update participant score', async () => {
+    const { id: tId } = await tournamentService.createTournament({
+      name: 'Tournament',
+      startTime: new Date(),
+      totalRounds: 3
+    })
 
-    const tournament = await tournamentService.getTournament('t-id')
+    const pId = 'p-1'
+    await db.insert(players).values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
+    await tournamentService.registerParticipant(tId, pId)
 
-    expect(tournament.id).toBe('t-id')
-    expect(db.select).toHaveBeenCalled()
-  })
+    await tournamentService.updateParticipantScore(tId, pId, 10) // Win
 
-  it('should get participants', async () => {
-    db.select.mockReturnThis()
-    db.from.mockReturnThis()
-    db.where.mockResolvedValue([{ playerId: 'p-1' }, { playerId: 'p-2' }])
+    const [participant] = await tournamentService.getParticipants(tId)
+    expect(participant.score).toBe(10)
 
-    const participants = await tournamentService.getParticipants('t-id')
-
-    expect(participants).toHaveLength(2)
-    expect(db.select).toHaveBeenCalled()
+    await tournamentService.updateParticipantScore(tId, pId, 5) // Draw
+    const [updatedParticipant] = await tournamentService.getParticipants(tId)
+    expect(updatedParticipant.score).toBe(15)
   })
 })

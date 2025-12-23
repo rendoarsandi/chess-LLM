@@ -9,11 +9,8 @@ import { AlarmService } from './alarm.service'
 import { AppDatabase } from '../db/types'
 import * as schema from '../db/schema'
 import { SocketService } from './socket.service'
-
-type Player = {
-  makeMove: (fen: string, history: string[]) => string | null | Promise<string | null>;
-  getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string };
-}
+import { Player } from './player.interface'
+import { GameManager } from './game-manager'
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
@@ -21,6 +18,7 @@ describe('GameLoopService', () => {
   let player: Player
   let db: AppDatabase
   let alarmService: AlarmService
+  let gameManager: GameManager
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
@@ -73,14 +71,12 @@ describe('GameLoopService', () => {
       );
     `)
 
-    gameService = {
-      makeMove: vi.fn().mockResolvedValue({}),
-      getPlayer: vi.fn().mockReturnValue(null),
-      finishGame: vi.fn().mockResolvedValue({}),
-    } as unknown as GameService
+    gameManager = new GameManager()
+    gameService = new GameService(db, gameManager)
     
     player = {
-      makeMove: vi.fn().mockResolvedValue('e4'),
+      makeMove: vi.fn(),
+      getLastThinking: vi.fn(() => null),
     }
     
     alarmService = new AlarmService()
@@ -90,6 +86,11 @@ describe('GameLoopService', () => {
   })
 
   it('should advance an ongoing game if it is an LLM turn', async () => {
+    vi.mocked(player.makeMove).mockResolvedValue('e4')
+    const moveSpy = vi.spyOn(gameService, 'makeMove').mockResolvedValue({ 
+      fen: '...', status: 'ongoing', winnerId: null, gameOverReason: null, san: 'e4', pgn: '...' 
+    })
+
     // Setup players
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
@@ -115,12 +116,12 @@ describe('GameLoopService', () => {
     // Now manually trigger the alarm
     await alarmService.executeAlarm('game:game1')
 
-    expect(gameService.makeMove).toHaveBeenCalledWith('game1', 'e4', expect.objectContaining({ thinkingMs: expect.any(Number) }))
+    expect(moveSpy).toHaveBeenCalledWith('game1', 'e4', expect.objectContaining({ thinkingMs: expect.any(Number) }))
   })
 
   it('should log a warning if player fails to provide a move', async () => {
     const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
-    player.makeMove.mockResolvedValue(null)
+    vi.mocked(player.makeMove).mockResolvedValue(null)
 
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
@@ -146,7 +147,8 @@ describe('GameLoopService', () => {
 
   it('should log an error if applying move fails', async () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
-    gameService.makeMove.mockRejectedValue(new Error('DB Error'))
+    vi.mocked(player.makeMove).mockResolvedValue('e4')
+    vi.spyOn(gameService, 'makeMove').mockRejectedValue(new Error('DB Error'))
 
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
@@ -188,9 +190,11 @@ describe('GameLoopService', () => {
       updatedAt: new Date()
     })
 
+    const moveSpy = vi.spyOn(gameService, 'makeMove')
+
     await loopService.runIteration()
     
-    expect(gameService.makeMove).not.toHaveBeenCalled()
+    expect(moveSpy).not.toHaveBeenCalled()
   })
 
   it('should start the interval and run iterations', async () => {
@@ -207,223 +211,90 @@ describe('GameLoopService', () => {
     await vi.advanceTimersByTimeAsync(1000)
     expect(runSpy).toHaveBeenCalledTimes(3)
     
-        vi.useRealTimers()
-    
-      })
-    
-    
-    
-      it('should request move from client if Stockfish player and throttle subsequent requests', async () => {
-    
-        const socketService = { broadcast: vi.fn() } as unknown as SocketService
-    
-        loopService = new GameLoopService(db, gameService, player, socketService, alarmService)
-    
-    
-    
-        const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
-    
-        await db.insert(players).values([
-    
-          { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
-    
-          { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
-    
-        ])
-    
-    
-    
-        await db.insert(games).values({
-    
-          id: 'game_stockfish',
-    
-          whitePlayerId: STOCKFISH_LOW_ID,
-    
-          blackPlayerId: 'p2',
-    
-          status: 'ongoing',
-    
-          fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-    
-          createdAt: new Date(),
-    
-          updatedAt: new Date()
-    
-        })
-    
-    
-    
-        // First call: should broadcast
-    
-        await loopService.runIteration()
-    
-        await alarmService.executeAlarm('game:game_stockfish')
-    
-    
-    
-          expect(socketService.broadcast).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
-            type: 'REQUEST_MOVE',
-            gameId: 'game_stockfish',
-            fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-            constraints: { depth: 6, skillLevel: 12, movetime: 500 }
-          }))
-    
-        socketService.broadcast.mockClear()
-    
-    
-    
-        // Second call immediately: should NOT broadcast (throttled)
-    
-        await loopService.runIteration()
-    
-        await alarmService.executeAlarm('game:game_stockfish')
-    
-        expect(socketService.broadcast).not.toHaveBeenCalled()
-    
-    
-    
-        // Fast-forward time (11 seconds)
-    
-        vi.useFakeTimers()
-    
-        vi.setSystemTime(Date.now() + 11000)
-    
-        
-    
-        // Third call after delay: should broadcast again
-    
-        await loopService.runIteration()
-    
-        await alarmService.executeAlarm('game:game_stockfish')
-    
-        expect(socketService.broadcast).toHaveBeenCalled()
-    
-        
-    
-            vi.useRealTimers()
-    
-        
-    
-          })
-    
-        
-    
-        
-    
-        
-    
-          it('should flag timeout if client fails to respond within 60 seconds', async () => {
-    
-        
-    
-            gameService.finishGame = vi.fn().mockResolvedValue({})
-    
-        
-    
-            loopService = new GameLoopService(db, gameService, player, undefined, alarmService)
-    
-        
-    
-        
-    
-        
-    
-            const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
-    
-        
-    
-            await db.insert(players).values([
-    
-        
-    
-              { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
-    
-        
-    
-              { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
-    
-        
-    
-            ])
-    
-        
-    
-        
-    
-        
-    
-            // Create a game with updatedAt in the past (e.g. 70 seconds ago)
-    
-        
-    
-            const oldDate = new Date(Date.now() - 70000)
-    
-        
-    
-            await db.insert(games).values({
-    
-        
-    
-              id: 'game_timeout',
-    
-        
-    
-              whitePlayerId: STOCKFISH_LOW_ID,
-    
-        
-    
-              blackPlayerId: 'p2',
-    
-        
-    
-              status: 'ongoing',
-    
-        
-    
-              fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-    
-        
-    
-              createdAt: oldDate,
-    
-        
-    
-              updatedAt: oldDate
-    
-        
-    
-            })
-    
-        
-    
-        
-    
-        
-    
-            await loopService.runIteration()
-    
-        
-    
-            await alarmService.executeAlarm('game:game_timeout')
-    
-        
-    
-        
-    
-        
-    
-            expect(gameService.finishGame).toHaveBeenCalledWith('game_timeout', 'p2', 'timeout')
-    
-        
-    
-          })
-    
-        
-    
-        })
-    
-        
-    
-        
-    
-    
+    vi.useRealTimers()
+  })
+
+  it('should request move from client if Stockfish player and throttle subsequent requests', async () => {
+    const mockSocketService = new SocketService()
+    const broadcastSpy = vi.spyOn(mockSocketService, 'broadcast').mockImplementation(() => {})
+
+    loopService = new GameLoopService(db, gameService, player, mockSocketService, alarmService)
+
+    const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+
+    await db.insert(players).values([
+      { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    ])
+
+    await db.insert(games).values({
+      id: 'game_stockfish',
+      whitePlayerId: STOCKFISH_LOW_ID,
+      blackPlayerId: 'p2',
+      status: 'ongoing',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+
+    // First call: should broadcast
+    await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_stockfish')
+
+    expect(broadcastSpy).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
+      type: 'REQUEST_MOVE',
+      gameId: 'game_stockfish',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      constraints: { depth: 6, skillLevel: 12, movetime: 500 }
+    }))
+    
+    broadcastSpy.mockClear()
+
+    // Second call immediately: should NOT broadcast (throttled)
+    await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_stockfish')
+    expect(broadcastSpy).not.toHaveBeenCalled()
+
+    // Fast-forward time (11 seconds)
+    vi.useFakeTimers()
+    vi.setSystemTime(Date.now() + 11000)
+    
+    // Third call after delay: should broadcast again
+    await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_stockfish')
+    expect(broadcastSpy).toHaveBeenCalled()
+    
+    vi.useRealTimers()
+  })
+
+  it('should flag timeout if client fails to respond within 60 seconds', async () => {
+    const finishSpy = vi.spyOn(gameService, 'finishGame').mockResolvedValue()
+
+    loopService = new GameLoopService(db, gameService, player, undefined, alarmService)
+
+    const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+
+    await db.insert(players).values([
+      { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+    ])
+
+    // Create a game with updatedAt in the past (e.g. 70 seconds ago)
+    const oldDate = new Date(Date.now() - 70000)
+
+    await db.insert(games).values({
+      id: 'game_timeout',
+      whitePlayerId: STOCKFISH_LOW_ID,
+      blackPlayerId: 'p2',
+      status: 'ongoing',
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      createdAt: oldDate,
+      updatedAt: oldDate
+    })
+
+    await loopService.runIteration()
+    await alarmService.executeAlarm('game:game_timeout')
+
+    expect(finishSpy).toHaveBeenCalledWith('game_timeout', 'p2', 'timeout')
+  })
+})

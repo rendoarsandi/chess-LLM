@@ -64,18 +64,15 @@ export class PlayerService {
         const playerId = this.generatePlayerId(`${hc.provider}-${hc.modelId}`)
 
         // 1. Ensure entry in players table first (satisfy FK)
-        const playerEntry = await this.db.select().from(players).where(eq(players.id, playerId))
-        if (playerEntry.length === 0) {
-            await this.db.insert(players).values({
-                id: playerId,
-                name: hc.name || hc.modelId,
-                type: 'llm',
-                rating: hc.rating || 1500,
-                peakRating: hc.rating || 1500,
-                provider: hc.provider,
-                version: hc.modelId
-            })
-        }
+        await this.db.insert(players).values({
+            id: playerId,
+            name: hc.name || hc.modelId,
+            type: 'llm',
+            rating: hc.rating || 1500,
+            peakRating: hc.rating || 1500,
+            provider: hc.provider,
+            version: hc.modelId
+        }).onConflictDoNothing()
 
         // 2. Then sync llm_configurations
         if (!existing) {

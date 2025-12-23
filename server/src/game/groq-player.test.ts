@@ -1,37 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GroqPlayer } from './groq-player'
-import { GroqService } from './groq.service'
-
-// Mock GroqService
-vi.mock('./groq.service', () => {
-  return {
-    GroqService: class {
-      constructor() {}
-      generateMove = vi.fn()
-    }
-  }
-})
+import { LlmService } from './base-llm-player'
 
 describe('GroqPlayer', () => {
-  let mockGroqService: GroqService
+  let mockLlmService: LlmService
   let player: GroqPlayer
 
   beforeEach(() => {
-    mockGroqService = new GroqService('key')
-    player = new GroqPlayer(mockGroqService, 'test-model')
+    mockLlmService = {
+      generateMove: vi.fn()
+    }
+    player = new GroqPlayer(mockLlmService, 'test-model')
   })
 
-  it('should call GroqService and return a move from JSON', async () => {
+  it('should call LlmService and return a move from JSON', async () => {
     const jsonRes = JSON.stringify({
       move: 'e4',
       opening: 'King\'s Pawn Game',
       candidates: ['e4', 'd4', 'Nf3'],
       reasoning: 'Control center.'
     })
-    mockGroqService.generateMove.mockResolvedValue(jsonRes)
+    vi.mocked(mockLlmService.generateMove).mockResolvedValue(jsonRes)
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
-    expect(mockGroqService.generateMove).toHaveBeenCalledWith('test-model', expect.any(String))
+    expect(mockLlmService.generateMove).toHaveBeenCalledWith('test-model', expect.any(String))
     expect(move).toBe('e4')
   })
 
@@ -42,7 +34,7 @@ describe('GroqPlayer', () => {
       candidates: ['e4', 'd4', 'Nf3'],
       reasoning: 'Control center.'
     }
-    mockGroqService.generateMove.mockResolvedValue(JSON.stringify(thinkingRes))
+    vi.mocked(mockLlmService.generateMove).mockResolvedValue(JSON.stringify(thinkingRes))
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     await player.makeMove(startFen, [])
     

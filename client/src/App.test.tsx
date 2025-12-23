@@ -45,16 +45,17 @@ vi.mock('./api', () => ({
 
 describe('App Component', () => {
   const mockPlayers = [
-    { id: 'p1', name: 'Player 1', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
-    { id: 'p2', name: 'Player 2', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
+    { id: 'p1', name: 'Player 1', type: 'llm' as const, rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
+    { id: 'p2', name: 'Player 2', type: 'llm' as const, rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
   ]
 
   const mockGame = {
     id: 'game-1',
     whitePlayerId: 'p1',
     blackPlayerId: 'p2',
-    status: 'ongoing',
+    status: 'ongoing' as const,
     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    winnerId: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }

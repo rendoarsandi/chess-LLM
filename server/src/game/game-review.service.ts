@@ -128,6 +128,7 @@ export class GameReviewService {
         // We could add an error column to gameReviews if we wanted to store it
       })
       .where(eq(gameReviews.id, reviewId))
+      .run()
   }
 
   async updateProgress(reviewId: string, current: number, total: number) {
@@ -138,12 +139,14 @@ export class GameReviewService {
         lastHeartbeat: new Date() 
       })
       .where(eq(gameReviews.id, reviewId))
+      .run()
   }
 
   async heartbeat(reviewId: string) {
     await this.db.update(gameReviews)
       .set({ lastHeartbeat: new Date() })
       .where(eq(gameReviews.id, reviewId))
+      .run()
   }
 
   async submitResults(reviewId: string, results: MoveAnalysis[]) {
@@ -172,7 +175,7 @@ export class GameReviewService {
     })
   }
 
-  async getReviewStatus(gameId: string) {
+  async getReviewStatus(gameId: string): Promise<(typeof gameReviews.$inferSelect & { analyses?: (typeof moveAnalyses.$inferSelect)[] }) | null> {
     const reviews = await this.db.select()
       .from(gameReviews)
       .where(eq(gameReviews.gameId, gameId))

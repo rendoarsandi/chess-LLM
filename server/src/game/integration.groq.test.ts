@@ -10,7 +10,7 @@ import Database from 'better-sqlite3'
 import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
 import { AppDatabase } from '../db/types'
-import { GroqService } from './groq.service'
+import { LlmService } from './base-llm-player'
 import * as schema from '../db/schema'
 
 describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
@@ -20,7 +20,6 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
   let gameLoopService: GameLoopService
   let groqPlayer: GroqPlayer
   let randomPlayer: RandomPlayer
-  let mockGroqService: GroqService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
@@ -98,9 +97,9 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
     gameManager = new GameManager()
     gameService = new GameService(db, gameManager)
     
-    // Mock GroqService
-    mockGroqService = {
-      generateMove: vi.fn().mockImplementation(async (model, prompt) => {
+    // Mock LlmService
+    const mockLlmService: LlmService = {
+      generateMove: vi.fn().mockImplementation(async (_model, prompt) => {
         const fenMatch = prompt.match(/Current FEN: (.*)/)
         const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         const chess = new Chess(fen)
@@ -109,7 +108,6 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
         const randomIndex = Math.floor(Math.random() * moves.length)
         const move = moves[randomIndex]
         
-        // GroqPlayer expects the same format as GeminiPlayer because of BaseLlmPlayer
         return JSON.stringify({
           opening: 'Groq Opening',
           candidates: moves.slice(0, 3),
@@ -119,7 +117,7 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
       })
     }
     
-    groqPlayer = new GroqPlayer(mockGroqService as unknown as GroqService, 'moonshotai/kimi-k2-instruct-0905')
+    groqPlayer = new GroqPlayer(mockLlmService, 'moonshotai/kimi-k2-instruct-0905')
     randomPlayer = new RandomPlayer()
     
     gameLoopService = new GameLoopService(db, gameService, randomPlayer)

@@ -1,17 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GeminiPlayer } from './gemini-player'
-import { GeminiService } from './gemini.service'
 import { logger } from './logger'
-
-// Mock GeminiService
-vi.mock('./gemini.service', () => {
-  return {
-    GeminiService: class {
-      constructor() {}
-      generateMove = vi.fn()
-    }
-  }
-})
+import { LlmService } from './base-llm-player'
 
 // Subclass for testing protected method
 class TestGeminiPlayer extends GeminiPlayer {
@@ -21,12 +11,14 @@ class TestGeminiPlayer extends GeminiPlayer {
 }
 
 describe('GeminiPlayer', () => {
-  let mockGeminiService: GeminiService
+  let mockLlmService: LlmService
   let player: TestGeminiPlayer
 
   beforeEach(() => {
-    mockGeminiService = new GeminiService('key')
-    player = new TestGeminiPlayer(mockGeminiService)
+    mockLlmService = {
+      generateMove: vi.fn()
+    }
+    player = new TestGeminiPlayer(mockLlmService)
   })
 
   it('should format a prompt with FEN and no history', () => {
@@ -51,17 +43,17 @@ describe('GeminiPlayer', () => {
     expect(prompt).toContain('You are playing as White')
   })
 
-  it('should call GeminiService and return a move from JSON', async () => {
+  it('should call LlmService and return a move from JSON', async () => {
     const jsonRes = JSON.stringify({
       move: 'e4',
       opening: 'King\'s Pawn Game',
       candidates: ['e4', 'd4', 'Nf3'],
       reasoning: 'Control center.'
     })
-    mockGeminiService.generateMove.mockResolvedValue(jsonRes)
+    vi.mocked(mockLlmService.generateMove).mockResolvedValue(jsonRes)
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, ['history'])
-    expect(mockGeminiService.generateMove).toHaveBeenCalled()
+    expect(mockLlmService.generateMove).toHaveBeenCalled()
     expect(move).toBe('e4')
   })
 
@@ -72,7 +64,7 @@ describe('GeminiPlayer', () => {
       candidates: ['e4', 'd4', 'Nf3'],
       reasoning: 'Control center.'
     }
-    mockGeminiService.generateMove.mockResolvedValue(JSON.stringify(thinkingRes))
+    vi.mocked(mockLlmService.generateMove).mockResolvedValue(JSON.stringify(thinkingRes))
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     await player.makeMove(startFen, [])
     
@@ -83,9 +75,9 @@ describe('GeminiPlayer', () => {
     })
   })
 
-  it('should return null and log error if GeminiService fails', async () => {
+  it('should return null and log error if LlmService fails', async () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
-    mockGeminiService.generateMove.mockRejectedValue(new Error('API Error'))
+    vi.mocked(mockLlmService.generateMove).mockRejectedValue(new Error('API Error'))
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
     expect(move).toBeNull()
@@ -95,48 +87,47 @@ describe('GeminiPlayer', () => {
 
   it('should retry if the model returns an invalid SAN move', async () => {
     // 1st call: invalid move, 2nd call: valid move
-    mockGeminiService.generateMove
+    vi.mocked(mockLlmService.generateMove)
       .mockResolvedValueOnce(JSON.stringify({ move: 'not-a-move', opening: '?', reasoning: 'test', candidates: [] }))
       .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'King\'s Pawn', reasoning: 'test', candidates: ['e4'] }))
     
-    // We need a real board to validate moves
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
     
-    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(2)
+    expect(mockLlmService.generateMove).toHaveBeenCalledTimes(2)
     expect(move).toBe('e4')
   })
 
   it('should stop retrying after 3 attempts and return null', async () => {
-    mockGeminiService.generateMove.mockResolvedValue(JSON.stringify({ move: 'invalid', opening: '?', reasoning: 'test', candidates: [] }))
+    vi.mocked(mockLlmService.generateMove).mockResolvedValue(JSON.stringify({ move: 'invalid', opening: '?', reasoning: 'test', candidates: [] }))
     
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
     
-    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(4) // Initial + 3 retries
+    expect(mockLlmService.generateMove).toHaveBeenCalledTimes(4) // Initial + 3 retries
     expect(move).toBeNull()
   })
 
   it('should retry if Gemini returns an empty response', async () => {
-    mockGeminiService.generateMove
+    vi.mocked(mockLlmService.generateMove)
       .mockResolvedValueOnce('')
       .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'King\'s Pawn', reasoning: 'test', candidates: ['e4'] }))
     
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(startFen, [])
     
-    expect(mockGeminiService.generateMove).toHaveBeenCalledTimes(2)
+    expect(mockLlmService.generateMove).toHaveBeenCalledTimes(2)
     expect(move).toBe('e4')
   })
 
-  it('should timeout if GeminiService takes too long', async () => {
+  it('should timeout if LlmService takes too long', async () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     
     // Create player with very short timeout (1ms) for testing
-    const timeoutPlayer = new TestGeminiPlayer(mockGeminiService, 'model', 1)
+    const timeoutPlayer = new TestGeminiPlayer(mockLlmService, 'model', 1)
     
     // Mock generateMove to resolve slowly (100ms)
-    mockGeminiService.generateMove.mockReturnValue(new Promise(resolve => setTimeout(() => resolve('e4'), 100)))
+    vi.mocked(mockLlmService.generateMove).mockReturnValue(new Promise(resolve => setTimeout(() => resolve('e4'), 100)))
     
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await timeoutPlayer.makeMove(startFen, [])

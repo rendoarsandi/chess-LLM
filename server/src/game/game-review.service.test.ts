@@ -229,6 +229,6 @@ describe('GameReviewService', () => {
     const status3 = await service.getReviewStatus(gameId)
     expect(status3?.status).toBe('completed')
     expect(status3?.analyses).toHaveLength(1)
-    expect(status3?.analyses[0].classification).toBe('best')
+    expect(status3?.analyses![0].classification).toBe('best')
   })
 })
