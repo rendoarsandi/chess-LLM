@@ -20,12 +20,12 @@
 - [ ] Task: Conductor - User Manual Verification 'Game Board & Core Controls' (Protocol in workflow.md)
 
 ## Phase 3: Dashboards & Data Display [ ]
-- [ ] Task: Leaderboard & History Tables
-    - [ ] Sub-task: Refactor `Leaderboard.tsx` and `GameHistory.tsx` to use Shadcn `Table`.
-    - [ ] Sub-task: Adjust column visibility/layout for mobile screens (hide less critical columns).
-    - [ ] Sub-task: Add subtle row hover effects and clean header styling.
-- [ ] Task: Chart Styling
-    - [ ] Sub-task: Update `recharts` configuration to match the new color palette (including dark mode support).
+- [x] Task: Leaderboard & History Tables (0779c6d)
+    - [x] Sub-task: Refactor `Leaderboard.tsx` and `GameHistory.tsx` to use Shadcn `Table`.
+    - [x] Sub-task: Adjust column visibility/layout for mobile screens (hide less critical columns).
+    - [x] Sub-task: Add subtle row hover effects and clean header styling.
+- [x] Task: Chart Styling (ebf8996)
+    - [x] Sub-task: Update `recharts` configuration to match the new color palette (including dark mode support).
 - [ ] Task: Conductor - User Manual Verification 'Dashboards & Data Display' (Protocol in workflow.md)
 
 ## Phase 4: Feedback & Interactivity [ ]
