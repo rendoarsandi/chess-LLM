@@ -84,7 +84,7 @@ export function EloHistoryChart({ playerId }: EloHistoryChartProps) {
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
               <XAxis 
                 dataKey="date" 
                 hide 
@@ -92,28 +92,32 @@ export function EloHistoryChart({ playerId }: EloHistoryChartProps) {
               <YAxis 
                 domain={['dataMin - 50', 'dataMax + 50']}
                 fontSize={10}
-                fontWeight="bold"
+                fontWeight="black"
                 tickFormatter={(val) => `${val}`}
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
+                axisLine={false}
+                tickLine={false}
               />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
+                  backgroundColor: 'var(--card)', 
+                  borderColor: 'var(--border)',
+                  borderRadius: '12px',
+                  fontSize: '10px',
+                  fontWeight: '900',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
                 }}
-                itemStyle={{ color: 'hsl(var(--primary))' }}
+                itemStyle={{ color: 'var(--primary)' }}
               />
               <Line 
                 type="monotone" 
                 dataKey="rating" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={3}
-                dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
-                activeDot={{ r: 6, strokeWidth: 0 }}
-                animationDuration={1000}
+                stroke="var(--primary)" 
+                strokeWidth={4}
+                dot={{ r: 4, fill: 'var(--primary)', strokeWidth: 0 }}
+                activeDot={{ r: 6, fill: 'var(--primary)', strokeWidth: 2, stroke: 'var(--background)' }}
+                animationDuration={1500}
               />
             </LineChart>
           </ResponsiveContainer>
