@@ -6,6 +6,21 @@ import { eq } from 'drizzle-orm'
 
 describe('Game Review API Endpoints', () => {
   const testWorkerId = 'test-worker-id'
+  const testWorkerToken = 'test-worker-token'
+
+  beforeEach(async () => {
+    process.env.WORKER_TOKEN = testWorkerToken
+    // Explicit cleanup for in-memory DB shared state
+    await db.delete(moveAnalyses)
+    await db.delete(gameReviews)
+    await db.delete(moves)
+    await db.delete(ratingHistory)
+    await db.delete(llmConfigurations)
+    await db.delete(tournamentParticipants)
+    await db.delete(games)
+    await db.delete(players)
+    await db.delete(tournaments)
+  })
 
   const setupGame = async (gameId: string) => {
     await db.insert(players).values([
@@ -19,19 +34,6 @@ describe('Game Review API Endpoints', () => {
       status: 'completed'
     })
   }
-
-  beforeEach(async () => {
-    // Explicit cleanup for in-memory DB shared state
-    await db.delete(moveAnalyses)
-    await db.delete(gameReviews)
-    await db.delete(moves)
-    await db.delete(ratingHistory)
-    await db.delete(llmConfigurations)
-    await db.delete(tournamentParticipants)
-    await db.delete(games)
-    await db.delete(players)
-    await db.delete(tournaments)
-  })
 
   it('POST /api/reviews/:gameId should request a new review', async () => {
     const gameId = `game-${Math.random()}`
@@ -57,7 +59,10 @@ describe('Game Review API Endpoints', () => {
     const res = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -74,7 +79,10 @@ describe('Game Review API Endpoints', () => {
     const res = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -91,14 +99,20 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/heartbeat', {
       method: 'POST',
       body: JSON.stringify({ reviewId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -114,14 +128,20 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/progress', {
       method: 'POST',
       body: JSON.stringify({ reviewId, current: 10, total: 40 }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -142,7 +162,10 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     const { id: reviewId } = await claimRes.json()
 
@@ -154,7 +177,10 @@ describe('Game Review API Endpoints', () => {
     const res = await app.request('/api/reviews/worker/submit', {
       method: 'POST',
       body: JSON.stringify({ reviewId, results }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -177,14 +203,20 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/failure', {
       method: 'POST',
       body: JSON.stringify({ reviewId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     expect(res.status).toBe(200)
     
@@ -209,7 +241,10 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
     const { id: reviewId } = await claimRes.json()
 
@@ -219,7 +254,10 @@ describe('Game Review API Endpoints', () => {
         reviewId, 
         results: [{ moveNumber: 1, playerColor: 'white', classification: 'best', evaluation: 0.5, bestLine: 'e4' }] 
       }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${testWorkerToken}`
+      }
     })
 
     // Check final status

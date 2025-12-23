@@ -53,7 +53,7 @@ describe('AdminLogin Component', () => {
         const mockSignIn = vi.mocked(authClient.signIn.email).mockResolvedValue({
             data: { session: {} },
             error: null
-        } as any)
+        } as unknown as ReturnType<typeof authClient.signIn.email>)
 
         render(
             <MemoryRouter>
@@ -79,7 +79,7 @@ describe('AdminLogin Component', () => {
         vi.mocked(authClient.signIn.email).mockResolvedValue({
             data: null,
             error: { message: 'Invalid credentials' }
-        } as any)
+        } as unknown as ReturnType<typeof authClient.signIn.email>)
 
         render(
             <MemoryRouter>

@@ -3,11 +3,13 @@ import Database from 'better-sqlite3'
 import * as schema from './server/src/db/schema'
 
 const sqlite = new Database('./server/chess.sqlite')
-const db = drizzle(sqlite)
+const db = drizzle(sqlite, { schema })
 
 async function purge() {
     console.log("Purging all game data, moves, ratings and players...")
-    // Order matters for foreign keys if they are enforced (though SQLite sometimes lax)
+    // Order matters for foreign keys
+    await db.delete(schema.moveAnalyses)
+    await db.delete(schema.gameReviews)
     await db.delete(schema.moves)
     await db.delete(schema.ratingHistory)
     await db.delete(schema.games)

@@ -13,7 +13,7 @@ vi.mock('./groq.service', () => {
 })
 
 describe('GroqPlayer', () => {
-  let mockGroqService: any
+  let mockGroqService: GroqService
   let player: GroqPlayer
 
   beforeEach(() => {

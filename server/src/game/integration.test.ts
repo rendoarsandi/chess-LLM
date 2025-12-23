@@ -9,19 +9,22 @@ import { eq } from 'drizzle-orm'
 import Database from 'better-sqlite3'
 import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
+import { AppDatabase } from '../db/types'
+import { GeminiService } from './gemini.service'
+import * as schema from '../db/schema'
 
 describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
-  let db: any
+  let db: AppDatabase
   let gameManager: GameManager
   let gameService: GameService
   let gameLoopService: GameLoopService
   let geminiPlayer: GeminiPlayer
   let randomPlayer: RandomPlayer
-  let mockGeminiService: any
+  let mockGeminiService: GeminiService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     sqlite.exec(`
       CREATE TABLE players (
@@ -115,7 +118,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
       })
     }
     
-    geminiPlayer = new GeminiPlayer(mockGeminiService as any)
+    geminiPlayer = new GeminiPlayer(mockGeminiService as unknown as GeminiService)
     randomPlayer = new RandomPlayer()
     
     // Default loop player is RandomPlayer, but we will register Gemini specifically
@@ -148,7 +151,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     while (game.status === 'ongoing' && attempts < maxIterations) {
       await gameLoopService.runIteration()
       // Manually trigger the alarm that was set in runIteration -> advanceGame
-      await (gameLoopService as any).alarmService.executeAlarm(`game:${gameId}`)
+      await (gameLoopService as unknown as { alarmService: { executeAlarm: (id: string) => Promise<void> } }).alarmService.executeAlarm(`game:${gameId}`)
       game = await gameService.getGame(gameId)
       attempts++
     }
@@ -160,7 +163,7 @@ describe('End-to-End Integration: Gemini vs RandomPlayer', () => {
     expect(gameMoves.length).toBeGreaterThan(0)
     
     // Verify thinking data exists for Gemini moves
-    const geminiMoves = gameMoves.filter((m: any) => m.playerColor === 'white') // White is Gemini (gId)
+    const geminiMoves = gameMoves.filter((m) => m.playerColor === 'white') // White is Gemini (gId)
     expect(geminiMoves.length).toBeGreaterThan(0)
     
     const sampleGeminiMove = geminiMoves[0]

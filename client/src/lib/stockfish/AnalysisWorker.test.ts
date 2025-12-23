@@ -27,7 +27,7 @@ describe('AnalysisWorker', () => {
   it('should analyze a position and return multi-pv results', async () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     
-    const mockWorker = (worker as any).worker;
+    const mockWorker = (worker as unknown as { worker: MockWorker }).worker;
     mockWorker.simulateMessage('uciok');
     mockWorker.simulateMessage('readyok');
 
@@ -56,7 +56,7 @@ describe('AnalysisWorker', () => {
   it('should handle mate scores', async () => {
     const fen = 'k7/8/K7/8/8/8/8/1R6 w - - 0 1'; // Simple mate in 1
     
-    const mockWorker = (worker as any).worker;
+    const mockWorker = (worker as unknown as { worker: MockWorker }).worker;
     mockWorker.simulateMessage('uciok');
     mockWorker.simulateMessage('readyok');
 
@@ -71,16 +71,16 @@ describe('AnalysisWorker', () => {
   });
 
   it('should handle termination', () => {
-    const mockWorker = (worker as any).worker;
+    const mockWorker = (worker as unknown as { worker: MockWorker }).worker;
     worker.terminate();
     expect(mockWorker.terminate).toHaveBeenCalled();
-    expect((worker as any).isTerminated).toBe(true);
+    expect((worker as unknown as { isTerminated: boolean }).isTerminated).toBe(true);
     expect(worker.analyzePosition('fen')).rejects.toThrow('Worker terminated');
   });
 
   it('should handle malformed info lines', async () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    const mockWorker = (worker as any).worker;
+    const mockWorker = (worker as unknown as { worker: MockWorker }).worker;
     mockWorker.simulateMessage('uciok');
     mockWorker.simulateMessage('readyok');
 

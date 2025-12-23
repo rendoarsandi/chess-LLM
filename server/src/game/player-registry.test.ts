@@ -3,10 +3,11 @@ import { PlayerService } from './player.service'
 import { GameManager } from './game-manager'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
+import { AppDatabase } from '../db/types'
 import * as schema from '../db/schema'
 
 describe('PlayerService - Registry & Sync', () => {
-    let db: any
+    let db: AppDatabase
     let gameManager: GameManager
     let playerService: PlayerService
 

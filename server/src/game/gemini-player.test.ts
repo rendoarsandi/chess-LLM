@@ -21,7 +21,7 @@ class TestGeminiPlayer extends GeminiPlayer {
 }
 
 describe('GeminiPlayer', () => {
-  let mockGeminiService: any
+  let mockGeminiService: GeminiService
   let player: TestGeminiPlayer
 
   beforeEach(() => {

@@ -37,7 +37,7 @@ describe('AdminSettings', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(api.getAdminModels as any).mockResolvedValue(mockConfigs)
+    vi.mocked(api.getAdminModels).mockResolvedValue(mockConfigs)
   })
 
   it('renders model list correctly', async () => {
@@ -52,7 +52,7 @@ describe('AdminSettings', () => {
   })
 
   it('allows adding a new model', async () => {
-    ;(api.createAdminModel as any).mockResolvedValue({
+    vi.mocked(api.createAdminModel).mockResolvedValue({
         id: 3,
         provider: 'gemini',
         modelId: 'gemini-new',
@@ -83,7 +83,7 @@ describe('AdminSettings', () => {
   })
 
   it('toggles model active status', async () => {
-    ;(api.updateAdminModel as any).mockResolvedValue({
+    vi.mocked(api.updateAdminModel).mockResolvedValue({
         ...mockConfigs[1],
         isActive: true
     })
@@ -104,7 +104,7 @@ describe('AdminSettings', () => {
 
   it('deletes a dynamic model', async () => {
     window.confirm = vi.fn().mockReturnValue(true)
-    ;(api.deleteAdminModel as any).mockResolvedValue({ success: true })
+    vi.mocked(api.deleteAdminModel).mockResolvedValue({ success: true })
 
     render(<AdminSettings />)
     

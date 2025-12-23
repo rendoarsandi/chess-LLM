@@ -61,17 +61,17 @@ describe('App Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(api.getPlayers as Mock).mockResolvedValue(mockPlayers)
-    ;(api.getLeaderboard as Mock).mockResolvedValue(mockPlayers)
-    ;(api.getGames as Mock).mockResolvedValue([mockGame])
-    ;(api.getGame as Mock).mockResolvedValue(mockGame)
-    ;(api.getMoves as Mock).mockResolvedValue([])
+    vi.mocked(api.getPlayers).mockResolvedValue(mockPlayers)
+    vi.mocked(api.getLeaderboard).mockResolvedValue(mockPlayers)
+    vi.mocked(api.getGames).mockResolvedValue([mockGame])
+    vi.mocked(api.getGame).mockResolvedValue(mockGame)
+    vi.mocked(api.getMoves).mockResolvedValue([])
     
     vi.mocked(authClient.useSession).mockReturnValue({
       data: null,
       isPending: false,
       error: null
-    } as any);
+    } as unknown as ReturnType<typeof authClient.useSession>);
   })
 
   afterEach(() => {
@@ -213,7 +213,7 @@ describe('App Component', () => {
         data: { user: { email: 'admin@test.com' } },
         isPending: false,
         error: null
-      } as any)
+      } as unknown as ReturnType<typeof authClient.useSession>)
 
       render(
         <MemoryRouter initialEntries={['/admin/settings']}>

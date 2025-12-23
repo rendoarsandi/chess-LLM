@@ -1,21 +1,30 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GameLoopService } from './game-loop.service'
+import { GameService } from './game.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { games, players } from '../db/schema'
 import { logger } from './logger'
 import { AlarmService } from './alarm.service'
+import { AppDatabase } from '../db/types'
+import * as schema from '../db/schema'
+import { SocketService } from './socket.service'
+
+type Player = {
+  makeMove: (fen: string, history: string[]) => string | null | Promise<string | null>;
+  getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string };
+}
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
-  let gameService: any
-  let player: any
-  let db: any
+  let gameService: GameService
+  let player: Player
+  let db: AppDatabase
   let alarmService: AlarmService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     sqlite.exec(`
       CREATE TABLE players (
@@ -67,7 +76,9 @@ describe('GameLoopService', () => {
     gameService = {
       makeMove: vi.fn().mockResolvedValue({}),
       getPlayer: vi.fn().mockReturnValue(null),
-    }
+      finishGame: vi.fn().mockResolvedValue({}),
+    } as unknown as GameService
+    
     player = {
       makeMove: vi.fn().mockResolvedValue('e4'),
     }
@@ -204,9 +215,9 @@ describe('GameLoopService', () => {
     
       it('should request move from client if Stockfish player and throttle subsequent requests', async () => {
     
-        const socketService = { broadcast: vi.fn() }
+        const socketService = { broadcast: vi.fn() } as unknown as SocketService
     
-        loopService = new GameLoopService(db, gameService, player, socketService as any, alarmService)
+        loopService = new GameLoopService(db, gameService, player, socketService, alarmService)
     
     
     

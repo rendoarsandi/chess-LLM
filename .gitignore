@@ -32,8 +32,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# SQLite database
-*.sqlite
-*.sqlite-journal
-*.sqlite-shm
-*.sqlite-wal
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

@@ -5,15 +5,17 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { games, moves, players, ratingHistory } from '../db/schema'
 import { eq } from 'drizzle-orm'
+import { AppDatabase } from '../db/types'
+import * as schema from '../db/schema'
 
 describe('GameService', () => {
   let service: GameService
   let gm: GameManager
-  let db: any
+  let db: AppDatabase
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     // Create tables manually for the test
     sqlite.exec(`

@@ -18,7 +18,7 @@ class MockWorkerInstance {
 }
 
 const activeWorkers: MockWorkerInstance[] = [];
-const MockWorkerSpy = vi.fn().mockImplementation(function (this: any) {
+const MockWorkerSpy = vi.fn().mockImplementation(function () {
   const w = new MockWorkerInstance();
   activeWorkers.push(w);
   return w;

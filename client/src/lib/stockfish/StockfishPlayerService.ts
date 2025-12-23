@@ -1,8 +1,8 @@
 export class StockfishPlayerService {
   private worker: Worker | null = null;
   private isEngineReady: boolean = false;
-  private activeRequest: { resolve: (move: string) => void; reject: (reason: any) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
-  private nextRequest: { resolve: (move: string) => void; reject: (reason: any) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
+  private activeRequest: { resolve: (move: string) => void; reject: (reason: unknown) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
+  private nextRequest: { resolve: (move: string) => void; reject: (reason: unknown) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
   private isSearching: boolean = false;
   private isTerminated: boolean = false;
   private currentSkillLevel: number | null = null;

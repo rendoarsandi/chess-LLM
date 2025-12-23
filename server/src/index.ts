@@ -23,6 +23,7 @@ import { games, players, moves, llmConfigurations, tournaments, tournamentPartic
 import { desc, eq } from 'drizzle-orm'
 import { auth } from './lib/auth'
 import { adminMiddleware } from './middleware/admin'
+import { workerMiddleware } from './middleware/worker'
 import { llmConfigService, LLMConfig } from './db/llm_config'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
@@ -254,7 +255,7 @@ app.get('/api/leaderboard', async (c) => {
   return c.json(results)
 })
 
-app.delete('/api/games', async (c) => {
+app.delete('/api/games', adminMiddleware, async (c) => {
   try {
     await gameService.clearHistory()
     return c.json({ success: true })
@@ -263,7 +264,7 @@ app.delete('/api/games', async (c) => {
   }
 })
 
-app.delete('/api/games/:id', async (c) => {
+app.delete('/api/games/:id', adminMiddleware, async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.deleteGame(id)
@@ -285,7 +286,7 @@ app.post('/api/games', async (c) => {
   }
 })
 
-app.post('/api/games/:id/pause', async (c) => {
+app.post('/api/games/:id/pause', adminMiddleware, async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.pauseGame(id)
@@ -295,7 +296,7 @@ app.post('/api/games/:id/pause', async (c) => {
   }
 })
 
-app.post('/api/games/:id/resume', async (c) => {
+app.post('/api/games/:id/resume', adminMiddleware, async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.resumeGame(id)
@@ -419,7 +420,10 @@ app.get('/api/reviews/:gameId', async (c) => {
   return c.json(status)
 })
 
-app.post('/api/reviews/worker/claim', async (c) => {
+const worker = new Hono()
+worker.use('*', workerMiddleware)
+
+worker.post('/claim', async (c) => {
   try {
     const { workerId } = await c.req.json()
     const job = await gameReviewService.claimJob(workerId)
@@ -430,7 +434,7 @@ app.post('/api/reviews/worker/claim', async (c) => {
   }
 })
 
-app.post('/api/reviews/worker/heartbeat', async (c) => {
+worker.post('/heartbeat', async (c) => {
   try {
     const { reviewId } = await c.req.json()
     await gameReviewService.heartbeat(reviewId)
@@ -440,7 +444,7 @@ app.post('/api/reviews/worker/heartbeat', async (c) => {
   }
 })
 
-app.post('/api/reviews/worker/progress', async (c) => {
+worker.post('/progress', async (c) => {
   try {
     const { reviewId, current, total } = await c.req.json()
     await gameReviewService.updateProgress(reviewId, current, total)
@@ -450,7 +454,7 @@ app.post('/api/reviews/worker/progress', async (c) => {
   }
 })
 
-app.post('/api/reviews/worker/submit', async (c) => {
+worker.post('/submit', async (c) => {
   try {
     const { reviewId, results } = await c.req.json()
     await gameReviewService.submitResults(reviewId, results)
@@ -460,7 +464,7 @@ app.post('/api/reviews/worker/submit', async (c) => {
   }
 })
 
-app.post('/api/reviews/worker/failure', async (c) => {
+worker.post('/failure', async (c) => {
   try {
     const { reviewId } = await c.req.json()
     await gameReviewService.reportFailure(reviewId)
@@ -469,6 +473,8 @@ app.post('/api/reviews/worker/failure', async (c) => {
     return c.json({ error: (e as Error).message }, 400)
   }
 })
+
+app.route('/api/reviews/worker', worker)
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001
 console.log(`Server is running on port ${port}`)

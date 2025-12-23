@@ -9,19 +9,22 @@ import { eq } from 'drizzle-orm'
 import Database from 'better-sqlite3'
 import { players, moves } from '../db/schema'
 import { Chess } from 'chess.js'
+import { AppDatabase } from '../db/types'
+import { GroqService } from './groq.service'
+import * as schema from '../db/schema'
 
 describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
-  let db: any
+  let db: AppDatabase
   let gameManager: GameManager
   let gameService: GameService
   let gameLoopService: GameLoopService
   let groqPlayer: GroqPlayer
   let randomPlayer: RandomPlayer
-  let mockGroqService: any
+  let mockGroqService: GroqService
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     // Setup tables
     sqlite.exec(`
@@ -116,7 +119,7 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
       })
     }
     
-    groqPlayer = new GroqPlayer(mockGroqService as any, 'moonshotai/kimi-k2-instruct-0905')
+    groqPlayer = new GroqPlayer(mockGroqService as unknown as GroqService, 'moonshotai/kimi-k2-instruct-0905')
     randomPlayer = new RandomPlayer()
     
     gameLoopService = new GameLoopService(db, gameService, randomPlayer)
@@ -143,7 +146,7 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
     while (game.status === 'ongoing' && attempts < maxIterations) {
       await gameLoopService.runIteration()
       // Manually trigger the alarm that was set in runIteration -> advanceGame
-      await (gameLoopService as any).alarmService.executeAlarm(`game:${gameId}`)
+      await (gameLoopService as unknown as { alarmService: { executeAlarm: (id: string) => Promise<void> } }).alarmService.executeAlarm(`game:${gameId}`)
       game = await gameService.getGame(gameId)
       attempts++
     }
@@ -155,7 +158,7 @@ describe('End-to-End Integration: Groq (Mocked) vs RandomPlayer', () => {
     expect(gameMoves.length).toBeGreaterThan(0)
     
     // Verify Groq moves have thinking data
-    const groqMoves = gameMoves.filter((m: any) => m.playerColor === 'white')
+    const groqMoves = gameMoves.filter((m) => m.playerColor === 'white')
     expect(groqMoves.length).toBeGreaterThan(0)
     
     const sampleGroqMove = groqMoves[0]

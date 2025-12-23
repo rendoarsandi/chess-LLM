@@ -5,13 +5,16 @@ import Database from 'better-sqlite3'
 import { games, players, gameReviews, moveAnalyses } from '../db/schema'
 import { eq } from 'drizzle-orm'
 
+import { AppDatabase } from '../db/types'
+import * as schema from '../db/schema'
+
 describe('GameReviewService', () => {
   let service: GameReviewService
-  let db: any
+  let db: AppDatabase
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     sqlite.exec(`
       CREATE TABLE players (
@@ -223,7 +226,7 @@ describe('GameReviewService', () => {
     ]
     await service.submitResults(job!.id, results)
     
-    const status3 = (await service.getReviewStatus(gameId)) as any
+    const status3 = await service.getReviewStatus(gameId)
     expect(status3?.status).toBe('completed')
     expect(status3?.analyses).toHaveLength(1)
     expect(status3?.analyses[0].classification).toBe('best')

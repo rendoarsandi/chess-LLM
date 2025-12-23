@@ -52,10 +52,12 @@ afterAll(() => {
 if (typeof window !== 'undefined' && !window.Worker) {
   window.Worker = class {
     onmessage: ((e: MessageEvent) => void) | null = null;
+    onerror: ((e: ErrorEvent) => void) | null = null;
+    onmessageerror: ((e: MessageEvent) => void) | null = null;
     postMessage = vi.fn();
     terminate = vi.fn();
     addEventListener = vi.fn();
     removeEventListener = vi.fn();
     dispatchEvent = vi.fn();
-  } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  } as unknown as typeof Worker;
 }

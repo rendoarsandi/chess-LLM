@@ -5,17 +5,21 @@ import Database from 'better-sqlite3'
 import { tournaments, tournamentParticipants, players, games } from '../db/schema'
 import { TournamentService } from './tournament.service'
 import { GameService } from './game.service'
+import { GameManager } from './game-manager'
 import { eq, and } from 'drizzle-orm'
+
+import { AppDatabase } from '../db/types'
+import * as schema from '../db/schema'
 
 describe('TournamentLoopService', () => {
   let loopService: TournamentLoopService
   let tournamentService: TournamentService
-  let gameService: any
-  let db: any
+  let gameService: GameService
+  let db: AppDatabase
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     sqlite.exec(`
       CREATE TABLE players (
@@ -75,7 +79,7 @@ describe('TournamentLoopService', () => {
       createNewGame: vi.fn().mockReturnValue({ fen: 'start' }),
       getPlayer: vi.fn().mockReturnValue(null)
     }
-    gameService = new GameService(db, gameManager as any)
+    gameService = new GameService(db, gameManager as unknown as GameManager)
     
     loopService = new TournamentLoopService(db, tournamentService, gameService)
   })
@@ -158,7 +162,7 @@ describe('TournamentLoopService', () => {
     // Verify Round 2 games were created (p1 vs p3, winners vs winners)
     const r2Games = await db.select().from(games).where(and(eq(games.tournamentId, 't2'), eq(games.roundNumber, 2)))
     expect(r2Games).toHaveLength(2)
-    const match = r2Games.find((g: any) => (g.whitePlayerId === 'p1' && g.blackPlayerId === 'p3') || (g.whitePlayerId === 'p3' && g.blackPlayerId === 'p1'))
+    const match = r2Games.find((g) => (g.whitePlayerId === 'p1' && g.blackPlayerId === 'p3') || (g.whitePlayerId === 'p3' && g.blackPlayerId === 'p1'))
     expect(match).toBeDefined()
   })
 })

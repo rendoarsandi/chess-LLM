@@ -27,14 +27,14 @@ describe('StockfishPlayerService', () => {
 
   it('should initialize a worker', () => {
     expect(service).toBeDefined();
-    expect((service as any).worker).toBeInstanceOf(MockWorker);
+    expect((service as unknown as { worker: Worker }).worker).toBeInstanceOf(MockWorker);
   });
 
   it('should resolve calculateMove when bestmove is received', async () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     
     // We need to trigger initialization sequence
-    const mockWorker = (service as any).worker;
+    const mockWorker = (service as unknown as { worker: MockWorker }).worker;
     mockWorker.simulateMessage('uciok');
     mockWorker.simulateMessage('readyok');
 
@@ -56,7 +56,7 @@ describe('StockfishPlayerService', () => {
   });
 
   it('should terminate the worker on cleanup', () => {
-    const mockWorker = (service as any).worker;
+    const mockWorker = (service as unknown as { worker: MockWorker }).worker;
     service.terminate();
     expect(mockWorker.terminate).toHaveBeenCalled();
   });

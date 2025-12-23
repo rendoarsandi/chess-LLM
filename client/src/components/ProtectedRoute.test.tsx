@@ -17,7 +17,7 @@ describe('ProtectedRoute Component', () => {
             data: null,
             isPending: true,
             error: null
-        } as any)
+        } as unknown as ReturnType<typeof authClient.useSession>)
 
         render(
             <MemoryRouter>
@@ -35,7 +35,7 @@ describe('ProtectedRoute Component', () => {
             data: null,
             isPending: false,
             error: null
-        } as any)
+        } as unknown as ReturnType<typeof authClient.useSession>)
 
         render(
             <MemoryRouter initialEntries={['/admin/settings']}>
@@ -59,7 +59,7 @@ describe('ProtectedRoute Component', () => {
             data: { user: { email: 'admin@test.com' } },
             isPending: false,
             error: null
-        } as any)
+        } as unknown as ReturnType<typeof authClient.useSession>)
 
         render(
             <MemoryRouter>

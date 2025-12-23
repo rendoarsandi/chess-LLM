@@ -86,6 +86,13 @@ interface ArenaContentProps {
   thinkingStatus: 'thinking' | 'idle';
 }
 
+const STOCKFISH_IDS = [
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000011',
+  '00000000-0000-0000-0000-000000000012',
+  '00000000-0000-0000-0000-000000000013'
+];
+
 function ArenaContent({ 
   whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, 
   isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
@@ -98,27 +105,24 @@ function ArenaContent({
   const isWhiteTurn = turn === 'w';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Auto-collapse logic
-  const [isWhiteThinkingExpanded, setIsWhiteThinkingExpanded] = useState(true);
-  const [isBlackThinkingExpanded, setIsBlackThinkingExpanded] = useState(true);
-
-  const STOCKFISH_IDS = [
-    '00000000-0000-0000-0000-000000000010',
-    '00000000-0000-0000-0000-000000000011',
-    '00000000-0000-0000-0000-000000000012',
-    '00000000-0000-0000-0000-000000000013'
-  ];
-
-  const isPlayerNonLLM = (player?: Player) => {
+  const isPlayerNonLLM = useCallback((player?: Player) => {
     return player?.type === 'human' || (player?.id && STOCKFISH_IDS.includes(player.id));
-  };
+  }, []);
 
-  useEffect(() => {
+  // Auto-collapse logic: Initialized on mount (and remount on game change)
+  const [isWhiteThinkingExpanded, setIsWhiteThinkingExpanded] = useState(() => {
     if (selectedGame?.status === 'ongoing' && isLive) {
-      if (isPlayerNonLLM(whitePlayer)) setIsWhiteThinkingExpanded(false);
-      if (isPlayerNonLLM(blackPlayer)) setIsBlackThinkingExpanded(false);
+      return !isPlayerNonLLM(whitePlayer);
     }
-  }, [selectedGame?.id, selectedGame?.status, isLive, whitePlayer, blackPlayer]);
+    return true;
+  });
+
+  const [isBlackThinkingExpanded, setIsBlackThinkingExpanded] = useState(() => {
+    if (selectedGame?.status === 'ongoing' && isLive) {
+      return !isPlayerNonLLM(blackPlayer);
+    }
+    return true;
+  });
 
   const handleCopyFen = () => {
     navigator.clipboard.writeText(currentDisplayFen);
@@ -152,7 +156,14 @@ function ArenaContent({
           </Sheet>
 
           <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase italic flex items-center gap-2 md:gap-3 shrink-0">
-            ChessLLM <span className="text-primary not-italic text-[9px] md:text-[10px] bg-primary/10 px-2 py-0.5 rounded border border-primary/20 tracking-widest">ARENA</span>
+            ChessLLM <span className={cn(
+              "not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors",
+              isLive 
+                ? "text-primary bg-primary/10 border-primary/20" 
+                : "text-amber-500 bg-amber-500/10 border-amber-500/20"
+            )}>
+              {isLive ? 'ARENA' : 'HISTORY MODE'}
+            </span>
           </h1>
           
           {selectedGame && (
@@ -755,6 +766,7 @@ function App() {
         <Route path="/" element={<Navigate to="/arena" replace />} />
         <Route path="/arena" element={
           <ArenaContent 
+            key={selectedGame?.id || 'none'}
             whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
             whiteThinking={whiteThinking} blackThinking={blackThinking}
             evaluation={evaluation} variations={variations}
@@ -774,6 +786,7 @@ function App() {
         } />
         <Route path="/arena/:gameId" element={
           <ArenaContent 
+            key={selectedGame?.id || 'none'}
             whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
             whiteThinking={whiteThinking} blackThinking={blackThinking}
             evaluation={evaluation} variations={variations}

@@ -1,10 +1,41 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import app from './index'
 import { db } from './db'
 import { players } from './db/schema'
 import { eq, or } from 'drizzle-orm'
+import { auth } from './lib/auth'
+
+vi.mock('./lib/auth', () => ({
+  auth: {
+    api: {
+      getSession: vi.fn()
+    }
+  }
+}))
 
 describe('API Endpoints', () => {
+  beforeEach(() => {
+    vi.mocked(auth.api.getSession).mockResolvedValue({
+      user: {
+        id: 'admin-id',
+        email: 'admin@example.com',
+        emailVerified: true,
+        name: 'Admin',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      session: {
+        id: 'session-id',
+        userId: 'admin-id',
+        token: 'session-token',
+        expiresAt: new Date(Date.now() + 3600000),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>)
+    process.env.ADMIN_EMAIL = 'admin@example.com'
+  })
+
   it('GET / should return Hello Hono!', async () => {
     const res = await app.request('/')
     expect(res.status).toBe(200)

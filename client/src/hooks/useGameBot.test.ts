@@ -49,7 +49,7 @@ describe('useGameBot', () => {
 
     const { rerender } = renderHook(
       ({ lastMsg }) => useGameBot(gameId, lastMsg, sendMessage, true),
-      { initialProps: { lastMsg: null as any } }
+      { initialProps: { lastMsg: null as unknown as { type: 'REQUEST_MOVE', gameId: string, fen: string, constraints: { depth: number, skillLevel: number, movetime: number } } } }
     )
 
     // Trigger message

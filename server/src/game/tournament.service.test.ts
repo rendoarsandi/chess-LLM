@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TournamentService } from './tournament.service'
 import { tournaments, tournamentParticipants } from '../db/schema'
+import { AppDatabase } from '../db/types'
 
 describe('TournamentService', () => {
-  let db: any
+  let db: AppDatabase
   let tournamentService: TournamentService
 
   beforeEach(() => {
@@ -15,7 +16,7 @@ describe('TournamentService', () => {
       values: vi.fn().mockReturnThis(),
       update: vi.fn().mockReturnThis(),
       set: vi.fn().mockReturnThis(),
-    }
+    } as unknown as AppDatabase
     tournamentService = new TournamentService(db)
   })
 

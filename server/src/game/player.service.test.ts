@@ -3,14 +3,16 @@ import { PlayerService } from './player.service'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { players, games } from '../db/schema'
+import { AppDatabase } from '../db/types'
+import * as schema from '../db/schema'
 
 describe('PlayerService', () => {
   let service: PlayerService
-  let db: any
+  let db: AppDatabase
 
   beforeEach(() => {
     const sqlite = new Database(':memory:')
-    db = drizzle(sqlite)
+    db = drizzle(sqlite, { schema })
     
     sqlite.exec(`
       CREATE TABLE players (
@@ -69,8 +71,8 @@ describe('PlayerService', () => {
   })
 
   it('should generate deterministic IDs', () => {
-    const id1 = (service as any).generatePlayerId('test')
-    const id2 = (service as any).generatePlayerId('test')
+    const id1 = (service as unknown as { generatePlayerId: (name: string) => string }).generatePlayerId('test')
+    const id2 = (service as unknown as { generatePlayerId: (name: string) => string }).generatePlayerId('test')
     expect(id1).toBe(id2)
     expect(id1.length).toBe(36)
   })
@@ -118,12 +120,12 @@ describe('PlayerService', () => {
     const h2h = await service.getHeadToHead(playerId)
     expect(h2h).toHaveLength(2)
 
-    const p2Record = h2h.find((r: any) => r.opponentId === 'p2')
+    const p2Record = h2h.find((r) => r.opponentId === 'p2')
     expect(p2Record!.wins).toBe(2)
     expect(p2Record!.losses).toBe(0)
     expect(p2Record!.draws).toBe(1)
 
-    const p3Record = h2h.find((r: any) => r.opponentId === 'p3')
+    const p3Record = h2h.find((r) => r.opponentId === 'p3')
     expect(p3Record!.wins).toBe(0)
     expect(p3Record!.losses).toBe(1)
     expect(p3Record!.draws).toBe(0)
