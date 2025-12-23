@@ -10,7 +10,7 @@
     - [x] Sub-task: Fix layout container to prevent content overlap on mobile.
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Navigation' (Protocol in workflow.md)
 
-## Phase 2: Game Board & Core Controls [ ]
+## Phase 2: Game Board & Core Controls [checkpoint: 53c1525]
 - [x] Task: Board Responsiveness (9f69a7d)
     - [x] Sub-task: Fix `Chessboard` and `AnalysisBoard` container sizing to be fully responsive.
     - [x] Sub-task: Ensure piece animation performance is optimal.
