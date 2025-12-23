@@ -8,99 +8,41 @@ import { getTournaments } from "@/api"
 
 export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings';
 
-interface SidebarProps {
-  isCollapsed: boolean;
-  setIsCollapsed: (collapsed: boolean) => void;
+interface NavItem {
+  id: string;
+  icon: React.ElementType;
+  label: string;
+  path: string;
+  indicator?: boolean;
 }
 
-export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
-  const { data: session } = authClient.useSession()
-  const navigate = useNavigate()
-  const [hasLiveTournament, setHasLiveTournament] = useState(false)
+interface NavContentProps {
+  isCollapsed: boolean;
+  navItems: NavItem[];
+  session: any;
+  handleLogout: () => Promise<void>;
+  onItemClick?: () => void;
+}
 
-  useEffect(() => {
-    const checkLive = async () => {
-      try {
-        const ts = await getTournaments()
-        setHasLiveTournament(ts.some(t => t.status === 'active'))
-      } catch (e) {
-        console.error("Failed to fetch tournaments for sidebar", e)
-      }
-    }
-    checkLive()
-    const interval = setInterval(checkLive, 10000)
-    return () => clearInterval(interval)
-  }, [])
-
-  interface NavItem {
-    id: string;
-    icon: React.ElementType;
-    label: string;
-    path: string;
-    indicator?: boolean;
-  }
-
-  const navItems: NavItem[] = [
-    { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
-    { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
-    { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
-    { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
-    { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
-    ...(session ? [
-      { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
-      { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
-    ] : []),
-  ];
-
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          navigate("/")
-        }
-      }
-    })
-  }
-
+function NavContent({ isCollapsed, navItems, session, handleLogout, onItemClick }: NavContentProps) {
   return (
-    <nav className={cn(
-      "flex flex-col border-r border-border bg-muted/20 items-center py-8 gap-8 shrink-0 transition-all duration-300 relative",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
-      {/* Logo */}
-      <div className={cn(
-        "bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transition-all duration-300",
-        isCollapsed ? "w-10 h-10" : "w-12 h-12"
-      )}>
-        <span className={cn("text-primary-foreground font-black italic", isCollapsed ? "text-lg" : "text-xl")}>C</span>
-      </div>
-
-      {/* Toggle Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-3 top-20 h-6 w-6 rounded-full border bg-background shadow-sm z-50 hover:bg-accent"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        aria-label="Toggle Sidebar"
-      >
-        {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-      </Button>
-      
-      <div className="flex flex-col w-full gap-4 px-3 flex-1">
+    <>
+      <div className="flex flex-col w-full gap-2 px-3 flex-1">
         {navItems.map((item) => (
           <NavLink 
             key={item.id}
             to={item.path}
+            onClick={onItemClick}
             className={({ isActive }) => cn(
               "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
               isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               isCollapsed ? "justify-center" : "justify-start"
             )}
           >
-            <item.icon className="h-6 w-6 shrink-0" />
+            <item.icon className="h-5 w-5 shrink-0" />
             {!isCollapsed && (
               <div className="flex items-center justify-between flex-1">
-                <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+                <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300">
                   {item.label}
                 </span>
                 {item.indicator && (
@@ -130,11 +72,14 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full text-destructive hover:bg-destructive/10 hover:text-destructive",
               isCollapsed ? "justify-center" : "justify-start"
             )}
-            onClick={handleLogout}
+            onClick={() => {
+              handleLogout();
+              onItemClick?.();
+            }}
           >
-            <LogOut className="h-6 w-6 shrink-0" />
+            <LogOut className="h-5 w-5 shrink-0" />
             {!isCollapsed && (
-              <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+              <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300 text-left flex-1">
                 LOGOUT
               </span>
             )}
@@ -147,15 +92,16 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         ) : (
           <NavLink
             to="/login"
+            onClick={onItemClick}
             className={({ isActive }) => cn(
               "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
               isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
               isCollapsed ? "justify-center" : "justify-start"
             )}
           >
-            <LogIn className="h-6 w-6 shrink-0" />
+            <LogIn className="h-5 w-5 shrink-0" />
             {!isCollapsed && (
-              <span className="font-bold text-xs tracking-widest transition-opacity duration-300">
+              <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300 text-left flex-1">
                 LOGIN
               </span>
             )}
@@ -167,6 +113,93 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           </NavLink>
         )}
       </div>
+    </>
+  )
+}
+
+interface SidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
+  className?: string;
+  onItemClick?: () => void;
+  mobile?: boolean;
+}
+
+export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, mobile }: SidebarProps) {
+  const { data: session } = authClient.useSession()
+  const navigate = useNavigate()
+  const [hasLiveTournament, setHasLiveTournament] = useState(false)
+
+  useEffect(() => {
+    const checkLive = async () => {
+      try {
+        const ts = await getTournaments()
+        setHasLiveTournament(ts.some(t => t.status === 'active'))
+      } catch (e) {
+        console.error("Failed to fetch tournaments for sidebar", e)
+      }
+    }
+    checkLive()
+    const interval = setInterval(checkLive, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const navItems: NavItem[] = [
+    { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
+    { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
+    { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
+    { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
+    { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
+    ...(session ? [
+      { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
+      { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
+    ] : []),
+  ];
+
+  const handleLogout = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          navigate("/")
+        }
+      }
+    })
+  }
+
+  return (
+    <nav className={cn(
+      "flex flex-col border-r border-border bg-card/50 backdrop-blur-sm items-center py-8 pb-4 gap-8 shrink-0 transition-all duration-300 relative",
+      mobile ? "w-full border-none bg-transparent py-4" : (isCollapsed ? "w-16" : "w-64"),
+      className
+    )}>
+      {/* Logo */}
+      <div className={cn(
+        "bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transition-all duration-300",
+        isCollapsed && !mobile ? "w-10 h-10" : "w-12 h-12"
+      )}>
+        <span className={cn("text-primary-foreground font-black italic", isCollapsed && !mobile ? "text-lg" : "text-xl")}>C</span>
+      </div>
+
+      {/* Toggle Button - Hidden on Mobile */}
+      {!mobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -right-3 top-20 h-6 w-6 rounded-full border bg-background shadow-sm z-50 hover:bg-accent"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label="Toggle Sidebar"
+        >
+          {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </Button>
+      )}
+      
+      <NavContent 
+        isCollapsed={isCollapsed && !mobile} 
+        navItems={navItems} 
+        session={session} 
+        handleLogout={handleLogout}
+        onItemClick={onItemClick}
+      />
     </nav>
   )
 }

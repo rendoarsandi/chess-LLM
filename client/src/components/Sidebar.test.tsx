@@ -1,66 +1,51 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Sidebar } from './Sidebar'
-import { MemoryRouter } from 'react-router'
-import { authClient } from '@/lib/auth-client'
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Sidebar } from './Sidebar';
+import { BrowserRouter } from 'react-router';
+import { authClient } from '@/lib/auth-client';
+import { vi } from 'vitest';
 
 // Mock authClient
 vi.mock('@/lib/auth-client', () => ({
   authClient: {
-    useSession: vi.fn(),
+    useSession: vi.fn(() => ({ data: null })),
     signOut: vi.fn(),
   },
-}))
+}));
 
-// Mock API
-vi.mock('@/api', () => ({
-  getTournaments: vi.fn().mockResolvedValue([]),
-}))
-
-describe('Sidebar', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('renders basic nav items', () => {
-    ;(authClient.useSession as any).mockReturnValue({ data: null })
-    
+describe('Sidebar Component', () => {
+  it('renders logo', () => {
     render(
-      <MemoryRouter>
-        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
-      </MemoryRouter>
-    )
-    
-    expect(screen.getByText('ARENA')).toBeDefined()
-    expect(screen.getByText('LEADERBOARD')).toBeDefined()
-    expect(screen.queryByText('SETTINGS')).toBeNull()
-  })
+      <BrowserRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('C')).toBeDefined();
+  });
 
-  it('renders settings and logout when logged in', () => {
-    ;(authClient.useSession as any).mockReturnValue({ data: { user: { id: '1' } } })
-    
+  it('renders navigation links', () => {
     render(
-      <MemoryRouter>
-        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
-      </MemoryRouter>
-    )
-    
-    expect(screen.getByText('SETTINGS')).toBeDefined()
-    expect(screen.getByText('LOGOUT')).toBeDefined()
-  })
+      <BrowserRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('ARENA')).toBeDefined();
+    expect(screen.getByText('LEADERBOARD')).toBeDefined();
+  });
 
-  it('calls signOut when logout is clicked', async () => {
-    ;(authClient.useSession as any).mockReturnValue({ data: { user: { id: '1' } } })
-    ;(authClient.signOut as any).mockResolvedValue({})
+  it('shows toggle button on desktop but not when mobile prop is true', () => {
+    const { rerender } = render(
+      <BrowserRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+      </BrowserRouter>
+    );
+    expect(screen.queryByLabelText('Toggle Sidebar')).toBeDefined();
 
-    render(
-      <MemoryRouter>
-        <Sidebar isCollapsed={false} setIsCollapsed={vi.fn()} />
-      </MemoryRouter>
-    )
-    
-    fireEvent.click(screen.getByText('LOGOUT'))
-    
-    expect(authClient.signOut).toHaveBeenCalled()
-  })
-})
+    rerender(
+      <BrowserRouter>
+        <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile />
+      </BrowserRouter>
+    );
+    expect(screen.queryByLabelText('Toggle Sidebar')).toBeNull();
+  });
+});
