@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, vi } from 'vitest'
 import { logger } from './src/game/logger'
 
-beforeAll(() => {
+beforeAll(async () => {
   // Silence custom logger during tests except errors
   logger.setLevel('error')
 

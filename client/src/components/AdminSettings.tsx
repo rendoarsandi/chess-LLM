@@ -5,7 +5,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "./ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -109,6 +109,7 @@ export function AdminSettings() {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle className="text-2xl font-black uppercase italic tracking-tight">Add New LLM Model</DialogTitle>
+                                <DialogDescription>Configure a new LLM provider and model ID to add it to the arena.</DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">

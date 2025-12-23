@@ -73,10 +73,6 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
     if (!evaluation) return '';
     if (evaluation.isMate) {
       const m = evaluation.mateIn || 0;
-      if (m === 0) {
-        // If it's white's turn and they are mated, black wins (0-1)
-        return evaluation.sideToMove === 'w' ? '0-1' : '1-0';
-      }
       return `M${Math.abs(m)}`;
     }
     
@@ -90,17 +86,17 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
   return (
     <div className={cn(
       "flex items-center relative group/bar",
-      isHorizontal ? "flex-row w-full h-8" : "flex-col h-full"
+      isHorizontal ? "flex-row w-full h-6" : "flex-col h-full"
     )}>
       <div className={cn(
-        "relative bg-neutral-900 overflow-hidden rounded-sm border-2 transition-all duration-300",
-        isHorizontal ? "w-full h-full" : "w-10 md:w-12 h-full",
-        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+        "relative bg-neutral-900 overflow-hidden rounded-sm border transition-all duration-300",
+        isHorizontal ? "w-full h-full" : "w-6 md:w-8 h-full",
+        !evaluation ? "border-neutral-800" : "border-neutral-700 shadow-[0_0_10px_rgba(0,0,0,0.5)]"
       )}>
         {/* White portion */}
         <div 
           className={cn(
-            "absolute bg-white transition-all duration-400 ease-in-out shadow-[0_-2px_10px_rgba(255,255,255,0.3)]",
+            "absolute bg-white transition-all duration-400 ease-in-out shadow-[0_-1px_5px_rgba(255,255,255,0.2)]",
             isHorizontal 
               ? (boardOrientation === 'white' ? "right-0 h-full" : "left-0 h-full") 
               : (boardOrientation === 'white' ? "bottom-0 w-full" : "top-0 w-full")
@@ -110,12 +106,12 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
         
         {/* Score overlay */}
         <div className={cn(
-          "absolute text-[10px] md:text-[11px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
+          "absolute text-[9px] md:text-[10px] font-black text-center z-10 select-none pointer-events-none transition-all duration-500",
           isHorizontal 
             ? "top-1/2 -translate-y-1/2 w-full flex justify-between px-2 items-center" 
             : (boardOrientation === 'white' 
-                ? (percentage > 50 ? "bottom-2 w-full" : "top-2 w-full")
-                : (percentage > 50 ? "top-2 w-full" : "bottom-2 w-full")
+                ? (percentage > 50 ? "bottom-1.5 w-full" : "top-1.5 w-full")
+                : (percentage > 50 ? "top-1.5 w-full" : "bottom-1.5 w-full")
               )
         )}>
           {isHorizontal ? (

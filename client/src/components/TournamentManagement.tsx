@@ -4,7 +4,7 @@ import { getTournaments, createTournament, getPlayers, type Tournament, type Pla
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "./ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "./ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -102,6 +102,7 @@ export function TournamentManagement() {
                         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle className="text-2xl font-black uppercase italic tracking-tight">Create Swiss Tournament</DialogTitle>
+                                <DialogDescription>Setup a new tournament by selecting models and defining the number of rounds.</DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-6 py-4">
                                 <div className="grid gap-2">

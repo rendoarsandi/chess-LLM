@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { getGame, getMoves, getReviewStatus, requestReview, type Game, type Move, type GameReview, type MoveAnalysis, type Player, getPlayers } from '../api';
+import { getGame, getMoves, getReviewStatus, type Game, type Move, type GameReview, type MoveAnalysis } from '../api';
 import { AnalysisBoard } from './AnalysisBoard';
 import { MoveList } from './MoveList';
 import { PlaybackControls } from './PlaybackControls';
-import { GameReviewDashboard } from './GameReviewDashboard';
 import { useStockfish } from '../lib/stockfish/useStockfish';
 import { Button } from './ui/button';
 import { ChevronLeft, Share2, Download } from 'lucide-react';
 import { Chess } from 'chess.js';
-import { toast } from "sonner"
 
 export const AnalysisMode: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -17,7 +15,6 @@ export const AnalysisMode: React.FC = () => {
   
   const [game, setGame] = useState<Game | null>(null);
   const [moves, setMoves] = useState<Move[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
   const [review, setReview] = useState<(GameReview & { analyses?: MoveAnalysis[] }) | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [boardOrientation] = useState<'white' | 'black'>('white');
@@ -32,31 +29,18 @@ export const AnalysisMode: React.FC = () => {
     }
   }, [gameId]);
 
-  const handleRetry = async () => {
-    if (!gameId) return;
-    try {
-      const newReview = await requestReview(gameId);
-      setReview(newReview);
-      toast.info("Retrying game review...");
-    } catch {
-      toast.error("Failed to retry game review");
-    }
-  };
-
   useEffect(() => {
     if (!gameId) return;
     
     const fetchData = async () => {
       try {
-        const [gameData, movesData, playersData] = await Promise.all([
+        const [gameData, movesData] = await Promise.all([
           getGame(gameId),
-          getMoves(gameId),
-          getPlayers()
+          getMoves(gameId)
         ]);
         
         setGame(gameData);
         setMoves(movesData);
-        setPlayers(playersData);
         setActiveIndex(movesData.length - 1);
 
         // Initial check for review
@@ -81,7 +65,7 @@ export const AnalysisMode: React.FC = () => {
 
     const interval = setInterval(fetchStatus, 2000);
     return () => clearInterval(interval);
-  }, [gameId, review?.status, review, fetchStatus]);
+  }, [gameId, review, fetchStatus]);
 
   const currentDisplayFen = useMemo(() => {
     const chess = new Chess();
@@ -90,15 +74,6 @@ export const AnalysisMode: React.FC = () => {
       try { chess.move(moves[i].move); } catch { /* ignore */ }
     }
     return chess.fen();
-  }, [moves, activeIndex]);
-
-  const currentPgn = useMemo(() => {
-    const chess = new Chess();
-    if (moves.length === 0 || activeIndex === null) return "";
-    for (let i = 0; i <= activeIndex; i++) {
-      try { chess.move(moves[i].move); } catch { /* ignore */ }
-    }
-    return chess.pgn();
   }, [moves, activeIndex]);
 
   const lastMoveSquares = useMemo(() => {
@@ -116,11 +91,6 @@ export const AnalysisMode: React.FC = () => {
   }, [moves, activeIndex]);
 
   const { evaluation, variations } = useStockfish(currentDisplayFen);
-
-  const whitePlayer = players.find(p => p.id === game?.whitePlayerId);
-  const blackPlayer = players.find(p => p.id === game?.blackPlayerId);
-
-  const currentAnalysis = activeIndex !== null && review?.analyses ? review.analyses[activeIndex] : null;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
@@ -154,8 +124,6 @@ export const AnalysisMode: React.FC = () => {
               evaluation={evaluation}
               variations={variations}
               lastMoveSquares={lastMoveSquares}
-              gameId={game?.id}
-              pgn={currentPgn}
               gameStatus={game?.status}
               winnerId={game?.winnerId}
               whitePlayerId={game?.whitePlayerId}

@@ -1,8 +1,7 @@
 import React from 'react';
 import type { GameReview, MoveAnalysis, Player } from '@/api';
-import { Zap, Star, CheckCheck, Check, Info, AlertTriangle, XCircle, Search, Loader2, ArrowRight } from 'lucide-react';
+import { Zap, Star, CheckCheck, Check, Info, AlertTriangle, XCircle, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router';
 import { Button } from './ui/button';
 
 interface GameReviewDashboardProps {

@@ -1,10 +1,10 @@
 import { tournaments, tournamentParticipants } from '../db/schema'
 import { eq, sql, and } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
+import { AppDatabase } from '../db/types'
 
 export class TournamentService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(private db: any) {}
+  constructor(private db: AppDatabase) {}
 
   async createTournament(data: { name: string, startTime: Date, totalRounds: number, timeControlSettings?: string }) {
     const id = randomUUID()

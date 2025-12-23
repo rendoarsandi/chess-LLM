@@ -6,16 +6,35 @@ interface CollapsibleSectionProps {
   title: string;
   children: React.ReactNode;
   defaultExpanded?: boolean;
+  isExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   className?: string;
 }
 
-export function CollapsibleSection({ title, children, defaultExpanded = false, className }: CollapsibleSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+export function CollapsibleSection({ 
+  title, 
+  children, 
+  defaultExpanded = false, 
+  isExpanded: controlledExpanded,
+  onExpandedChange,
+  className 
+}: CollapsibleSectionProps) {
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+  
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  
+  const toggle = () => {
+    if (onExpandedChange) {
+      onExpandedChange(!isExpanded);
+    } else {
+      setInternalExpanded(!isExpanded);
+    }
+  };
 
   return (
     <div className={cn("border border-border rounded-lg bg-card overflow-hidden", className)}>
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggle}
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
       >
         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{title}</span>

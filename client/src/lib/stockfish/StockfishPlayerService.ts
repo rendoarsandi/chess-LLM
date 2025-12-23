@@ -1,7 +1,8 @@
 export class StockfishPlayerService {
   private worker: Worker | null = null;
   private isEngineReady: boolean = false;
-  private pendingRequest: { resolve: (move: string) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
+  private activeRequest: { resolve: (move: string) => void; reject: (reason: any) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
+  private nextRequest: { resolve: (move: string) => void; reject: (reason: any) => void; fen: string; depth: number; skillLevel: number; movetime?: number } | null = null;
   private isSearching: boolean = false;
   private isTerminated: boolean = false;
   private currentSkillLevel: number | null = null;
@@ -65,11 +66,18 @@ export class StockfishPlayerService {
       this.processQueue();
     } else if (message.startsWith('bestmove')) {
       const parts = message.split(' ');
-      if (parts.length >= 2 && this.pendingRequest) {
+      if (parts.length >= 2) {
         const move = parts[1];
         this.isSearching = false;
-        this.pendingRequest.resolve(move);
-        this.pendingRequest = null;
+        
+        if (this.activeRequest) {
+          const resolve = this.activeRequest.resolve;
+          this.activeRequest = null;
+          // If we had a next request waiting, it will be started in processQueue
+          resolve(move);
+        }
+        
+        this.processQueue();
       }
     }
   }
@@ -86,10 +94,17 @@ export class StockfishPlayerService {
   }
 
   private processQueue() {
-    if (!this.isEngineReady || this.isSearching || !this.pendingRequest) return;
+    if (!this.isEngineReady || this.isSearching) return;
     
-    const { fen, depth, skillLevel, movetime } = this.pendingRequest;
+    // Pick the latest request
+    const request = this.nextRequest;
+    if (!request) return;
+    
+    this.nextRequest = null;
+    this.activeRequest = request;
     this.isSearching = true;
+
+    const { fen, depth, skillLevel, movetime } = request;
 
     // Apply skill level if it has changed
     if (this.currentSkillLevel !== skillLevel) {
@@ -107,15 +122,23 @@ export class StockfishPlayerService {
   }
 
   public calculateMove(fen: string, depth: number = 18, skillLevel: number = 20, movetime?: number): Promise<string> {
-    return new Promise((resolve) => {
-      // If there was a pending request, we might want to reject it or just overwrite it
-      // For the Player role, we expect only one REQUEST_MOVE at a time from the server.
-      if (this.pendingRequest) {
-        console.warn('[StockfishPlayerService] Overwriting pending move request');
+    return new Promise((resolve, reject) => {
+      if (this.isTerminated) {
+        reject(new Error('Service is terminated'));
+        return;
       }
-      
-      this.pendingRequest = { resolve, fen, depth, skillLevel, movetime };
-      this.processQueue();
+
+      // If already searching, we queue this as the NEXT request and stop the current search
+      if (this.isSearching) {
+        if (this.nextRequest) {
+          this.nextRequest.reject(new Error('Request cancelled by a newer move request'));
+        }
+        this.nextRequest = { resolve, reject, fen, depth, skillLevel, movetime };
+        this.sendMessage('stop');
+      } else {
+        this.nextRequest = { resolve, reject, fen, depth, skillLevel, movetime };
+        this.processQueue();
+      }
     });
   }
 

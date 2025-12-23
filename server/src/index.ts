@@ -28,6 +28,7 @@ import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
 import { logger } from './game/logger'
 import { GameReviewService } from './game/game-review.service'
+import { AppDatabase } from './db/types'
 
 const app = new Hono()
 
@@ -38,10 +39,10 @@ app.use('*', cors())
 // Initialize services
 const gameManager = new GameManager()
 const socketService = new SocketService()
-const playerService = new PlayerService(db)
-const tournamentService = new TournamentService(db)
-const gameService = new GameService(db, gameManager, tournamentService, socketService)
-const gameReviewService = new GameReviewService(db)
+const playerService = new PlayerService(db as unknown as AppDatabase)
+const tournamentService = new TournamentService(db as unknown as AppDatabase)
+const gameService = new GameService(db as unknown as AppDatabase, gameManager, tournamentService, socketService)
+const gameReviewService = new GameReviewService(db as unknown as AppDatabase)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -175,8 +176,8 @@ export const initPromise = initializePlayers().catch(console.error)
 
 // Default LLM player for background loop (fallback)
 const defaultLlmPlayer = new RandomPlayer()
-const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer, socketService)
-const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
+const gameLoopService = new GameLoopService(db as unknown as AppDatabase, gameService, defaultLlmPlayer, socketService)
+const tournamentLoopService = new TournamentLoopService(db as unknown as AppDatabase, tournamentService, gameService)
 
 // Start background loop
 if (process.env.NODE_ENV !== 'test') {

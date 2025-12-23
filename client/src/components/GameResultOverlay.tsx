@@ -1,43 +1,21 @@
-import React from 'react';
 import { Button } from './ui/button';
-import { Trophy, Scale, RotateCcw, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, RotateCcw, Scale, X } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface GameResultOverlayProps {
-  status: 'ongoing' | 'completed' | 'draw' | 'paused';
-  winnerId: string | null;
-  whitePlayerId?: string;
-  blackPlayerId?: string;
-  whitePlayerName?: string;
-  blackPlayerName?: string;
-  reason?: string | null;
-  onNewMatch: () => void;
-  onReview?: () => void;
-  onClose?: () => void;
+  winner: 'white' | 'black' | 'draw' | null
+  reason: string | null
+  onNewGame: () => void
+  onClose: () => void
+  whitePlayerName?: string
+  blackPlayerName?: string
 }
 
-export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
-  status,
-  winnerId,
-  whitePlayerId,
-  whitePlayerName,
-  blackPlayerName,
-  reason,
-  onNewMatch,
-  onReview,
-  onClose
-}) => {
-  const isGameOver = status === 'completed' || status === 'draw';
-  if (!isGameOver) return null;
+export function GameResultOverlay({ winner, reason, onNewGame, onClose, whitePlayerName, blackPlayerName }: GameResultOverlayProps) {
+  if (winner === null && !reason) return null;
 
-  const isWhiteWinner = winnerId === whitePlayerId;
-  const resultText = status === 'completed' 
-    ? (isWhiteWinner ? '1-0' : '0-1') 
-    : '½-½';
-  
-  const winnerName = status === 'completed' 
-    ? (isWhiteWinner ? whitePlayerName : blackPlayerName)
-    : null;
+  const resultText = winner === 'white' ? '1-0' : winner === 'black' ? '0-1' : '½-½';
+  const winnerName = winner === 'white' ? whitePlayerName : winner === 'black' ? blackPlayerName : null;
 
   return (
     <AnimatePresence>
@@ -52,17 +30,18 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
           animate={{ scale: 1, y: 0 }}
           className="bg-card border-2 border-primary/20 p-8 rounded-xl shadow-2xl max-w-sm w-full text-center space-y-6 relative"
         >
-          {onClose && (
-            <button 
-              onClick={onClose}
-              className="absolute top-4 right-4 p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute right-4 top-4 h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </Button>
 
           <div className="flex justify-center">
-            {status === 'completed' ? (
+            {winner !== 'draw' ? (
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                 <Trophy className="w-8 h-8" />
               </div>
@@ -75,7 +54,7 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
 
           <div className="space-y-2">
             <h2 className="text-3xl font-black uppercase tracking-tighter italic">
-              {status === 'completed' ? 'Game Over' : 'Draw'}
+              {winner !== 'draw' ? 'Game Over' : 'Draw'}
             </h2>
             <div className="text-4xl font-mono font-black text-primary tracking-widest">
               {resultText}
@@ -96,7 +75,7 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
 
           <div className="flex flex-col gap-2">
             <Button 
-              onClick={onNewMatch}
+              onClick={onNewGame}
               className="w-full h-12 font-black tracking-widest gap-2 text-md"
             >
               <RotateCcw className="w-4 h-4" />
@@ -107,4 +86,4 @@ export const GameResultOverlay: React.FC<GameResultOverlayProps> = ({
       </motion.div>
     </AnimatePresence>
   );
-};
+}

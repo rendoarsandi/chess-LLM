@@ -95,7 +95,7 @@ export function useAnalysisWorker(enabled: boolean = true) {
       for (let i = 0; i < totalMoves; i++) {
         const move = moves[i];
         const beforeFen = chess.fen();
-        const isWhiteTurn = beforeFen.split(' ')[1] === 'w';
+        const isWhiteToMove = beforeFen.split(' ')[1] === 'w';
         
         console.log(`[useAnalysisWorker] [${reviewId}] Step 3: Analyzing move ${i + 1}/${totalMoves} (${move.move})`);
         
@@ -125,22 +125,31 @@ export function useAnalysisWorker(enabled: boolean = true) {
             try {
                 chessTemp.move(move.move);
                 const afterFen = chessTemp.fen();
-                const isAfterWhiteTurn = afterFen.split(' ')[1] === 'w';
                 
                 // Analyze the position AFTER the move
                 const afterResult = await analysisWorkerRef.current!.analyzePosition(afterFen, 18, 1);
-                const afterEval = getNumericEval(afterResult.pvs[0], isAfterWhiteTurn);
+                const afterTopPV = afterResult.pvs[0];
                 
-                // The eval for the current move is the same as the position it leads to
-                movePV = { cp: afterEval, pv: move.move, multipv: 0, depth: 18 };
+                // The eval for the move (from perspective of side to move in beforeFen)
+                // is the negative of the eval of the resulting position (from perspective of side to move in afterFen)
+                let afterCp = 0;
+                if (afterTopPV) {
+                    if (afterTopPV.mate !== undefined) {
+                        afterCp = afterTopPV.mate > 0 ? 10000 - afterTopPV.mate : -10000 - afterTopPV.mate;
+                    } else {
+                        afterCp = afterTopPV.cp ?? 0;
+                    }
+                }
+                
+                movePV = { cp: -afterCp, pv: move.move, multipv: 0, depth: 18 };
             } catch (e) {
                 console.warn(`[useAnalysisWorker] [${reviewId}] Failed to evaluate custom move:`, e);
                 movePV = topPV; // Fallback
             }
         }
 
-        const moveEval = getNumericEval(movePV, true); // Normalize all to White perspective for classification
-        const bestMoveEval = getNumericEval(topPV, true);
+        const moveEval = getNumericEval(movePV, isWhiteToMove); 
+        const bestMoveEval = getNumericEval(topPV, isWhiteToMove);
         
         const classification = ClassificationEngine.classify({
             beforeEval: 0,

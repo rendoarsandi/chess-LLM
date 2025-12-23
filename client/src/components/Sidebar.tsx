@@ -19,7 +19,7 @@ interface NavItem {
 interface NavContentProps {
   isCollapsed: boolean;
   navItems: NavItem[];
-  session: any;
+  session: { user: { id: string; name: string; email: string; image?: string | null }; session: { id: string; userId: string; expiresAt: Date; token: string; createdAt: Date; updatedAt: Date } } | null;
   handleLogout: () => Promise<void>;
   onItemClick?: () => void;
 }

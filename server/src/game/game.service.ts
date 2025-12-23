@@ -7,11 +7,11 @@ import { Chess } from 'chess.js'
 import { logger } from './logger'
 import { TournamentService } from './tournament.service'
 import { SocketService } from './socket.service'
+import { AppDatabase } from '../db/types'
 
 export class GameService {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private db: any, 
+    private db: AppDatabase, 
     private gm: GameManager, 
     private ts?: TournamentService,
     private socketService?: SocketService
@@ -108,8 +108,10 @@ export class GameService {
     let totalThinkingMs = 0
     let thinkingCount = 0
 
-    playerOpenings.forEach((m: { opening: string, thinkingMs: number | null }) => {
-      openingCounts[m.opening] = (openingCounts[m.opening] || 0) + 1
+    playerOpenings.forEach((m: { opening: string | null, thinkingMs: number | null }) => {
+      if (m.opening) {
+        openingCounts[m.opening] = (openingCounts[m.opening] || 0) + 1
+      }
       if (m.thinkingMs) {
         totalThinkingMs += m.thinkingMs
         thinkingCount++
@@ -132,7 +134,13 @@ export class GameService {
   async makeMove(gameId: string, move: string, thinking?: { opening?: string, candidates?: string, reasoning?: string, thinkingMs?: number }) {
     const game = await this.getGame(gameId)
     if (!game) throw new Error('Game not found')
-    if (game.status !== 'ongoing') throw new Error('Game is already finished')
+    
+    if (game.status === 'paused') {
+      throw new Error('Game is currently paused')
+    }
+    if (game.status !== 'ongoing') {
+      throw new Error(`Game is already finished (status: ${game.status})`)
+    }
 
     const chess = new Chess(game.fen)
     const moveResult = chess.move(move)

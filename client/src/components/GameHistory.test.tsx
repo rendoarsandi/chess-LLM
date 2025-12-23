@@ -1,12 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { GameHistory } from './GameHistory';
+import type { Game, Player } from '../api';
 
 describe('GameHistory', () => {
-  const mockGames = [
-    { id: 'game-1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'completed', createdAt: new Date().toISOString(), fen: '', updatedAt: '' },
+  const mockGames: Game[] = [
+    { 
+      id: 'game-1', 
+      whitePlayerId: 'p1', 
+      blackPlayerId: 'p2', 
+      status: 'completed', 
+      createdAt: new Date().toISOString(), 
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 
+      updatedAt: new Date().toISOString(),
+      winnerId: 'p1',
+      gameOverReason: 'checkmate'
+    },
   ];
-  const mockPlayers = [
+  const mockPlayers: Player[] = [
     { id: 'p1', name: 'White', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
     { id: 'p2', name: 'Black', type: 'llm', rating: 1200, wins: 0, losses: 0, draws: 0, peakRating: 1200, createdAt: '' },
   ];

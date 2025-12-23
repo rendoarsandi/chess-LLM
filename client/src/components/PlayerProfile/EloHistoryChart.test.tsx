@@ -11,11 +11,11 @@ vi.mock('@/api', () => ({
 }));
 
 // Mock ResizeObserver for ResponsiveContainer
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+vi.stubGlobal('ResizeObserver', vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
     disconnect: vi.fn(),
-}))
+})));
 
 describe('EloHistoryChart', () => {
   it('renders rating progression title', () => {

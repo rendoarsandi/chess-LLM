@@ -7,10 +7,10 @@ import { GroqService } from './groq.service'
 import { GroqPlayer } from './groq-player'
 import { RandomPlayer } from './random-player'
 import crypto from 'crypto'
+import { AppDatabase } from '../db/types'
 
 export class PlayerService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(private db: any) {}
+  constructor(private db: AppDatabase) {}
 
   /**
    * Generates a deterministic UUID v5-like ID from a string
@@ -36,20 +36,19 @@ export class PlayerService {
     // For now, index.ts still does initial setup.
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private createPlayerInstance(config: any) {
-    const apiKey = config.apiKey || process.env[`${config.provider.toUpperCase()}_API_KEY`]
+  private createPlayerInstance(config: typeof llmConfigurations.$inferSelect) {
+    const apiKey = config.apiKey || (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
     
     if (!apiKey && config.provider !== 'stockfish' && config.provider !== 'random') {
         console.warn(`[PlayerService] No API key for ${config.modelId}, skipping instantiation`)
         return null
     }
 
-    switch (config.provider.toLowerCase()) {
+    switch (config.provider?.toLowerCase()) {
         case 'gemini':
-            return new GeminiPlayer(new GeminiService(apiKey), config.modelId)
+            return new GeminiPlayer(new GeminiService(apiKey!), config.modelId!)
         case 'groq':
-            return new GroqPlayer(new GroqService(apiKey), config.modelId)
+            return new GroqPlayer(new GroqService(apiKey!), config.modelId!)
         case 'random':
             return new RandomPlayer()
         default:
@@ -61,8 +60,7 @@ export class PlayerService {
     const existingConfigs = await this.db.select().from(llmConfigurations)
     
     for (const hc of hardcoded) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const existing = existingConfigs.find((c: any) => c.modelId === hc.modelId && c.provider === hc.provider)
+        const existing = existingConfigs.find((c) => c.modelId === hc.modelId && c.provider === hc.provider)
         const playerId = this.generatePlayerId(`${hc.provider}-${hc.modelId}`)
 
         // 1. Ensure entry in players table first (satisfy FK)

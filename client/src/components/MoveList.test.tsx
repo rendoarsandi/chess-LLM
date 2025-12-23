@@ -32,7 +32,7 @@ describe('MoveList', () => {
 
   it('highlights the selected move', () => {
     render(<MoveList moves={mockMoves} onMoveClick={() => {}} selectedMoveIndex={1} />)
-    const blackMove = screen.getByText('e5')
+    const blackMove = screen.getByText('e5').closest('button')
     expect(blackMove).toHaveClass('bg-primary')
   })
 })

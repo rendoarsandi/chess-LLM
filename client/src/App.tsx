@@ -10,20 +10,19 @@ import { AdvantageBar } from "@/components/AdvantageBar"
 import { Leaderboard } from "@/components/Leaderboard"
 import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
-import { AnalysisMode } from "@/components/AnalysisMode"
 import { AdminLogin } from "@/components/AdminLogin"
 import { AdminSettings } from "@/components/AdminSettings"
 import { TournamentManagement } from "@/components/TournamentManagement"
 import { TournamentList } from "@/components/TournamentList"
 import { TournamentDetail } from "@/components/TournamentDetail"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
-import { RotateCcw, Pause, Play, Search, Menu } from "lucide-react"
+import { RotateCcw, Pause, Play, Menu } from "lucide-react"
 import { cn } from "./lib/utils"
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router"
 import { ErrorBoundary } from "./components/ErrorBoundary"
@@ -32,7 +31,14 @@ import type { ThinkingData } from "./types"
 import { useGameSocket } from "./hooks/useGameSocket"
 import { useGameBot } from "./hooks/useGameBot"
 import { useAnalysisWorker } from "./hooks/useAnalysisWorker"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "./components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./components/ui/sheet"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu"
+import { Share2, Copy, FileText } from "lucide-react"
 
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
@@ -78,8 +84,6 @@ interface ArenaContentProps {
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
-  isSidebarCollapsed: boolean;
-  setIsSidebarCollapsed: (v: boolean) => void;
 }
 
 function ArenaContent({ 
@@ -88,17 +92,48 @@ function ArenaContent({
   currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
-  moves, players, setBoardOrientation, spectatorCount, thinkingStatus,
-  isSidebarCollapsed, setIsSidebarCollapsed
+  moves, players, setBoardOrientation, spectatorCount, thinkingStatus
 }: ArenaContentProps) {
   const turn = currentDisplayFen.split(' ')[1];
   const isWhiteTurn = turn === 'w';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Auto-collapse logic
+  const [isWhiteThinkingExpanded, setIsWhiteThinkingExpanded] = useState(true);
+  const [isBlackThinkingExpanded, setIsBlackThinkingExpanded] = useState(true);
+
+  const STOCKFISH_IDS = [
+    '00000000-0000-0000-0000-000000000010',
+    '00000000-0000-0000-0000-000000000011',
+    '00000000-0000-0000-0000-000000000012',
+    '00000000-0000-0000-0000-000000000013'
+  ];
+
+  const isPlayerNonLLM = (player?: Player) => {
+    return player?.type === 'human' || (player?.id && STOCKFISH_IDS.includes(player.id));
+  };
+
+  useEffect(() => {
+    if (selectedGame?.status === 'ongoing' && isLive) {
+      if (isPlayerNonLLM(whitePlayer)) setIsWhiteThinkingExpanded(false);
+      if (isPlayerNonLLM(blackPlayer)) setIsBlackThinkingExpanded(false);
+    }
+  }, [selectedGame?.id, selectedGame?.status, isLive, whitePlayer, blackPlayer]);
+
+  const handleCopyFen = () => {
+    navigator.clipboard.writeText(currentDisplayFen);
+    toast.success("FEN copied to clipboard");
+  };
+
+  const handleCopyPgn = () => {
+    navigator.clipboard.writeText(currentPgn);
+    toast.success("PGN copied to clipboard");
+  };
+
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
       <header className="h-16 border-b border-border px-4 md:px-8 flex items-center justify-between bg-background/50 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-4 md:gap-6 flex-1 min-w-0">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
@@ -106,9 +141,7 @@ function ArenaContent({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72">
-              <SheetHeader className="p-6 pb-0 sr-only">
-                <SheetTitle>Navigation</SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
               <Sidebar 
                 isCollapsed={false} 
                 setIsCollapsed={() => {}} 
@@ -118,17 +151,46 @@ function ArenaContent({
             </SheetContent>
           </Sheet>
 
-          <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase italic flex items-center gap-2 md:gap-3">
+          <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase italic flex items-center gap-2 md:gap-3 shrink-0">
             ChessLLM <span className="text-primary not-italic text-[9px] md:text-[10px] bg-primary/10 px-2 py-0.5 rounded border border-primary/20 tracking-widest">ARENA</span>
           </h1>
+          
           {selectedGame && (
-            <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/30 px-3 py-1 rounded-full border border-border">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              {spectatorCount} Spectators
+            <div className="hidden sm:flex items-center gap-3 font-black text-[10px] md:text-[11px] uppercase tracking-tighter truncate overflow-hidden">
+              <span className="text-muted-foreground">Match:</span>
+              <span className="text-foreground truncate">{whitePlayer?.name || '...'}</span>
+              <span className="text-primary italic px-1">vs</span>
+              <span className="text-foreground truncate">{blackPlayer?.name || '...'}</span>
+              <div className="flex items-center gap-1.5 ml-2 pl-3 border-l border-border text-muted-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                {spectatorCount}
+              </div>
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex gap-2 shrink-0">
+          {selectedGame && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-[9px] md:text-[10px] font-black px-2 md:px-3">
+                  <Share2 className="h-3 w-3 mr-1 md:mr-2" />
+                  <span className="hidden xs:inline">SHARE</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={handleCopyFen} className="text-[10px] font-black uppercase tracking-widest cursor-pointer">
+                  <Copy className="mr-2 h-3 w-3" />
+                  Copy FEN
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyPgn} className="text-[10px] font-black uppercase tracking-widest cursor-pointer">
+                  <FileText className="mr-2 h-3 w-3" />
+                  Copy PGN
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           <Button variant="outline" size="sm" className="h-8 text-[9px] md:text-[10px] font-black px-2 md:px-3" onClick={() => setBoardOrientation((prev) => prev === 'white' ? 'black' : 'white')}>
             <RotateCcw className="h-3 w-3 mr-1 md:mr-2" />
             <span className="hidden xs:inline">ROTATE</span>
@@ -148,13 +210,15 @@ function ArenaContent({
       <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
         <div className="max-w-[1600px] mx-auto flex flex-col lg:grid lg:grid-cols-4 gap-8">
           <div className="hidden lg:block h-fit">
-            <ThinkingPanel 
-              side="white" 
-              modelName={selectedGame ? (whitePlayer?.name || 'Loading...') : 'Inactive'} 
-              isMobile={isMobile} 
-              {...whiteThinking} 
-              isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
-            />
+            {!isPlayerNonLLM(whitePlayer) && (
+              <ThinkingPanel 
+                side="white" 
+                modelName={selectedGame ? (whitePlayer?.name || 'Loading...') : 'Inactive'} 
+                isMobile={isMobile} 
+                {...whiteThinking} 
+                isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
+              />
+            )}
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center">
@@ -180,20 +244,24 @@ function ArenaContent({
             ) : (
               <>
                 <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8 w-full">
-                  <ThinkingPanel 
-                    side="white" 
-                    modelName={whitePlayer?.name || 'Loading...'} 
-                    isMobile={isMobile} 
-                    {...whiteThinking} 
-                    isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
-                  />
-                  <ThinkingPanel 
-                    side="black" 
-                    modelName={blackPlayer?.name || 'Loading...'} 
-                    isMobile={isMobile} 
-                    {...blackThinking} 
-                    isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
-                  />
+                  {!isPlayerNonLLM(whitePlayer) && (
+                    <ThinkingPanel 
+                      side="white" 
+                      modelName={whitePlayer?.name || 'Loading...'} 
+                      isMobile={isMobile} 
+                      {...whiteThinking} 
+                      isThinking={isLive && isWhiteTurn && thinkingStatus === 'thinking'}
+                    />
+                  )}
+                  {!isPlayerNonLLM(blackPlayer) && (
+                    <ThinkingPanel 
+                      side="black" 
+                      modelName={blackPlayer?.name || 'Loading...'} 
+                      isMobile={isMobile} 
+                      {...blackThinking} 
+                      isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
+                    />
+                  )}
                 </div>
 
                 <div className={cn("flex w-full justify-center items-start gap-2 md:gap-4", isMobile ? "flex-col items-center" : "flex-row")}>
@@ -210,21 +278,18 @@ function ArenaContent({
                                 </div>
                                     <div className="relative group w-full max-w-[300px] md:max-w-[400px] lg:max-w-[500px]">
                     <ErrorBoundary fallback={<div className="aspect-square w-full bg-muted flex items-center justify-center border border-destructive/20 rounded-lg text-[10px] font-black uppercase text-destructive tracking-widest p-4 text-center">Chessboard Error - Reload Recommended</div>}>
-                      <ChessboardContainer fen={currentDisplayFen} boardOrientation={boardOrientation} highlightSquares={lastMoveSquares} gameId={selectedGame?.id} pgn={currentPgn} />
+                      <ChessboardContainer fen={currentDisplayFen} boardOrientation={boardOrientation} highlightSquares={lastMoveSquares} />
                     </ErrorBoundary>
                     {selectedGame && showResultOverlay && (
                       <GameResultOverlay 
-                        status={selectedGame.status} 
-                        winnerId={selectedGame.winnerId} 
-                        whitePlayerId={selectedGame.whitePlayerId} 
-                        whitePlayerName={whitePlayer?.name} 
-                        blackPlayerName={blackPlayer?.name} 
-                        reason={selectedGame.gameOverReason} 
-                        onNewMatch={() => handleCreateGame(whitePlayerId, blackPlayerId)} 
-                        onClose={() => setShowResultOverlay(false)} 
+                        winner={selectedGame.winnerId === selectedGame.whitePlayerId ? 'white' : selectedGame.winnerId === selectedGame.blackPlayerId ? 'black' : selectedGame.status === 'draw' ? 'draw' : null}
+                        reason={selectedGame.gameOverReason ?? null}
+                        whitePlayerName={whitePlayer?.name}
+                        blackPlayerName={blackPlayer?.name}
+                        onNewGame={() => handleCreateGame(whitePlayerId, blackPlayerId)}
+                        onClose={() => setShowResultOverlay(false)}
                       />
                     )}
-                    {!isLive && <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-black shadow-lg animate-pulse">HISTORY MODE</div>}
                   </div>
                 </div>
 
@@ -244,7 +309,6 @@ function ArenaContent({
                           </div>
                         )}
                       </div>
-                      {!isLive && <Button size="sm" variant="secondary" className="h-7 text-[10px] font-black tracking-widest w-full sm:w-auto" onClick={() => setActiveMoveIndex(null)}>RETURN TO LIVE</Button>}
                     </div>
                   </div>
                   <PlaybackControls 
@@ -260,10 +324,20 @@ function ArenaContent({
             )}
 
             <div className="mt-8 w-full lg:hidden space-y-4">
-              <CollapsibleSection title="White Thinking" className="md:hidden">
+              <CollapsibleSection 
+                title="White Thinking" 
+                className="md:hidden"
+                isExpanded={isWhiteThinkingExpanded}
+                onExpandedChange={setIsWhiteThinkingExpanded}
+              >
                 <ThinkingPanel side="white" modelName={whitePlayer?.name || 'Loading...'} isMobile={isMobile} {...whiteThinking} />
               </CollapsibleSection>
-              <CollapsibleSection title="Black Thinking" className="md:hidden">
+              <CollapsibleSection 
+                title="Black Thinking" 
+                className="md:hidden"
+                isExpanded={isBlackThinkingExpanded}
+                onExpandedChange={setIsBlackThinkingExpanded}
+              >
                 <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
               </CollapsibleSection>
               <CollapsibleSection title="Move List">
@@ -294,13 +368,15 @@ function ArenaContent({
           </div>
 
           <div className="hidden lg:block space-y-8 h-fit lg:col-span-1">
-            <ThinkingPanel 
-              side="black" 
-              modelName={selectedGame ? (blackPlayer?.name || 'Loading...') : 'Inactive'} 
-              isMobile={isMobile} 
-              {...blackThinking} 
-              isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
-            />
+            {!isPlayerNonLLM(blackPlayer) && (
+              <ThinkingPanel 
+                side="black" 
+                modelName={selectedGame ? (blackPlayer?.name || 'Loading...') : 'Inactive'} 
+                isMobile={isMobile} 
+                {...blackThinking} 
+                isThinking={isLive && !isWhiteTurn && thinkingStatus === 'thinking'}
+              />
+            )}
 
             {selectedGame && (
               <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
@@ -338,8 +414,8 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
   const [games, setGames] = useState<Game[]>([])
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [moves, setMoves] = useState<Move[]>([])
@@ -357,6 +433,7 @@ function App() {
   const [isCreatingGame, setIsCreatingGame] = useState(false)
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const lastProcessedFenRef = useRef<string | null>(null);
 
   // Global analysis worker - disabled by default
   useAnalysisWorker(false)
@@ -452,11 +529,14 @@ function App() {
       setMoves(data);
     };
     fetchMovesData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedGame?.id]);
+  }, [selectedGame]);
 
   useEffect(() => {
     if (lastUpdate && selectedGame) {
+      // Skip if we already processed this FEN to avoid spamming 'Could not derive squares'
+      if (lastProcessedFenRef.current === lastUpdate.fen) return;
+      lastProcessedFenRef.current = lastUpdate.fen;
+
       setSelectedGame(prev => {
         if (!prev) return null;
         
@@ -469,7 +549,10 @@ function App() {
               setLastMoveFromUpdate({ from: move.from, to: move.to });
             }
           } catch {
-            console.warn('[App] Could not derive squares for SAN:', lastUpdate.san);
+            // Only warn if the FENs actually differ (meaning it should have been a valid move)
+            if (prev.fen !== lastUpdate.fen) {
+              console.warn('[App] Could not derive squares for SAN:', lastUpdate.san, 'Current FEN:', prev.fen);
+            }
           }
         }
 
@@ -485,8 +568,7 @@ function App() {
       // Refresh moves to get thinking data and full history
       getMoves(selectedGame.id).then(setMoves);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastUpdate, selectedGame?.id]);
+  }, [lastUpdate, selectedGame]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -652,8 +734,7 @@ function App() {
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, selectedGame?.id, games, handleSelectGame]);
+  }, [location.pathname, selectedGame, games, handleSelectGame, navigate]);
 
   // Default game selection logic
   useEffect(() => {
@@ -686,11 +767,10 @@ function App() {
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-            setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
-            thinkingStatus={thinkingStatus}
-            isSidebarCollapsed={isSidebarCollapsed}
-            setIsSidebarCollapsed={setIsSidebarCollapsed}
-          />
+                                  setBoardOrientation={setBoardOrientation}
+                                  spectatorCount={spectatorCount}
+                                  thinkingStatus={thinkingStatus}
+                                />
         } />
         <Route path="/arena/:gameId" element={
           <ArenaContent 
@@ -706,11 +786,10 @@ function App() {
             handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
             setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
             activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-            setBoardOrientation={setBoardOrientation} spectatorCount={spectatorCount}
-            thinkingStatus={thinkingStatus}
-            isSidebarCollapsed={isSidebarCollapsed}
-            setIsSidebarCollapsed={setIsSidebarCollapsed}
-          />
+                                      setBoardOrientation={setBoardOrientation}
+                                      spectatorCount={spectatorCount}
+                                      thinkingStatus={thinkingStatus}
+                                    />
         } />
         <Route path="/leaderboard" element={
           <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
@@ -722,7 +801,7 @@ function App() {
                    </Button>
                  </SheetTrigger>
                  <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                  </SheetContent>
                </Sheet>
@@ -746,7 +825,7 @@ function App() {
                    </Button>
                  </SheetTrigger>
                  <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                  </SheetContent>
                </Sheet>
@@ -784,7 +863,7 @@ function App() {
                    </Button>
                  </SheetTrigger>
                  <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                  </SheetContent>
                </Sheet>
@@ -807,7 +886,7 @@ function App() {
                    </Button>
                  </SheetTrigger>
                  <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                  </SheetContent>
                </Sheet>
@@ -832,7 +911,7 @@ function App() {
                    </Button>
                  </SheetTrigger>
                  <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                  </SheetContent>
                </Sheet>
@@ -854,7 +933,7 @@ function App() {
                      </Button>
                    </SheetTrigger>
                    <SheetContent side="left" className="p-0 w-72">
-                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                      <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                    </SheetContent>
                  </Sheet>
@@ -875,7 +954,7 @@ function App() {
                      </Button>
                    </SheetTrigger>
                    <SheetContent side="left" className="p-0 w-72">
-                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
                      <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
                    </SheetContent>
                  </Sheet>

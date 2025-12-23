@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import app from './index'
 import { db } from './db'
 import { players } from './db/schema'
+import { eq, or } from 'drizzle-orm'
 
 describe('API Endpoints', () => {
   it('GET / should return Hello Hono!', async () => {
@@ -21,6 +22,9 @@ describe('API Endpoints', () => {
     // Clear history first to ensure no ongoing games
     await app.request('/api/games', { method: 'DELETE' })
 
+    // Delete existing test players to avoid FK issues with orphaned games
+    await db.delete(players).where(or(eq(players.id, 'test-p1'), eq(players.id, 'test-p2')))
+
     // Insert players to satisfy FK constraints
     await db.insert(players).values([
       { id: 'test-p1', name: 'Test P1', type: 'human', createdAt: new Date() },
@@ -39,9 +43,13 @@ describe('API Endpoints', () => {
     // Clear history first
     await app.request('/api/games', { method: 'DELETE' })
 
-    // Create a game first
     const whitePlayerId = 'test-p1'
     const blackPlayerId = 'test-p2'
+
+    // Delete existing test players
+    await db.delete(players).where(or(eq(players.id, whitePlayerId), eq(players.id, blackPlayerId)))
+
+    // Create a game first
     await db.insert(players).values([
       { id: whitePlayerId, name: 'Test P1', type: 'human', createdAt: new Date() },
       { id: blackPlayerId, name: 'Test P2', type: 'human', createdAt: new Date() }

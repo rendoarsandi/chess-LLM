@@ -5,11 +5,11 @@ import { logger } from './logger'
 import { AlarmService } from './alarm.service'
 import { TournamentService } from './tournament.service'
 import { GameService } from './game.service'
+import { AppDatabase } from '../db/types'
 
 export class TournamentLoopService {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private db: any, 
+    private db: AppDatabase, 
     private tournamentService: TournamentService, 
     private gameService: GameService,
     private alarmService: AlarmService = new AlarmService()

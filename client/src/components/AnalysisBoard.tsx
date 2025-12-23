@@ -10,8 +10,6 @@ interface AnalysisBoardProps {
   evaluation: EngineEvaluation | null;
   variations: EngineEvaluation[];
   lastMoveSquares?: { from: string; to: string };
-  gameId?: string;
-  pgn?: string;
   gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
   winnerId?: string | null;
   whitePlayerId?: string;
@@ -23,8 +21,6 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
   evaluation,
   variations,
   lastMoveSquares,
-  gameId,
-  pgn,
   gameStatus,
   winnerId,
   whitePlayerId
@@ -48,8 +44,6 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
             fen={fen} 
             boardOrientation={orientation} 
             highlightSquares={lastMoveSquares} 
-            gameId={gameId} 
-            pgn={pgn} 
           />
         </ErrorBoundary>
       </div>

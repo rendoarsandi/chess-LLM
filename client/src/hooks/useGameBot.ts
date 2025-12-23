@@ -43,7 +43,11 @@ export function useGameBot(
           move
         })
       }).catch((err) => {
-        console.error(`[GameBot] Error calculating move:`, err)
+        if (err.message === 'Request cancelled by a newer move request') {
+          console.log(`[GameBot] Move request for game ${gameId} was superseded.`);
+        } else {
+          console.error(`[GameBot] Error calculating move:`, err)
+        }
       })
     }
   }, [gameId, lastMessage, enabled, sendMessage])

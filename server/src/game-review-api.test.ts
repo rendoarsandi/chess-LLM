@@ -5,11 +5,23 @@ import { gameReviews, moveAnalyses, players, games, moves, ratingHistory, llmCon
 import { eq } from 'drizzle-orm'
 
 describe('Game Review API Endpoints', () => {
-  const testGameId = 'test-game-id'
   const testWorkerId = 'test-worker-id'
 
+  const setupGame = async (gameId: string) => {
+    await db.insert(players).values([
+      { id: `p1-${gameId}`, name: 'P1', type: 'human' },
+      { id: `p2-${gameId}`, name: 'P2', type: 'human' }
+    ]).onConflictDoNothing()
+    await db.insert(games).values({
+      id: gameId,
+      whitePlayerId: `p1-${gameId}`,
+      blackPlayerId: `p2-${gameId}`,
+      status: 'completed'
+    })
+  }
+
   beforeEach(async () => {
-    // Clean up in correct order of dependencies
+    // Explicit cleanup for in-memory DB shared state
     await db.delete(moveAnalyses)
     await db.delete(gameReviews)
     await db.delete(moves)
@@ -19,31 +31,22 @@ describe('Game Review API Endpoints', () => {
     await db.delete(games)
     await db.delete(players)
     await db.delete(tournaments)
-
-    // Setup basic data
-    await db.insert(players).values([
-      { id: 'p1', name: 'P1', type: 'human' },
-      { id: 'p2', name: 'P2', type: 'human' }
-    ])
-    await db.insert(games).values({
-      id: testGameId,
-      whitePlayerId: 'p1',
-      blackPlayerId: 'p2',
-      status: 'completed'
-    })
   })
 
   it('POST /api/reviews/:gameId should request a new review', async () => {
-    const res = await app.request(`/api/reviews/${testGameId}`, {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
+    const res = await app.request(`/api/reviews/${gameId}`, {
       method: 'POST'
     })
     expect(res.status).toBe(200)
     const data = await res.json()
-    expect(data.gameId).toBe(testGameId)
+    expect(data.gameId).toBe(gameId)
     expect(data.status).toBe('queued')
 
     // Request again, should return existing
-    const res2 = await app.request(`/api/reviews/${testGameId}`, {
+    const res2 = await app.request(`/api/reviews/${gameId}`, {
       method: 'POST'
     })
     const data2 = await res2.json()
@@ -62,8 +65,11 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('POST /api/reviews/worker/claim should claim a queued job', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // First, request a review
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
 
     const res = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
@@ -77,8 +83,11 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('POST /api/reviews/worker/heartbeat should update heartbeat', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // Request and claim
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
@@ -97,8 +106,11 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('POST /api/reviews/worker/progress should update progress', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // Request and claim
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
@@ -122,8 +134,11 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('POST /api/reviews/worker/submit should submit results', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // Request and claim
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
@@ -154,8 +169,11 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('POST /api/reviews/worker/failure should report failure', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // Request and claim
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
@@ -176,11 +194,14 @@ describe('Game Review API Endpoints', () => {
   })
 
   it('GET /api/reviews/:gameId should return review status and results', async () => {
+    const gameId = `game-${Math.random()}`
+    await setupGame(gameId)
+
     // Request a review
-    await app.request(`/api/reviews/${testGameId}`, { method: 'POST' })
+    await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
     
     // Check initial status
-    let res = await app.request(`/api/reviews/${testGameId}`)
+    let res = await app.request(`/api/reviews/${gameId}`)
     let data = await res.json()
     expect(data.status).toBe('queued')
 
@@ -202,7 +223,7 @@ describe('Game Review API Endpoints', () => {
     })
 
     // Check final status
-    res = await app.request(`/api/reviews/${testGameId}`)
+    res = await app.request(`/api/reviews/${gameId}`)
     data = await res.json()
     expect(data.status).toBe('completed')
     expect(data.analyses.length).toBe(1)

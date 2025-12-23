@@ -1,27 +1,27 @@
-import { games, players, moves as movesTable } from '../db/schema'
 import { eq } from 'drizzle-orm'
-import { GameService } from './game.service'
-import { Player } from './player.interface'
 import { alias } from 'drizzle-orm/sqlite-core'
-import { logger } from './logger'
+import { games, moves, players } from '../db/schema'
+import { GameService } from './game.service'
 import { SocketService } from './socket.service'
+import { logger } from './logger'
+import { AppDatabase } from '../db/types'
 import { AlarmService } from './alarm.service'
 
 export class GameLoopService {
-  private lastRequestTime: Map<string, number> = new Map()
+    private interval: NodeJS.Timeout | null = null
+    private lastRequestTime: Map<string, number> = new Map()
 
-  constructor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private db: any,
-    private gameService: GameService,
-    private player: Player,
-    private socketService?: SocketService,
-    private alarmService: AlarmService = new AlarmService()
-  ) {}
+    constructor(
+        private db: AppDatabase,
+        private gameService: GameService,
+        private defaultPlayer: { makeMove: (fen: string, history: string[]) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } },
+        private socketService?: SocketService,
+        private alarmService: AlarmService = new AlarmService()
+    ) {}
 
   async advanceGame(gameId: string) {
-    const whitePlayer = alias(players, 'whitePlayer')
-    const blackPlayer = alias(players, 'blackPlayer')
+    const whitePlayerTable = alias(players, 'whitePlayer')
+    const blackPlayerTable = alias(players, 'blackPlayer')
 
     const gameResults = await this.db.select({
       id: games.id,
@@ -29,14 +29,14 @@ export class GameLoopService {
       status: games.status,
       whitePlayerId: games.whitePlayerId,
       blackPlayerId: games.blackPlayerId,
-      whitePlayerType: whitePlayer.type,
-      blackPlayerType: blackPlayer.type,
+      whitePlayerType: whitePlayerTable.type,
+      blackPlayerType: blackPlayerTable.type,
       updatedAt: games.updatedAt,
     })
     .from(games)
     .where(eq(games.id, gameId))
-    .leftJoin(whitePlayer, eq(games.whitePlayerId, whitePlayer.id))
-    .leftJoin(blackPlayer, eq(games.blackPlayerId, blackPlayer.id))
+    .leftJoin(whitePlayerTable, eq(games.whitePlayerId, whitePlayerTable.id))
+    .leftJoin(blackPlayerTable, eq(games.blackPlayerId, blackPlayerTable.id))
 
     if (gameResults.length === 0) return;
     const game = gameResults[0];
@@ -125,14 +125,14 @@ export class GameLoopService {
 
     // Fetch move history
     const gameMoves = await this.db.select()
-      .from(movesTable)
-      .where(eq(movesTable.gameId, game.id))
-      .orderBy(movesTable.moveNumber)
+      .from(moves)
+      .where(eq(moves.gameId, game.id))
+      .orderBy(moves.moveNumber)
     
     const history = gameMoves.map((m: { move: string }) => m.move)
 
     // Resolve player: registry first, then fallback to default
-    const player = this.gameService.getPlayer(currentPlayerId!) || this.player
+    const player = this.gameService.getPlayer(currentPlayerId!) || this.defaultPlayer
     
     const startTime = Date.now()
     let move = null

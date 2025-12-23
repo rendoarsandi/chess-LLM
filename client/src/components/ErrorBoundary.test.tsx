@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorBoundary } from './ErrorBoundary';
 
-function ProblematicComponent() {
+function ProblematicComponent(): React.ReactNode {
   throw new Error('Test error');
 }
 
@@ -24,7 +24,7 @@ describe('ErrorBoundary', () => {
   it('can reset the error boundary', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    const { rerender } = render(
+    render(
       <ErrorBoundary>
         <ProblematicComponent />
       </ErrorBoundary>

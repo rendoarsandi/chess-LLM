@@ -61,6 +61,7 @@ describe('GameReviewService', () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         review_id TEXT NOT NULL,
         move_number INTEGER NOT NULL,
+        player_color TEXT NOT NULL,
         classification TEXT NOT NULL,
         evaluation TEXT NOT NULL,
         best_line TEXT,
@@ -158,8 +159,8 @@ describe('GameReviewService', () => {
     await service.requestReview(gameId)
     const job = await service.claimJob('worker-1')
     const results = [
-      { moveNumber: 1, classification: 'best', evaluation: 0.3, bestLine: 'e4' },
-      { moveNumber: 2, classification: 'good', evaluation: 0.2, bestLine: 'e5' }
+      { moveNumber: 1, playerColor: 'white' as const, classification: 'best', evaluation: 0.3, bestLine: 'e4' },
+      { moveNumber: 2, playerColor: 'black' as const, classification: 'good', evaluation: 0.2, bestLine: 'e5' }
     ]
     
     await service.submitResults(job!.id, results)
@@ -193,7 +194,7 @@ describe('GameReviewService', () => {
     const job = await service.claimJob('worker-1')
     
     // Manually set heartbeat to far in the past
-    const oldDate = new Date(Date.now() - 10000) // 10s ago
+    const oldDate = new Date(Date.now() - 60000) // 60s ago
     await db.update(gameReviews).set({ lastHeartbeat: oldDate }).where(eq(gameReviews.id, job!.id))
     
     // Claiming as another worker should pick up the same job
@@ -218,7 +219,7 @@ describe('GameReviewService', () => {
     // Completed
     const job = await service.claimJob('worker-1')
     const results = [
-      { moveNumber: 1, classification: 'best', evaluation: 0.3, bestLine: 'e4' }
+      { moveNumber: 1, playerColor: 'white' as const, classification: 'best', evaluation: 0.3, bestLine: 'e4' }
     ]
     await service.submitResults(job!.id, results)
     

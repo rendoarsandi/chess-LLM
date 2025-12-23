@@ -2,6 +2,7 @@ import { db as defaultDb } from '../db'
 import { gameReviews, moveAnalyses } from '../db/schema'
 import { eq, and, lt, asc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
+import { AppDatabase } from '../db/types'
 
 export interface MoveAnalysis {
   moveNumber: number;
@@ -12,11 +13,10 @@ export interface MoveAnalysis {
 }
 
 export class GameReviewService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private db: any
+  private db: AppDatabase
 
-  constructor(db = defaultDb) {
-    this.db = db
+  constructor(db?: AppDatabase) {
+    this.db = db || (defaultDb as unknown as AppDatabase)
   }
 
   async requestReview(gameId: string) {
@@ -66,7 +66,7 @@ export class GameReviewService {
 
   async claimJob(workerId: string) {
     // Reset stuck jobs first
-    const timeout = new Date(Date.now() - 10000) // 10 seconds heartbeat timeout
+    const timeout = new Date(Date.now() - 30000) // 30 seconds heartbeat timeout
     const stuckJobs = await this.db.select()
       .from(gameReviews)
       .where(and(
@@ -107,19 +107,17 @@ export class GameReviewService {
       progressTotal: 0
     }
 
-    await this.db.update(gameReviews)
+    const [updatedJob] = await this.db.update(gameReviews)
       .set(updated)
       .where(and(
         eq(gameReviews.id, job.id),
         eq(gameReviews.status, 'queued')
       ))
+      .returning()
 
-    // For better-sqlite3, drizzle might return the result or we might need to check differently
-    // Actually, in drizzle-orm with better-sqlite3, .run() returns { changes: number }
-    // Let's use a try-catch or a more generic check
-    console.log(`[GameReviewService] Worker ${workerId} claim attempt finished for job ${job.id}`);
+    console.log(`[GameReviewService] Worker ${workerId} claim attempt finished for job ${job.id}. Success: ${!!updatedJob}`);
     
-    return { ...job, ...updated }
+    return updatedJob || null
   }
 
   async reportFailure(reviewId: string) {
@@ -149,8 +147,7 @@ export class GameReviewService {
   }
 
   async submitResults(reviewId: string, results: MoveAnalysis[]) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.db.transaction((tx: any) => {
+    this.db.transaction((tx) => {
       tx.update(gameReviews)
         .set({
           status: 'completed',

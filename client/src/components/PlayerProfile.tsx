@@ -52,7 +52,6 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    setLoading(true)
     getPlayerProfile(playerId)
       .then(setPlayer)
       .catch(err => {
@@ -60,6 +59,12 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
         setError("Failed to load model profile data. Please try again later.")
       })
       .finally(() => setLoading(false))
+
+    return () => {
+      setLoading(true)
+      setPlayer(null)
+      setError(null)
+    }
   }, [playerId])
 
   if (loading) {
