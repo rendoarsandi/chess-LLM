@@ -4,10 +4,10 @@
 - [x] Task: Set up Design Tokens & Global Styles (Tailwind Config) (b7c3128)
     - [x] Sub-task: Audit and define consistent colors, typography, and spacing in `tailwind.config.js`.
     - [x] Sub-task: Define global styles for light/dark mode variables in `index.css`.
-- [ ] Task: Sidebar & Layout Architecture
-    - [ ] Sub-task: Refactor `Sidebar.tsx` to use Shadcn `Sheet` (or similar) for mobile drawer.
-    - [ ] Sub-task: Ensure active state styling for navigation links.
-    - [ ] Sub-task: Fix layout container to prevent content overlap on mobile.
+- [x] Task: Sidebar & Layout Architecture (35db6e4)
+    - [x] Sub-task: Refactor `Sidebar.tsx` to use Shadcn `Sheet` (or similar) for mobile drawer.
+    - [x] Sub-task: Ensure active state styling for navigation links.
+    - [x] Sub-task: Fix layout container to prevent content overlap on mobile.
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Navigation' (Protocol in workflow.md)
 
 ## Phase 2: Game Board & Core Controls [ ]
