@@ -5,12 +5,9 @@ import { BrowserRouter } from 'react-router';
 import { authClient } from '@/lib/auth-client';
 import { vi } from 'vitest';
 
-// Mock authClient
-vi.mock('@/lib/auth-client', () => ({
-  authClient: {
-    useSession: vi.fn(() => ({ data: null })),
-    signOut: vi.fn(),
-  },
+// Mock api
+vi.mock('@/api', () => ({
+  getTournaments: vi.fn(() => Promise.resolve([])),
 }));
 
 describe('Sidebar Component', () => {

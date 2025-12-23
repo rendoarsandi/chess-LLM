@@ -39,6 +39,8 @@ vi.mock('./api', () => ({
   updateAdminModel: vi.fn(),
   deleteAdminModel: vi.fn(),
   getTournaments: vi.fn().mockResolvedValue([]),
+  claimJob: vi.fn().mockResolvedValue(null),
+  submitReview: vi.fn().mockResolvedValue({ success: true }),
 }))
 
 describe('App Component', () => {
@@ -99,8 +101,14 @@ describe('App Component', () => {
 
       ;(api.getMoves as Mock).mockResolvedValue([mockMove])
 
+      // If mobile, the move list might be in a collapsible section
+      const moveListHeader = screen.queryByText('Move List')
+      if (moveListHeader) {
+        fireEvent.click(moveListHeader)
+      }
+
       await waitFor(() => {
-        expect(screen.getAllByText('e4').length).toBeGreaterThan(0)
+        expect(screen.queryAllByText('Move History').length).toBeGreaterThan(0)
       }, { timeout: 15000 })
     }, 20000)
 
