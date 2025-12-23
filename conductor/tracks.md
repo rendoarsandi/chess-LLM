@@ -8,12 +8,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [x] Track: changes this project using websocket when watching the game  so no sending empty request per second but only sending request when ai is  actually moved
-*Link: [./conductor/tracks/websocket_updates_20251221/](./conductor/tracks/websocket_updates_20251221/)*
-
----
-
 ## Archived Tracks
+
+### [x] Track: Comprehensive polish of the application UI/UX, including visual consistency, mobile responsiveness, and interactive feedback.
+*Link: [./conductor/archive/ui_ux_polish_20251223/](./conductor/archive/ui_ux_polish_20251223/)*
+
+### [x] Track: changes this project using websocket when watching the game  so no sending empty request per second but only sending request when ai is  actually moved
+*Link: [./conductor/archive/websocket_updates_20251221/](./conductor/archive/websocket_updates_20251221/)*
 
 ### [x] Track: Distributed Game Review System
 *Link: [./conductor/archive/distributed_game_review_20251222/](./conductor/archive/distributed_game_review_20251222/)*

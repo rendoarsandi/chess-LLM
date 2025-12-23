@@ -12,6 +12,7 @@
 - **Bot Controller:** `useGameBot` hook for responding to server-side `REQUEST_MOVE` commands via WebSockets.
 - **Analysis Engine:** `ClassificationEngine` utility for heuristic-based move quality assessment (Brilliant to Blunder).
 - **Data Visualization:** `recharts` for ELO history and performance tracking
+- **Animations:** `framer-motion` for fluid page transitions and interactive elements
 - **Testing:** Vitest + React Testing Library + JSDOM
 
 ## Backend

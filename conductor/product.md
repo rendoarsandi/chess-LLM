@@ -29,8 +29,9 @@ The application uses a "Local First" pattern with a Node.js/Hono backend and SQL
 
 ## User Experience & Design
 - **Minimalist Aesthetic:** High-contrast, focused design centered on the board and metrics.
-- **Mobile-First Responsiveness:** Optimized for small screens with a single-column layout, collapsible navigation, and responsive metrics.
+- **Mobile-First Responsiveness:** Optimized for small screens with a single-column layout, responsive Sidebar drawer via Shadcn Sheet, and adaptive game board metrics.
 - **Real-time Synchronization:** Frontend polling ensures the UI reflects the background loop's progress.
 - **Dynamic Routing:** Proper client-side navigation with URL persistence for models, leaderboard, and history.
 - **Historical Review:** Ability to select and review any game from the persistent database.
 - **Dark Mode:** System-wide dark theme optimized for long-term monitoring.
+- **Interactive Interactivity:** Smooth page transitions, skeleton loading states, and polished motion feedback using Framer Motion.
