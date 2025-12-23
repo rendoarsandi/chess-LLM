@@ -10,13 +10,29 @@ import type { Player } from "@/api"
 import { motion, AnimatePresence } from "framer-motion"
 import { Trophy, Medal, Award, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface LeaderboardProps {
   players: Player[]
   onSelectPlayer?: (id: string) => void
+  loading?: boolean
 }
 
-export function Leaderboard({ players, onSelectPlayer }: LeaderboardProps) {
+export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardProps) {
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xl">
+        <div className="p-8 space-y-4">
+          <Skeleton className="h-8 w-1/3" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
   // Sort players by rating descending
   const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating)
 
