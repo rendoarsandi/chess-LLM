@@ -1,6 +1,6 @@
 # Implementation Plan - UI/UX Polish
 
-## Phase 1: Foundation & Navigation [ ]
+## Phase 1: Foundation & Navigation [checkpoint: 536b70b]
 - [x] Task: Set up Design Tokens & Global Styles (Tailwind Config) (b7c3128)
     - [x] Sub-task: Audit and define consistent colors, typography, and spacing in `tailwind.config.js`.
     - [x] Sub-task: Define global styles for light/dark mode variables in `index.css`.
