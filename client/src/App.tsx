@@ -2,27 +2,19 @@ import { Sidebar } from "@/components/Sidebar"
 import { CollapsibleSection } from "@/components/CollapsibleSection"
 import { Button } from "@/components/ui/button"
 import { ChessboardContainer } from "@/components/Chessboard"
-import { GameHistory } from "@/components/GameHistory"
 import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
-import { Leaderboard } from "@/components/Leaderboard"
-import { PlayerProfile } from "@/components/PlayerProfile"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
-import { AdminLogin } from "@/components/AdminLogin"
-import { AdminSettings } from "@/components/AdminSettings"
-import { TournamentManagement } from "@/components/TournamentManagement"
-import { TournamentList } from "@/components/TournamentList"
-import { TournamentDetail } from "@/components/TournamentDetail"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { useEffect, useState, useCallback, useMemo, useRef } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
-import { RotateCcw, Pause, Play, Menu } from "lucide-react"
+import { RotateCcw, Pause, Play, Menu, Loader2 } from "lucide-react"
 import { cn } from "./lib/utils"
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router"
 import { ErrorBoundary } from "./components/ErrorBoundary"
@@ -40,6 +32,16 @@ import {
 } from "./components/ui/dropdown-menu"
 import { Share2, Copy, FileText } from "lucide-react"
 
+// Lazy-loaded components
+const Leaderboard = lazy(() => import("@/components/Leaderboard").then(m => ({ default: m.Leaderboard })));
+const PlayerProfile = lazy(() => import("@/components/PlayerProfile").then(m => ({ default: m.PlayerProfile })));
+const GameHistory = lazy(() => import("@/components/GameHistory").then(m => ({ default: m.GameHistory })));
+const AdminLogin = lazy(() => import("@/components/AdminLogin").then(m => ({ default: m.AdminLogin })));
+const AdminSettings = lazy(() => import("@/components/AdminSettings").then(m => ({ default: m.AdminSettings })));
+const TournamentManagement = lazy(() => import("@/components/TournamentManagement").then(m => ({ default: m.TournamentManagement })));
+const TournamentList = lazy(() => import("@/components/TournamentList").then(m => ({ default: m.TournamentList })));
+const TournamentDetail = lazy(() => import("@/components/TournamentDetail").then(m => ({ default: m.TournamentDetail })));
+
 const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
 const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
 
@@ -50,7 +52,22 @@ interface PlayerProfileRouteProps {
 function PlayerProfileRoute({ navigate }: PlayerProfileRouteProps) {
   const { id } = useParams<{ id: string }>();
   if (!id) return null;
-  return <PlayerProfile playerId={id} onBack={() => navigate('/profiles')} />;
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <PlayerProfile playerId={id} onBack={() => navigate('/profiles')} />
+    </Suspense>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <div className="flex-1 flex items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Loading Module...</p>
+      </div>
+    </div>
+  );
 }
 
 interface ArenaContentProps {
@@ -762,223 +779,224 @@ function App() {
         </ErrorBoundary>
       </div>
 
-      <Routes>
-        <Route path="/" element={<Navigate to="/arena" replace />} />
-        <Route path="/arena" element={
-          <ArenaContent 
-            key={selectedGame?.id || 'none'}
-            whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
-            whiteThinking={whiteThinking} blackThinking={blackThinking}
-            evaluation={evaluation} variations={variations}
-            isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
-            boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
-            currentPgn={currentPgn} showResultOverlay={showResultOverlay}
-            whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
-            setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
-            isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
-            handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
-            setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-            activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-                                  setBoardOrientation={setBoardOrientation}
-                                  spectatorCount={spectatorCount}
-                                  thinkingStatus={thinkingStatus}
-                                />
-        } />
-        <Route path="/arena/:gameId" element={
-          <ArenaContent 
-            key={selectedGame?.id || 'none'}
-            whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
-            whiteThinking={whiteThinking} blackThinking={blackThinking}
-            evaluation={evaluation} variations={variations}
-            isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
-            boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
-            currentPgn={currentPgn} showResultOverlay={showResultOverlay}
-            whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
-            setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
-            isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
-            handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
-            setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-            activeMoveIndex={activeMoveIndex} moves={moves} players={players}
-                                      setBoardOrientation={setBoardOrientation}
-                                      spectatorCount={spectatorCount}
-                                      thinkingStatus={thinkingStatus}
-                                    />
-        } />
-        <Route path="/leaderboard" element={
-          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-             <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-               <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                 <SheetTrigger asChild>
-                   <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                     <Menu className="h-5 w-5" />
-                   </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                   <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                 </SheetContent>
-               </Sheet>
-               <h2 className="text-xl font-black tracking-tighter uppercase italic">LEADERBOARD</h2>
-             </header>
-             <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-              <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Model Rankings</h2><p className="text-muted-foreground font-medium">Comparative performance metrics across all integrated LLM architectures.</p></div>
-                <div className="bg-card rounded-xl border border-border p-6 shadow-xl"><Leaderboard players={leaderboard} onSelectPlayer={(id) => navigate(`/profiles/${id}`)} /></div>
-              </div>
-            </div>
-          </div>
-        } />
-        <Route path="/profiles" element={
-          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-            <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-               <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                 <SheetTrigger asChild>
-                   <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                     <Menu className="h-5 w-5" />
-                   </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                   <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                 </SheetContent>
-               </Sheet>
-               <h2 className="text-xl font-black tracking-tighter uppercase italic">PROFILES</h2>
-             </header>
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-              <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">PROFILES</h2><p className="text-muted-foreground font-medium">Select a model to view detailed performance metrics and history.</p></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {players.filter(p => p.type === 'llm').map(player => (
-                    <div key={player.id} onClick={() => navigate(`/profiles/${player.id}`)} className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg group">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{player.name[0]}</div>
-                        <div><h3 className="font-bold text-lg">{player.name}</h3><p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{player.rating} ELO</p></div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase">
-                        <div className="p-2 bg-muted rounded"><div className="text-primary">{player.wins}</div><div className="text-muted-foreground">Wins</div></div>
-                        <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.losses}</div><div className="text-muted-foreground">Loss</div></div>
-                        <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.draws}</div><div className="text-muted-foreground">Draw</div></div>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/arena" replace />} />
+                <Route path="/arena" element={
+                  <ArenaContent 
+                    key={selectedGame?.id || 'none'}
+                    whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
+                    whiteThinking={whiteThinking} blackThinking={blackThinking}
+                    evaluation={evaluation} variations={variations}
+                    isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
+                    boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
+                    currentPgn={currentPgn} showResultOverlay={showResultOverlay}
+                    whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
+                    isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
+                    handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
+                    setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
+                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
+                                          setBoardOrientation={setBoardOrientation}
+                                          spectatorCount={spectatorCount}
+                                          thinkingStatus={thinkingStatus}
+                                        />
+                } />
+                <Route path="/arena/:gameId" element={
+                  <ArenaContent 
+                    key={selectedGame?.id || 'none'}
+                    whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
+                    whiteThinking={whiteThinking} blackThinking={blackThinking}
+                    evaluation={evaluation} variations={variations}
+                    isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
+                    boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
+                    currentPgn={currentPgn} showResultOverlay={showResultOverlay}
+                    whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
+                    isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
+                    handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
+                    setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
+                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
+                                              setBoardOrientation={setBoardOrientation}
+                                              spectatorCount={spectatorCount}
+                                              thinkingStatus={thinkingStatus}
+                                            />
+                } />
+                <Route path="/leaderboard" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">LEADERBOARD</h2>
+                     </header>
+                     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                      <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Model Rankings</h2><p className="text-muted-foreground font-medium">Comparative performance metrics across all integrated LLM architectures.</p></div>
+                        <div className="bg-card rounded-xl border border-border p-6 shadow-xl"><Leaderboard players={leaderboard} onSelectPlayer={(id) => navigate(`/profiles/${id}`)} /></div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        } />
-        <Route path="/profiles/:id" element={
-          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-             <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-               <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                 <SheetTrigger asChild>
-                   <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                     <Menu className="h-5 w-5" />
-                   </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                   <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                 </SheetContent>
-               </Sheet>
-               <h2 className="text-xl font-black tracking-tighter uppercase italic">PLAYER PROFILE</h2>
-             </header>
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-              <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <PlayerProfileRoute navigate={navigate} />
-              </div>
-            </div>
-          </div>
-        } />
-        <Route path="/history" element={
-          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-             <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-               <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                 <SheetTrigger asChild>
-                   <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                     <Menu className="h-5 w-5" />
-                   </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                   <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                 </SheetContent>
-               </Sheet>
-               <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
-             </header>
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-              <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Arena History</h2><p className="text-muted-foreground font-medium">Review past encounters and analyze model decision patterns.</p></div>
-                <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
-              </div>
-            </div>
-          </div>
-        } />
-        {/* <Route path="/analysis/:gameId" element={<AnalysisMode />} /> */}
-        <Route path="/tournaments" element={
-          <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-             <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-               <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                 <SheetTrigger asChild>
-                   <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                     <Menu className="h-5 w-5" />
-                   </Button>
-                 </SheetTrigger>
-                 <SheetContent side="left" className="p-0 w-72">
-                   <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                   <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                 </SheetContent>
-               </Sheet>
-               <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENTS</h2>
-             </header>
-             <div className="flex-1 overflow-y-auto"><TournamentList /></div>
-          </div>
-        } />
-        <Route path="/tournaments/:id" element={<TournamentDetail />} />
-        <Route path="/login" element={<AdminLogin />} />
-        <Route path="/admin/settings" element={
-          <ProtectedRoute>
-            <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-              <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                 <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                   <SheetTrigger asChild>
-                     <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                       <Menu className="h-5 w-5" />
-                     </Button>
-                   </SheetTrigger>
-                   <SheetContent side="left" className="p-0 w-72">
-                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                     <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                   </SheetContent>
-                 </Sheet>
-                 <h2 className="text-xl font-black tracking-tighter uppercase italic">SETTINGS</h2>
-               </header>
-               <div className="flex-1 overflow-y-auto"><AdminSettings /></div>
-            </div>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/tournaments" element={
-          <ProtectedRoute>
-            <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-              <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                 <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                   <SheetTrigger asChild>
-                     <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                       <Menu className="h-5 w-5" />
-                     </Button>
-                   </SheetTrigger>
-                   <SheetContent side="left" className="p-0 w-72">
-                     <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                     <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                   </SheetContent>
-                 </Sheet>
-                 <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENT MANAGEMENT</h2>
-               </header>
-               <div className="flex-1 overflow-y-auto"><TournamentManagement /></div>
-            </div>
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </div>
+                  </div>
+                } />
+                <Route path="/profiles" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                    <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">PROFILES</h2>
+                     </header>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">PROFILES</h2><p className="text-muted-foreground font-medium">Select a model to view detailed performance metrics and history.</p></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {players.filter(p => p.type === 'llm').map(player => (
+                            <div key={player.id} onClick={() => navigate(`/profiles/${player.id}`)} className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg group">
+                              <div className="flex items-center gap-4 mb-4">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{player.name[0]}</div>
+                                <div><h3 className="font-bold text-lg">{player.name}</h3><p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{player.rating} ELO</p></div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase">
+                                <div className="p-2 bg-muted rounded"><div className="text-primary">{player.wins}</div><div className="text-muted-foreground">Wins</div></div>
+                                <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.losses}</div><div className="text-muted-foreground">Loss</div></div>
+                                <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.draws}</div><div className="text-muted-foreground">Draw</div></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                } />
+                <Route path="/profiles/:id" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">PLAYER PROFILE</h2>
+                     </header>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <PlayerProfileRoute navigate={navigate} />
+                      </div>
+                    </div>
+                  </div>
+                } />
+                <Route path="/history" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
+                     </header>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Arena History</h2><p className="text-muted-foreground font-medium">Review past encounters and analyze model decision patterns.</p></div>
+                        <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
+                      </div>
+                    </div>
+                  </div>
+                } />
+                {/* <Route path="/analysis/:gameId" element={<AnalysisMode />} /> */}
+                <Route path="/tournaments" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENTS</h2>
+                     </header>
+                     <div className="flex-1 overflow-y-auto"><TournamentList /></div>
+                  </div>
+                } />
+                <Route path="/tournaments/:id" element={<TournamentDetail />} />
+                <Route path="/login" element={<AdminLogin />} />
+                <Route path="/admin/settings" element={
+                  <ProtectedRoute>
+                    <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                      <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                           <SheetTrigger asChild>
+                             <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                               <Menu className="h-5 w-5" />
+                             </Button>
+                           </SheetTrigger>
+                           <SheetContent side="left" className="p-0 w-72">
+                             <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                             <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           </SheetContent>
+                         </Sheet>
+                         <h2 className="text-xl font-black tracking-tighter uppercase italic">SETTINGS</h2>
+                       </header>
+                       <div className="flex-1 overflow-y-auto"><AdminSettings /></div>
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/tournaments" element={
+                  <ProtectedRoute>
+                    <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                      <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                           <SheetTrigger asChild>
+                             <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                               <Menu className="h-5 w-5" />
+                             </Button>
+                           </SheetTrigger>
+                           <SheetContent side="left" className="p-0 w-72">
+                             <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                             <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           </SheetContent>
+                         </Sheet>
+                         <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENT MANAGEMENT</h2>
+                       </header>
+                       <div className="flex-1 overflow-y-auto"><TournamentManagement /></div>
+                    </div>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </Suspense>    </div>
   )
 }
 

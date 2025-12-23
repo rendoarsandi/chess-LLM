@@ -29,5 +29,11 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1"
+  },
+  "overrides": {
+    "esbuild": "^0.25.0",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
+    }
   }
 }

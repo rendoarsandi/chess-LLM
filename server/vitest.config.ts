@@ -5,11 +5,11 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     setupFiles: ['./vitest.setup.ts'],
     environment: 'node',
-    // Optimize for speed
-    pool: 'threads',
-    // Top-level pool options for newer Vitest versions
-    threads: {
-      singleThread: false,
+    // Prevent database interference by running tests sequentially
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
     },
     // Prevent long-running tests from hanging the suite
     testTimeout: 10000,
