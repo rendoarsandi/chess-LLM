@@ -11,12 +11,12 @@
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Navigation' (Protocol in workflow.md)
 
 ## Phase 2: Game Board & Core Controls [ ]
-- [ ] Task: Board Responsiveness
-    - [ ] Sub-task: Fix `Chessboard` and `AnalysisBoard` container sizing to be fully responsive.
-    - [ ] Sub-task: Ensure piece animation performance is optimal.
-- [ ] Task: Control Panel Polish
-    - [ ] Sub-task: Style "Start", "Stop", "Analysis" buttons with consistent Shadcn variants and icons.
-    - [ ] Sub-task: Implement `ThinkingPanel` improvements (smooth scrolling/text appearance).
+- [x] Task: Board Responsiveness (9f69a7d)
+    - [x] Sub-task: Fix `Chessboard` and `AnalysisBoard` container sizing to be fully responsive.
+    - [x] Sub-task: Ensure piece animation performance is optimal.
+- [x] Task: Control Panel Polish (9f69a7d)
+    - [x] Sub-task: Style "Start", "Stop", "Analysis" buttons with consistent Shadcn variants and icons.
+    - [x] Sub-task: Implement `ThinkingPanel` improvements (smooth scrolling/text appearance).
 - [ ] Task: Conductor - User Manual Verification 'Game Board & Core Controls' (Protocol in workflow.md)
 
 ## Phase 3: Dashboards & Data Display [ ]
