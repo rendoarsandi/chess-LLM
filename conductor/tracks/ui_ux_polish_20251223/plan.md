@@ -29,10 +29,10 @@
 - [ ] Task: Conductor - User Manual Verification 'Dashboards & Data Display' (Protocol in workflow.md)
 
 ## Phase 4: Feedback & Interactivity [ ]
-- [ ] Task: Loading States & Transitions
-    - [ ] Sub-task: Replace text loaders with Skeleton components in key areas (Profile, Dashboard).
-    - [ ] Sub-task: Add page transitions using `framer-motion` (simple fade/slide).
-- [ ] Task: Notifications & Error Handling
-    - [ ] Sub-task: Audit all `sonner` toasts for consistent styling and clear messaging.
-    - [ ] Sub-task: Ensure error boundaries have a polished "Oops" state.
+- [x] Task: Loading States & Transitions (ebf8996)
+    - [x] Sub-task: Replace text loaders with Skeleton components in key areas (Profile, Dashboard).
+    - [x] Sub-task: Add page transitions using `framer-motion` (simple fade/slide).
+- [x] Task: Notifications & Error Handling (2b825a5)
+    - [x] Sub-task: Audit all `sonner` toasts for consistent styling and clear messaging.
+    - [x] Sub-task: Ensure error boundaries have a polished "Oops" state.
 - [ ] Task: Conductor - User Manual Verification 'Feedback & Interactivity' (Protocol in workflow.md)
