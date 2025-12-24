@@ -109,7 +109,7 @@ describe('App Component', () => {
       }
 
       await waitFor(() => {
-        expect(screen.queryAllByText('Move History').length).toBeGreaterThan(0)
+        expect(screen.queryAllByText('Moves').length).toBeGreaterThan(0)
       }, { timeout: 15000 })
     }, 20000)
 

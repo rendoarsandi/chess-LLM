@@ -1,4 +1,4 @@
-import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, LogOut, LogIn, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, LogOut, LogIn, BarChart3, History } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { NavLink, useNavigate } from "react-router"
@@ -147,6 +147,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
   const navItems: NavItem[] = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
     { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
+    { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
     ...(session ? [

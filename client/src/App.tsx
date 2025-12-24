@@ -10,7 +10,7 @@ import { EngineAnalysisPanel } from "@/components/EngineAnalysisPanel"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from "react"
-import { getGames, getGame, createGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
+import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
@@ -36,6 +36,8 @@ import { Share2, Copy, FileText } from "lucide-react"
 // Lazy-loaded components
 const Leaderboard = lazy(() => import("@/components/Leaderboard").then(m => ({ default: m.Leaderboard })));
 const PlayerProfile = lazy(() => import("@/components/PlayerProfile").then(m => ({ default: m.PlayerProfile })));
+const GameHistory = lazy(() => import("@/components/GameHistory").then(m => ({ default: m.GameHistory })));
+const AnalysisMode = lazy(() => import("@/components/AnalysisMode").then(m => ({ default: m.AnalysisMode })));
 const AdminLogin = lazy(() => import("@/components/AdminLogin").then(m => ({ default: m.AdminLogin })));
 const AdminSettings = lazy(() => import("@/components/AdminSettings").then(m => ({ default: m.AdminSettings })));
 const TournamentManagement = lazy(() => import("@/components/TournamentManagement").then(m => ({ default: m.TournamentManagement })));
@@ -174,8 +176,13 @@ function ArenaContent({
           </Sheet>
 
           <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase italic flex items-center gap-2 md:gap-3 shrink-0">
-            ChessLLM <span className="not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors text-primary bg-primary/10 border-primary/20">
-              ARENA
+            ChessLLM <span className={cn(
+              "not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors",
+              isLive 
+                ? "text-primary bg-primary/10 border-primary/20" 
+                : "text-amber-500 bg-amber-500/10 border-amber-500/20"
+            )}>
+              {isLive ? 'ARENA' : 'HISTORY MODE'}
             </span>
           </h1>
           
@@ -554,6 +561,16 @@ function App() {
     }
   };
 
+  const handleDeleteGame = async (id: string) => {
+    await deleteGame(id);
+    if (selectedGame?.id === id) {
+      setSelectedGame(null);
+      setActiveMoveIndex(null);
+      setLastMoveFromUpdate(null);
+    }
+    fetchAllGames();
+  };
+
   const handleTogglePause = async () => {
     if (!selectedGame) return;
     if (selectedGame.status === 'ongoing') await pauseGame(selectedGame.id);
@@ -929,7 +946,31 @@ function App() {
                     </div>
                   </div>
                 } />
-                {/* <Route path="/analysis/:gameId" element={<AnalysisMode />} /> */}
+                <Route path="/history" element={
+                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
+                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                         <SheetTrigger asChild>
+                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                             <Menu className="h-5 w-5" />
+                           </Button>
+                         </SheetTrigger>
+                         <SheetContent side="left" className="p-0 w-72">
+                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
+                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                         </SheetContent>
+                       </Sheet>
+                       <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
+                     </header>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Arena History</h2><p className="text-muted-foreground font-medium">Review past encounters and analyze model decision patterns.</p></div>
+                        <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
+                      </div>
+                    </div>
+                  </div>
+                } />
+                <Route path="/analysis/:gameId" element={<AnalysisMode />} />
                 <Route path="/tournaments" element={
                   <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
                      <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">

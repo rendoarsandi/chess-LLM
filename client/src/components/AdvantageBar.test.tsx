@@ -13,7 +13,7 @@ describe('AdvantageBar', () => {
     const evalData = { score: 150, isMate: false, depth: 10 }; // +1.5
     render(<AdvantageBar evaluation={evalData} />);
     
-    expect(screen.getByText('+1.5')).toBeInTheDocument();
+    expect(screen.getByText('+1.50')).toBeInTheDocument();
     expect(screen.getByText('D10')).toBeInTheDocument();
   });
 
@@ -21,7 +21,7 @@ describe('AdvantageBar', () => {
     const evalData = { score: -200, isMate: false, depth: 15 }; // -2.0
     render(<AdvantageBar evaluation={evalData} />);
     
-    expect(screen.getByText('-2.0')).toBeInTheDocument();
+    expect(screen.getByText('-2.00')).toBeInTheDocument();
   });
 
   it('renders mate correctly', () => {
