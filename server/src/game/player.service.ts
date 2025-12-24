@@ -5,7 +5,6 @@ import { GeminiService } from './gemini.service'
 import { GeminiPlayer } from './gemini-player'
 import { GroqService } from './groq.service'
 import { GroqPlayer } from './groq-player'
-import { RandomPlayer } from './random-player'
 import crypto from 'crypto'
 import { AppDatabase } from '../db/types'
 
@@ -32,14 +31,14 @@ export class PlayerService {
         }
     }
 
-    // Always ensure Random Bot and Stockfish exist (these are currently handled in index.ts but should move here)
+    // Always ensure Stockfish exist (these are currently handled in index.ts but should move here)
     // For now, index.ts still does initial setup.
   }
 
   private createPlayerInstance(config: typeof llmConfigurations.$inferSelect) {
     const apiKey = config.apiKey || (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
     
-    if (!apiKey && config.provider !== 'stockfish' && config.provider !== 'random') {
+    if (!apiKey && config.provider !== 'stockfish') {
         console.warn(`[PlayerService] No API key for ${config.modelId}, skipping instantiation`)
         return null
     }
@@ -49,8 +48,6 @@ export class PlayerService {
             return new GeminiPlayer(new GeminiService(apiKey!), config.modelId!)
         case 'groq':
             return new GroqPlayer(new GroqService(apiKey!), config.modelId!)
-        case 'random':
-            return new RandomPlayer()
         default:
             return null
     }

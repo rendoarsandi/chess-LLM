@@ -150,18 +150,45 @@ export function TournamentManagement() {
                                         <Users className="w-4 h-4" />
                                         Select Participants ({newTournament.participantIds.length} selected)
                                     </Label>
-                                    <div className="grid grid-cols-2 gap-2 border rounded-lg p-4 bg-muted/30 max-h-48 overflow-y-auto custom-scrollbar">
-                                        {players.map(player => (
-                                            <label key={player.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded cursor-pointer transition-colors border border-transparent hover:border-border">
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="w-4 h-4 rounded border-primary text-primary focus:ring-primary"
-                                                    checked={newTournament.participantIds.includes(player.id)}
-                                                    onChange={() => handleToggleParticipant(player.id)}
-                                                />
-                                                <span className="text-sm font-bold uppercase tracking-tight">{player.name}</span>
-                                            </label>
-                                        ))}
+                                    <div className="border rounded-lg p-4 bg-muted/30 max-h-72 overflow-y-auto custom-scrollbar space-y-4">
+                                        {[
+                                            { label: "Google Gemini", color: "text-primary", provider: "gemini" },
+                                            { label: "Groq Arena", color: "text-orange-500", provider: "groq" },
+                                            { label: "System Engines", color: "text-blue-500", provider: "system" },
+                                            { label: "Other", color: "text-muted-foreground", provider: "other" }
+                                        ].map(group => {
+                                            const groupPlayers = players.filter(p => 
+                                                group.provider === "other" 
+                                                ? !["gemini", "groq", "system"].includes(p.provider || "")
+                                                : p.provider === group.provider
+                                            );
+                                            
+                                            if (groupPlayers.length === 0) return null;
+
+                                            return (
+                                                <div key={group.label} className="space-y-2">
+                                                    <h3 className={cn("text-[10px] font-black uppercase tracking-widest px-2 border-l-2 border-current", group.color)}>
+                                                        {group.label}
+                                                    </h3>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {groupPlayers.map(player => (
+                                                            <label key={player.id} className="flex items-center gap-3 p-2 hover:bg-muted rounded cursor-pointer transition-colors border border-transparent hover:border-border bg-background/50">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    className="w-4 h-4 rounded border-primary text-primary focus:ring-primary"
+                                                                    checked={newTournament.participantIds.includes(player.id)}
+                                                                    onChange={() => handleToggleParticipant(player.id)}
+                                                                />
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-bold uppercase tracking-tight leading-tight">{player.name}</span>
+                                                                    <span className="text-[9px] text-muted-foreground font-black tracking-widest">{player.rating} ELO</span>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>

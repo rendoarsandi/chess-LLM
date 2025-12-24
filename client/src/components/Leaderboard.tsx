@@ -99,9 +99,22 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
                     </div>
                     <div className="flex flex-col">
                       <span className="font-black text-sm md:text-base tracking-tight">{player.name}</span>
-                      <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest opacity-70">
-                        {player.type}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest opacity-70">
+                          {player.type}
+                        </span>
+                        {player.provider && (
+                          <span className={cn(
+                            "text-[8px] px-1 py-0.5 rounded border leading-none font-black uppercase tracking-widest",
+                            player.provider === 'gemini' ? "text-primary bg-primary/5 border-primary/20" :
+                            player.provider === 'groq' ? "text-orange-500 bg-orange-500/5 border-orange-500/20" :
+                            player.provider === 'system' ? "text-blue-500 bg-blue-500/5 border-blue-500/20" :
+                            "text-muted-foreground bg-muted border-border"
+                          )}>
+                            {player.provider}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </TableCell>

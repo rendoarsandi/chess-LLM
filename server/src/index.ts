@@ -15,7 +15,6 @@ import { db } from './db'
 import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
 import { PlayerService } from './game/player.service'
-import { RandomPlayer } from './game/random-player'
 import { GameLoopService } from './game/game-loop.service'
 import { TournamentService } from './game/tournament.service'
 import { TournamentLoopService } from './game/tournament-loop.service'
@@ -105,15 +104,10 @@ admin.post('/tournaments', async (c) => {
 app.route('/api/admin', admin)
 
 // System Player IDs (Hardcoded for core bots to preserve history)
-const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
-const HUMAN_PLAYER_ID = '00000000-0000-0000-0000-000000000003'
 const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
 const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
 const STOCKFISH_HIGH_ID = '00000000-0000-0000-0000-000000000012'
 const STOCKFISH_VERY_HIGH_ID = '00000000-0000-0000-0000-000000000013'
-
-// Initialize built-in non-LLM players
-gameManager.setPlayer(RANDOM_BOT_ID, new RandomPlayer())
 
 export async function initializePlayers() {
     console.log('[Main] Synchronizing LLM configurations...')
@@ -129,12 +123,10 @@ export async function initializePlayers() {
     ]
 
     const builtinPlayers = [
-        { id: RANDOM_BOT_ID, name: 'Random Bot', type: 'llm' as const, rating: 800 },
-        { id: HUMAN_PLAYER_ID, name: 'Human', type: 'human' as const, rating: 1200 },
-        { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500 },
-        { id: STOCKFISH_MED_ID, name: 'Stockfish (Medium)', type: 'llm' as const, rating: 2000 },
-        { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 2500 },
-        { id: STOCKFISH_VERY_HIGH_ID, name: 'Stockfish (Very High)', type: 'llm' as const, rating: 3200 },
+        { id: STOCKFISH_LOW_ID, name: 'Stockfish (Low)', type: 'llm' as const, rating: 1500, provider: 'system' },
+        { id: STOCKFISH_MED_ID, name: 'Stockfish (Medium)', type: 'llm' as const, rating: 2000, provider: 'system' },
+        { id: STOCKFISH_HIGH_ID, name: 'Stockfish (High)', type: 'llm' as const, rating: 2500, provider: 'system' },
+        { id: STOCKFISH_VERY_HIGH_ID, name: 'Stockfish (Very High)', type: 'llm' as const, rating: 3200, provider: 'system' },
     ]
 
     // 1. Ensure built-in players exist in 'players' table
@@ -171,8 +163,11 @@ export async function initializePlayers() {
 
 export const initPromise = initializePlayers().catch(console.error)
 
-// Default LLM player for background loop (fallback)
-const defaultLlmPlayer = new RandomPlayer()
+// Default LLM player for background loop (fallback) - will be overridden by registry
+const defaultLlmPlayer = { 
+    makeMove: async () => null, 
+    getLastThinking: () => null 
+}
 const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer, socketService)
 const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
 

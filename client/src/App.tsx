@@ -44,8 +44,8 @@ const TournamentManagement = lazy(() => import("@/components/TournamentManagemen
 const TournamentList = lazy(() => import("@/components/TournamentList").then(m => ({ default: m.TournamentList })));
 const TournamentDetail = lazy(() => import("@/components/TournamentDetail").then(m => ({ default: m.TournamentDetail })));
 
-const RANDOM_BOT_ID = '00000000-0000-0000-0000-000000000001'
-const GEMINI_3_0_ID = '00000000-0000-0000-0000-000000000002'
+const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
+const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
 
 interface PlayerProfileRouteProps {
   navigate: (path: string) => void;
@@ -126,7 +126,7 @@ function ArenaContent({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isPlayerNonLLM = useCallback((player?: Player) => {
-    return player?.type === 'human' || (player?.id && STOCKFISH_IDS.includes(player.id));
+    return !!(player?.id && STOCKFISH_IDS.includes(player.id));
   }, []);
 
   // Auto-collapse logic: Initialized on mount (and remount on game change)
@@ -396,13 +396,39 @@ function ArenaContent({
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
                     <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                      {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
                     <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                      {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
@@ -456,13 +482,39 @@ function ArenaContent({
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
                   <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                    {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
                   <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                    {players.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
                 <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
@@ -495,8 +547,8 @@ function App() {
 
   const { lastUpdate, thinkingStatus, spectatorCount, lastMessage, sendMessage } = useGameSocket(selectedGame?.id)
 
-  const [whitePlayerId, setWhitePlayerId] = useState(GEMINI_3_0_ID)
-  const [blackPlayerId, setBlackPlayerId] = useState(RANDOM_BOT_ID)
+  const [whitePlayerId, setWhitePlayerId] = useState(STOCKFISH_LOW_ID)
+  const [blackPlayerId, setBlackPlayerId] = useState(STOCKFISH_MED_ID)
   const [isCreatingGame, setIsCreatingGame] = useState(false)
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -902,23 +954,49 @@ function App() {
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">PROFILES</h2>
                      </header>
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">PROFILES</h2><p className="text-muted-foreground font-medium">Select a model to view detailed performance metrics and history.</p></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {players.filter(p => p.type === 'llm').map(player => (
-                            <div key={player.id} onClick={() => navigate(`/profiles/${player.id}`)} className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg group">
-                              <div className="flex items-center gap-4 mb-4">
-                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{player.name[0]}</div>
-                                <div><h3 className="font-bold text-lg">{player.name}</h3><p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{player.rating} ELO</p></div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase">
-                                <div className="p-2 bg-muted rounded"><div className="text-primary">{player.wins}</div><div className="text-muted-foreground">Wins</div></div>
-                                <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.losses}</div><div className="text-muted-foreground">Loss</div></div>
-                                <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.draws}</div><div className="text-muted-foreground">Draw</div></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        
+                        {[
+                            { label: "Google Gemini", color: "text-primary", provider: "gemini", description: "Models from the Google Gemini family, optimized for multimodal reasoning and efficiency." },
+                            { label: "Groq Arena", color: "text-orange-500", provider: "groq", description: "Models hosted on Groq's LPU™ platform, delivering ultra-low latency inference." },
+                            { label: "System Engines", color: "text-blue-500", provider: "system", description: "Classical engines and built-in bots used for benchmarking and baseline comparisons." },
+                            { label: "Other", color: "text-muted-foreground", provider: "other", description: "Community models and experimental architectures." }
+                        ].map(group => {
+                            const groupPlayers = players.filter(p => 
+                                p.type === 'llm' && (
+                                    group.provider === "other" 
+                                    ? !["gemini", "groq", "system"].includes(p.provider || "")
+                                    : p.provider === group.provider
+                                )
+                            );
+                            
+                            if (groupPlayers.length === 0) return null;
+
+                            return (
+                                <div key={group.label} className="space-y-6">
+                                    <div className={cn("space-y-1 border-l-4 border-current pl-6", group.color)}>
+                                        <h3 className="text-2xl font-black uppercase tracking-tighter italic">{group.label}</h3>
+                                        <p className="text-muted-foreground text-xs font-medium max-w-2xl">{group.description}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                      {groupPlayers.map(player => (
+                                        <div key={player.id} onClick={() => navigate(`/profiles/${player.id}`)} className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-lg group">
+                                          <div className="flex items-center gap-4 mb-4">
+                                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{player.name[0]}</div>
+                                            <div><h3 className="font-bold text-lg">{player.name}</h3><p className="text-xs text-muted-foreground uppercase font-black tracking-widest">{player.rating} ELO</p></div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase">
+                                            <div className="p-2 bg-muted rounded"><div className="text-primary">{player.wins}</div><div className="text-muted-foreground">Wins</div></div>
+                                            <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.losses}</div><div className="text-muted-foreground">Loss</div></div>
+                                            <div className="p-2 bg-muted rounded"><div className="text-foreground">{player.draws}</div><div className="text-muted-foreground">Draw</div></div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
                       </div>
                     </div>
                   </div>
