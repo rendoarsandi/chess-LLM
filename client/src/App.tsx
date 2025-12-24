@@ -6,10 +6,11 @@ import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
+import { EngineAnalysisPanel } from "@/components/EngineAnalysisPanel"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from "react"
-import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
+import { getGames, getGame, createGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
@@ -35,7 +36,6 @@ import { Share2, Copy, FileText } from "lucide-react"
 // Lazy-loaded components
 const Leaderboard = lazy(() => import("@/components/Leaderboard").then(m => ({ default: m.Leaderboard })));
 const PlayerProfile = lazy(() => import("@/components/PlayerProfile").then(m => ({ default: m.PlayerProfile })));
-const GameHistory = lazy(() => import("@/components/GameHistory").then(m => ({ default: m.GameHistory })));
 const AdminLogin = lazy(() => import("@/components/AdminLogin").then(m => ({ default: m.AdminLogin })));
 const AdminSettings = lazy(() => import("@/components/AdminSettings").then(m => ({ default: m.AdminSettings })));
 const TournamentManagement = lazy(() => import("@/components/TournamentManagement").then(m => ({ default: m.TournamentManagement })));
@@ -78,6 +78,7 @@ interface ArenaContentProps {
   blackThinking: ThinkingData;
   evaluation: EngineEvaluation | null;
   variations: EngineEvaluation[];
+  isThinking: boolean;
   isLive: boolean;
   selectedGame: Game | null;
   currentDisplayFen: string;
@@ -111,7 +112,7 @@ const STOCKFISH_IDS = [
 ];
 
 function ArenaContent({ 
-  whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, 
+  whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, isThinking,
   isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
   currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
   isCreatingGame, hasOngoingGame, 
@@ -173,13 +174,8 @@ function ArenaContent({
           </Sheet>
 
           <h1 className="text-lg md:text-xl font-black tracking-tighter uppercase italic flex items-center gap-2 md:gap-3 shrink-0">
-            ChessLLM <span className={cn(
-              "not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors",
-              isLive 
-                ? "text-primary bg-primary/10 border-primary/20" 
-                : "text-amber-500 bg-amber-500/10 border-amber-500/20"
-            )}>
-              {isLive ? 'ARENA' : 'HISTORY MODE'}
+            ChessLLM <span className="not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors text-primary bg-primary/10 border-primary/20">
+              ARENA
             </span>
           </h1>
           
@@ -197,7 +193,28 @@ function ArenaContent({
           )}
         </div>
 
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-2 shrink-0 items-center">
+          {selectedGame && (
+            <div className={cn(
+              "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest mr-2 transition-all",
+              selectedGame.status === 'ongoing' ? "text-green-500 bg-green-500/10 border-green-500/20" :
+              selectedGame.status === 'paused' ? "text-amber-500 bg-amber-500/10 border-amber-500/20" :
+              "text-blue-500 bg-blue-500/10 border-blue-500/20"
+            )}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", 
+                selectedGame.status === 'ongoing' ? "bg-green-500 animate-pulse" :
+                selectedGame.status === 'paused' ? "bg-amber-500" :
+                "bg-blue-500"
+              )} />
+              {selectedGame.status}
+              {selectedGame.gameOverReason && (
+                <span className="ml-1 opacity-70 border-l border-current pl-1.5 leading-none">
+                  {selectedGame.gameOverReason}
+                </span>
+              )}
+            </div>
+          )}
+
           {selectedGame && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -321,24 +338,7 @@ function ArenaContent({
                   </div>
                 </div>
 
-                <div className="mt-6 w-full max-w-[600px] space-y-4">
-                  <div className="p-4 bg-muted/30 rounded-lg border border-border">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                      <div className="flex items-center gap-4">
-                        <span className="font-semibold text-sm">Status: <span className="text-primary font-black uppercase tracking-tighter ml-1">{selectedGame.status}</span></span>
-                        {(selectedGame.status === 'ongoing' || selectedGame.status === 'paused') && (
-                          <Button size="sm" variant="outline" className="h-7 text-[10px] font-black" onClick={handleTogglePause}>
-                            {selectedGame.status === 'ongoing' ? <><Pause className="h-3 w-3 mr-1" /> PAUSE</> : <><Play className="h-3 w-3 mr-1" /> RESUME</>}
-                          </Button>
-                        )}
-                        {(selectedGame.status === 'completed' || selectedGame.status === 'draw') && (
-                          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/50 px-3 py-1 rounded border border-border">
-                            GAME ENDED
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                <div className="mt-6 w-full max-w-[600px]">
                   <PlaybackControls 
                     onFirst={() => setActiveMoveIndex(0)} 
                     onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? Math.max(0, moves.length - 2) : Math.max(0, activeMoveIndex - 1))} 
@@ -368,6 +368,17 @@ function ArenaContent({
               >
                 <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
               </CollapsibleSection>
+
+              <CollapsibleSection title="Engine Analysis" defaultExpanded={true}>
+                <div className="h-[280px]">
+                  <EngineAnalysisPanel 
+                    fen={currentDisplayFen}
+                    variations={variations}
+                    isThinking={isThinking}
+                  />
+                </div>
+              </CollapsibleSection>
+
               <CollapsibleSection title="Move List">
                 <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
                   <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
@@ -407,9 +418,30 @@ function ArenaContent({
             )}
 
             {selectedGame && (
-              <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
-              </ErrorBoundary>
+              <div className="space-y-4">
+                <div className="h-[250px] shrink-0">
+                  <EngineAnalysisPanel 
+                    fen={currentDisplayFen}
+                    variations={variations}
+                    isThinking={isThinking}
+                  />
+                </div>
+
+                <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
+                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+                </ErrorBoundary>
+
+                <div className="pt-2">
+                  <PlaybackControls 
+                    onFirst={() => setActiveMoveIndex(0)} 
+                    onPrev={() => setActiveMoveIndex(activeMoveIndex === null ? Math.max(0, moves.length - 2) : Math.max(0, activeMoveIndex - 1))} 
+                    onNext={() => { if (activeMoveIndex !== null) { if (activeMoveIndex === moves.length - 1) setActiveMoveIndex(null); else setActiveMoveIndex(activeMoveIndex + 1); } }} 
+                    onLast={() => setActiveMoveIndex(null)} 
+                    prevDisabled={moves.length === 0 || activeMoveIndex === 0} 
+                    nextDisabled={isLive} 
+                  />
+                </div>
+              </div>
             )}
             <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
               <h2 className="text-xl font-bold uppercase tracking-tighter mb-4">Arena Controls</h2>
@@ -520,16 +552,6 @@ function App() {
     } finally {
       setIsCreatingGame(false);
     }
-  };
-
-  const handleDeleteGame = async (id: string) => {
-    await deleteGame(id);
-    if (selectedGame?.id === id) {
-      setSelectedGame(null);
-      setActiveMoveIndex(null);
-      setLastMoveFromUpdate(null);
-    }
-    fetchAllGames();
   };
 
   const handleTogglePause = async () => {
@@ -658,7 +680,7 @@ function App() {
   // Enable bot handler for automated move requests from server
   useGameBot(selectedGame?.id, lastMessage, sendMessage, isLive && !!selectedGame)
 
-  const { evaluation, variations } = useStockfish(currentDisplayFen);
+  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen);
 
   const whitePlayer = players.find(p => p.id === selectedGame?.whitePlayerId);
   const blackPlayer = players.find(p => p.id === selectedGame?.blackPlayerId);
@@ -787,7 +809,7 @@ function App() {
                     key={selectedGame?.id || 'none'}
                     whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
                     whiteThinking={whiteThinking} blackThinking={blackThinking}
-                    evaluation={evaluation} variations={variations}
+                    evaluation={evaluation} variations={variations} isThinking={isThinking}
                     isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
@@ -807,7 +829,7 @@ function App() {
                     key={selectedGame?.id || 'none'}
                     whitePlayer={whitePlayer} blackPlayer={blackPlayer} isMobile={isMobile}
                     whiteThinking={whiteThinking} blackThinking={blackThinking}
-                    evaluation={evaluation} variations={variations}
+                    evaluation={evaluation} variations={variations} isThinking={isThinking}
                     isLive={isLive} selectedGame={selectedGame} currentDisplayFen={currentDisplayFen}
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
@@ -903,30 +925,6 @@ function App() {
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <PlayerProfileRoute navigate={navigate} />
-                      </div>
-                    </div>
-                  </div>
-                } />
-                <Route path="/history" element={
-                  <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-                     <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
-                         <SheetTrigger asChild>
-                           <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
-                             <Menu className="h-5 w-5" />
-                           </Button>
-                         </SheetTrigger>
-                         <SheetContent side="left" className="p-0 w-72">
-                           <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
-                         </SheetContent>
-                       </Sheet>
-                       <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
-                     </header>
-                    <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                      <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Arena History</h2><p className="text-muted-foreground font-medium">Review past encounters and analyze model decision patterns.</p></div>
-                        <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Trophy, UserCircle, History, ChevronLeft, ChevronRight, Settings, LogOut, LogIn, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, LogOut, LogIn, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { NavLink, useNavigate } from "react-router"
@@ -149,7 +149,6 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
     { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
-    { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     ...(session ? [
       { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
       { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }

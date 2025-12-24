@@ -1,10 +1,12 @@
 import React from 'react';
 import type { EngineEvaluation } from '../lib/stockfish/StockfishWorker';
 import { cn } from '../lib/utils';
+import { pvToSan } from '../lib/chess-utils';
 
 interface AdvantageBarProps {
   evaluation: EngineEvaluation | null;
   variations?: EngineEvaluation[];
+  fen?: string;
   orientation?: 'vertical' | 'horizontal';
   gameStatus?: 'ongoing' | 'completed' | 'draw' | 'paused';
   winnerId?: string | null;
@@ -15,6 +17,7 @@ interface AdvantageBarProps {
 export const AdvantageBar: React.FC<AdvantageBarProps> = ({ 
   evaluation, 
   variations, 
+  fen,
   orientation = 'vertical',
   gameStatus,
   winnerId,
@@ -79,8 +82,8 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
     const score = evaluation.score / 100;
     const sign = score > 0 ? '+' : '';
     // If score is 0, no sign
-    if (score === 0) return '0.0';
-    return `${sign}${score.toFixed(1)}`;
+    if (score === 0) return '0.00';
+    return `${sign}${score.toFixed(2)}`;
   };
 
   return (
@@ -140,7 +143,7 @@ export const AdvantageBar: React.FC<AdvantageBarProps> = ({
                 </div>
                 {v.pv && (
                   <div className="text-[9px] text-neutral-500 truncate font-mono">
-                    {v.pv.split(' ').slice(0, 3).join(' ')}...
+                    {fen ? pvToSan(fen, v.pv, 3) : v.pv.split(' ').slice(0, 3).join(' ')}
                   </div>
                 )}
               </div>

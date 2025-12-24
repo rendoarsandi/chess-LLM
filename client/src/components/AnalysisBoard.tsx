@@ -31,6 +31,7 @@ export const AnalysisBoard: React.FC<AnalysisBoardProps> = ({
         <AdvantageBar 
           evaluation={evaluation}
           variations={variations}
+          fen={fen}
           orientation="vertical"
           boardOrientation={orientation}
           gameStatus={gameStatus}

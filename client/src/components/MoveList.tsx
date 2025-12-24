@@ -1,6 +1,7 @@
 import type { Move, MoveAnalysis } from "@/api";
 import { Star, Zap, Check, CheckCheck, Info, AlertTriangle, XCircle, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { uciToSan } from "@/lib/chess-utils";
 
 interface MoveListProps {
   moves: Move[]
@@ -45,7 +46,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
   };
 
   // Group into rows
-  const pairs: { number: number, white?: { m: Move, idx: number }, black?: { m: Move, idx: number } }[] = []
+  const pairs: { number: number, white?: { m: Move, idx: number, displayMove: string }, black?: { m: Move, idx: number, displayMove: string } }[] = []
   
   // We need to preserve the original index for onMoveClick
   moves.forEach((move, originalIdx) => {
@@ -54,10 +55,22 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
       pair = { number: move.moveNumber }
       pairs.push(pair)
     }
+
+    // Determine the FEN BEFORE this move to allow SAN conversion if the move is raw UCI
+    // moves[originalIdx - 1] contains the FEN AFTER the previous move, which is the FEN BEFORE this move.
+    const beforeFen = originalIdx === 0 
+      ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' 
+      : moves[originalIdx - 1].fen;
+    
+    // If the move looks like UCI (e.g. e2e4) and isn't already SAN (which usually doesn't have 4 chars unless it's a promotion or castling, but those are distinct)
+    // Actually, uciToSan is safe to call on SAN moves too as it will just try to apply them.
+    const isUci = /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move.move);
+    const displayMove = isUci ? uciToSan(beforeFen, move.move) : move.move;
+
     if (move.playerColor === 'white') {
-      pair.white = { m: move, idx: originalIdx }
+      pair.white = { m: move, idx: originalIdx, displayMove }
     } else {
-      pair.black = { m: move, idx: originalIdx }
+      pair.black = { m: move, idx: originalIdx, displayMove }
     }
   })
 
@@ -67,7 +80,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg flex flex-col h-[300px]">
       <div className="p-3 border-b border-border bg-muted/50 flex justify-between items-center">
-        <h3 className="font-bold text-sm uppercase tracking-wider">Move History</h3>
+        <h3 className="font-bold text-sm uppercase tracking-wider">Moves</h3>
         {isLive && moves.length > 0 && (
           <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500 animate-pulse bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
@@ -92,7 +105,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
                         selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
                       )}
                     >
-                      <span className="truncate">{pair.white.m.move}</span>
+                      <span className="truncate">{pair.white.displayMove}</span>
                       {renderClassificationIcon(pair.number, 'white')}
                     </button>
                   )}
@@ -106,7 +119,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
                         selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
                       )}
                     >
-                      <span className="truncate">{pair.black.m.move}</span>
+                      <span className="truncate">{pair.black.displayMove}</span>
                       {renderClassificationIcon(pair.number, 'black')}
                     </button>
                   )}
