@@ -41,6 +41,25 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            'framer-motion',
+            'lucide-react'
+          ],
+          'vendor-chess': ['chess.js', 'react-chessboard'],
+          'vendor-charts': ['recharts'],
+        }
+      }
+    }
+  },
   // @ts-expect-error - vitest configuration is not officially supported in vite config type
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
