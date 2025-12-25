@@ -1,15 +1,20 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import app from './index'
 import { db } from './db'
 import { gameReviews, moveAnalyses, players, games, moves, ratingHistory, llmConfigurations, tournamentParticipants, tournaments } from './db/schema'
 import { eq } from 'drizzle-orm'
+import { auth } from './lib/auth'
 
 describe('Game Review API Endpoints', () => {
   const testWorkerId = 'test-worker-id'
   const testWorkerToken = 'test-worker-token'
+  const testAdminEmail = 'admin@example.com'
+  const testPlayerId = 'p1-game-id'
 
   beforeEach(async () => {
     process.env.WORKER_TOKEN = testWorkerToken
+    process.env.ADMIN_EMAIL = testAdminEmail
+    
     // Explicit cleanup for in-memory DB shared state
     await db.delete(moveAnalyses)
     await db.delete(gameReviews)
@@ -20,16 +25,41 @@ describe('Game Review API Endpoints', () => {
     await db.delete(games)
     await db.delete(players)
     await db.delete(tournaments)
+
+    // Mock auth session
+    vi.spyOn(auth.api, 'getSession').mockImplementation(async () => {
+      return {
+        user: {
+          id: testPlayerId,
+          email: 'player@example.com',
+          name: 'Test Player',
+          emailVerified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          banned: false
+        },
+        session: {
+          id: 'session-id',
+          userId: testPlayerId,
+          token: 'token',
+          expiresAt: new Date(Date.now() + 10000),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userAgent: '',
+          ipAddress: ''
+        }
+      }
+    })
   })
 
   const setupGame = async (gameId: string) => {
     await db.insert(players).values([
-      { id: `p1-${gameId}`, name: 'P1', type: 'human' },
+      { id: testPlayerId, name: 'P1', type: 'human' },
       { id: `p2-${gameId}`, name: 'P2', type: 'human' }
     ]).onConflictDoNothing()
     await db.insert(games).values({
       id: gameId,
-      whitePlayerId: `p1-${gameId}`,
+      whitePlayerId: testPlayerId,
       blackPlayerId: `p2-${gameId}`,
       status: 'completed'
     })

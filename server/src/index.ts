@@ -213,12 +213,33 @@ app.get(
           setTimeout(() => gameLoopService.advanceGame(gameId), 500)
         }
       },
-      onMessage(event) {
+      async onMessage(event) {
         try {
           const data = JSON.parse(event.data as string)
           if (data.type === 'SUBMIT_MOVE') {
             const { gameId: msgGameId, move } = data
             logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
+
+            // 1. Authenticate the user
+            const session = await auth.api.getSession({
+              headers: c.req.raw.headers
+            });
+            if (!session) {
+              logger.error(`[WebSocket] Unauthorized move submission attempt for game ${msgGameId}`)
+              return;
+            }
+
+            // 2. Authorize the user
+            const game = await gameService.getGame(msgGameId)
+            if (!game) {
+              logger.error(`[WebSocket] Game ${msgGameId} not found`)
+              return;
+            }
+            if (game.whitePlayerId !== session.user.id && game.blackPlayerId !== session.user.id) {
+              logger.error(`[WebSocket] Forbidden: User ${session.user.id} is not a player in game ${msgGameId}`)
+              return;
+            }
+
             gameService.makeMove(msgGameId, move).then(() => {
               // Trigger loop advance immediately to handle next turn
               gameLoopService.advanceGame(msgGameId);
@@ -424,14 +445,40 @@ app.get('/api/tournaments/:id/games', async (c) => {
 })
 
 // Game Review Routes
-app.post('/api/reviews/:gameId', async (c) => {
+app.post('/api/reviews/:gameId', authenticatedMiddleware, async (c) => {
   const gameId = c.req.param('gameId')
+  const user = c.get('user') as { id: string, email: string }
+  
+  const game = await gameService.getGame(gameId)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  // Only players or admins can request a review
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
+  
+  if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden: You are not authorized to request a review for this game' }, 403)
+  }
+
   const review = await gameReviewService.requestReview(gameId)
   return c.json(review)
 })
 
-app.get('/api/reviews/:gameId', async (c) => {
+app.get('/api/reviews/:gameId', authenticatedMiddleware, async (c) => {
   const gameId = c.req.param('gameId')
+  const user = c.get('user') as { id: string, email: string }
+
+  const game = await gameService.getGame(gameId)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  // Only players or admins can view review status/results
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
+  
+  if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden: You are not authorized to view the review for this game' }, 403)
+  }
+
   const status = await gameReviewService.getReviewStatus(gameId)
   if (!status) return c.json({ error: 'Not found' }, 404)
   return c.json(status)
