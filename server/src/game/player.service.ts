@@ -7,6 +7,7 @@ import { GroqService } from './groq.service'
 import { GroqPlayer } from './groq-player'
 import crypto from 'crypto'
 import { AppDatabase } from '../db/types'
+import { decrypt } from '../lib/crypto'
 
 export class PlayerService {
   constructor(private db: AppDatabase) {}
@@ -36,8 +37,19 @@ export class PlayerService {
   }
 
   private createPlayerInstance(config: typeof llmConfigurations.$inferSelect) {
-    const apiKey = config.apiKey || (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
+    let apiKey = config.apiKey || (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
     
+    // Attempt to decrypt if it looks like our encrypted format (iv:tag:encrypted)
+    if (apiKey && apiKey.includes(':')) {
+        try {
+            apiKey = decrypt(apiKey)
+        } catch (e) {
+            console.error(`[PlayerService] Failed to decrypt API key for ${config.modelId}:`, e)
+            // If it failed but has colons, it's likely a malformed or corrupted encrypted key
+            return null
+        }
+    }
+
     if (!apiKey && config.provider !== 'stockfish') {
         console.warn(`[PlayerService] No API key for ${config.modelId}, skipping instantiation`)
         return null

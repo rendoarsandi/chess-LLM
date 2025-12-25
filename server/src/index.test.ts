@@ -80,7 +80,7 @@ describe('API Endpoints', () => {
     // Clear history first
     await app.request('/api/games', { method: 'DELETE' })
 
-    const whitePlayerId = 'test-p1'
+    const whitePlayerId = 'admin-id'
     const blackPlayerId = 'test-p2'
 
     // Delete existing test players

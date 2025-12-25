@@ -63,7 +63,10 @@ export abstract class BaseLlmPlayer implements Player {
           const cleanJson = jsonMatch ? jsonMatch[0] : responseText
           parsed = JSON.parse(cleanJson)
         } catch {
-          logger.warn(`[${this.constructor.name}] Failed to parse JSON response: ${responseText}`)
+          const sanitizedResponse = responseText.length > 500 
+            ? responseText.substring(0, 500) + '... [TRUNCATED]' 
+            : responseText
+          logger.warn(`[${this.constructor.name}] Failed to parse JSON response: ${sanitizedResponse}`)
           currentPrompt = `Your previous response was not valid JSON. 
 Please provide your response in the EXACT JSON format requested:
 {

@@ -23,13 +23,30 @@ import { desc, eq } from 'drizzle-orm'
 import { auth } from './lib/auth'
 import { adminMiddleware } from './middleware/admin'
 import { workerMiddleware } from './middleware/worker'
+import { authenticatedMiddleware } from './middleware/auth'
 import { llmConfigService, LLMConfig } from './db/llm_config'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
 import { logger } from './game/logger'
 import { GameReviewService } from './game/game-review.service'
 
-const app = new Hono()
+type Env = {
+  Variables: {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+    };
+    session: {
+      id: string;
+      userId: string;
+      token: string;
+      expiresAt: Date;
+    };
+  }
+}
+
+const app = new Hono<Env>()
 
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app })
 
@@ -265,7 +282,7 @@ app.delete('/api/games/:id', adminMiddleware, async (c) => {
   }
 })
 
-app.post('/api/games', async (c) => {
+app.post('/api/games', authenticatedMiddleware, async (c) => {
   const body = await c.req.json()
   const { whitePlayerId, blackPlayerId } = body
   
@@ -297,10 +314,19 @@ app.post('/api/games/:id/resume', adminMiddleware, async (c) => {
   }
 })
 
-app.post('/api/games/:id/move', async (c) => {
+app.post('/api/games/:id/move', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   const { move, thinking } = body
+  const user = c.get('user') as { id: string }
+
+  const game = await gameService.getGame(id)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  // Verify authorization: User must be one of the players (if players are human)
+  if (game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden: You are not a player in this game' }, 403)
+  }
   
   try {
     const result = await gameService.makeMove(id, move, thinking)
