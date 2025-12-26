@@ -26,10 +26,10 @@ export abstract class BaseLlmPlayer implements Player {
     return this.lastThinking
   }
 
-  async makeMove(fen: string, history: string[] = []): Promise<string | null> {
+  async makeMove(fen: string, history: string[] = [], variant: string = 'standard'): Promise<string | null> {
     const chess = new Chess(fen)
     const legalMoves = chess.moves()
-    let currentPrompt = this.constructPrompt(fen, history, legalMoves)
+    let currentPrompt = this.constructPrompt(fen, history, legalMoves, variant)
     let attempts = 0
     const maxRetries = 3
 
@@ -111,7 +111,7 @@ Return your response in the EXACT JSON format requested.`
     return null
   }
 
-  protected constructPrompt(fen: string, history: string[], legalMoves: string[]): string {
+  protected constructPrompt(fen: string, history: string[], legalMoves: string[], variant: string): string {
     const chess = new Chess(fen)
     const turn = chess.turn() === 'w' ? 'White' : 'Black'
     const asciiBoard = chess.ascii()
@@ -120,7 +120,12 @@ Return your response in the EXACT JSON format requested.`
       ? `Move history (PGN): ${history.join(' ')}` 
       : 'No moves have been made yet.'
     
-    return `You are a professional chess player.
+    const is960 = variant === 'chess960' || variant === '960';
+    const variantNotice = is960 
+      ? "\nNOTE: This is a Chess 960 (Fischer Random) game. The starting position is randomized. Standard opening theory may not apply. Focus on the current board state and piece coordination."
+      : "";
+
+    return `You are a professional chess player.${variantNotice}
 You are playing as ${turn}.
 
 Current board state:

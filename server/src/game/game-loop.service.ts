@@ -14,7 +14,7 @@ export class GameLoopService {
     constructor(
         private db: AppDatabase,
         private gameService: GameService,
-        private defaultPlayer: { makeMove: (fen: string, history: string[]) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } | null },
+        private defaultPlayer: { makeMove: (fen: string, history: string[], variant?: string) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } | null },
         private socketService?: SocketService,
         private alarmService: AlarmService = new AlarmService()
     ) {}
@@ -26,6 +26,7 @@ export class GameLoopService {
     const gameResults = await this.db.select({
       id: games.id,
       fen: games.fen,
+      variant: games.variant,
       status: games.status,
       whitePlayerId: games.whitePlayerId,
       blackPlayerId: games.blackPlayerId,
@@ -137,7 +138,7 @@ export class GameLoopService {
     const startTime = Date.now()
     let move = null
     try {
-        move = await player.makeMove(game.fen, history)
+        move = await player.makeMove(game.fen, history, game.variant)
     } catch (e) {
         logger.error(`[GameLoop] Error calling makeMove for ${currentPlayerId}:`, e)
     }

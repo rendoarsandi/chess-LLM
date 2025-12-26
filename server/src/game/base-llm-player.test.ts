@@ -12,8 +12,8 @@ class TestLlmPlayer extends BaseLlmPlayer {
   }
 
   // Expose protected method for testing
-  public testConstructPrompt(fen: string, history: string[], legalMoves: string[]): string {
-    return this.constructPrompt(fen, history, legalMoves)
+  public testConstructPrompt(fen: string, history: string[], legalMoves: string[], variant: string = 'standard'): string {
+    return this.constructPrompt(fen, history, legalMoves, variant)
   }
 }
 
@@ -31,6 +31,13 @@ describe('BaseLlmPlayer', () => {
     const prompt = player.testConstructPrompt(fen, [], ['e4', 'd4'])
     expect(prompt).toContain('Current FEN: ' + fen)
     expect(prompt).toContain('LEGAL MOVES for White: e4, d4')
+  })
+
+  it('should include a notice for Chess 960 variant', () => {
+    const fen = 'bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w KQkq - 0 1'
+    const prompt = player.testConstructPrompt(fen, [], ['Na3', 'Nc3'], 'chess960')
+    expect(prompt).toContain('NOTE: This is a Chess 960 (Fischer Random) game')
+    expect(prompt).toContain('Standard opening theory may not apply')
   })
 
   it('should handle successful JSON response', async () => {

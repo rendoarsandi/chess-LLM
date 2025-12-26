@@ -5,8 +5,8 @@ import { LlmService } from './base-llm-player'
 
 // Subclass for testing protected method
 class TestGeminiPlayer extends GeminiPlayer {
-  public testConstructPrompt(fen: string, history: string[], legalMoves: string[]): string {
-    return this.constructPrompt(fen, history, legalMoves)
+  public testConstructPrompt(fen: string, history: string[], legalMoves: string[], variant: string = 'standard'): string {
+    return this.constructPrompt(fen, history, legalMoves, variant)
   }
 }
 
