@@ -10,7 +10,7 @@
     - [x] Sub-task: Write unit tests to verify FEN generation and validity for a sample of SP-IDs.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Core Logic' (Protocol in workflow.md)
 
-## Phase 2: Backend Game Loop & Services
+## Phase 2: Backend Game Loop & Services [checkpoint: 01a1b3f]
 - [x] Task: Update Game Service (889b6f0)
     - [x] Sub-task: Modify game creation logic to accept a `variant` parameter.
     - [x] Sub-task: Implement "True Random" logic to select SP-ID 0-959 when creating a 960 game.
@@ -20,7 +20,7 @@
     - [x] Sub-task: Ensure mixed-variant history doesn't corrupt standard ratings.
 - [x] Task: Bot Integration Updates (d4cc56c)
     - [x] Sub-task: Verify and update `useGameBot` or backend prompts to ensure bots receive the full board state (FEN) clearly, as standard opening books apply differently.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Implementation
 - [ ] Task: Arena UI Updates
