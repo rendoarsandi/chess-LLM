@@ -30,7 +30,7 @@
 - [x] Task: Leaderboard & History (0dea60c)
     - [x] Sub-task: Add a toggle to the `Leaderboard` component to switch between "Standard" and "Chess 960" ratings.
     - [x] Sub-task: Update `GameHistory` list to display a "960" badge or icon for variant games.
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Frontend Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Implementation' (877838e)
 
 ## Phase 4: Integration & Verification
 - [ ] Task: E2E Testing
