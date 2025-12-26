@@ -28,9 +28,15 @@ export class GameService {
 
     const id = randomUUID()
     const variant = (metadata?.variant === 'chess960' ? 'chess960' : 'standard') as "standard" | "chess960"
+    
+    let startPosId = metadata?.startPosId
+    if (variant === 'chess960' && startPosId === undefined) {
+      startPosId = Math.floor(Math.random() * 960)
+    }
+
     const initialState = this.gm.createNewGame(whitePlayerId, blackPlayerId, { 
       variant: variant, 
-      startPosId: metadata?.startPosId 
+      startPosId: startPosId 
     })
     
     await this.db.insert(games).values({
@@ -39,7 +45,7 @@ export class GameService {
       blackPlayerId,
       fen: initialState.fen,
       variant: variant,
-      startPosId: metadata?.startPosId,
+      startPosId: startPosId,
       status: 'ongoing',
       tournamentId: metadata?.tournamentId,
       roundNumber: metadata?.roundNumber,

@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js'
 import { Player } from './player.interface'
+import { generate960Fen } from '../lib/chess-utils'
 
 export interface GameState {
   whitePlayerId: string
@@ -19,12 +20,19 @@ export class GameManager {
     return this.players.get(playerId)
   }
 
-  createNewGame(whitePlayerId: string, blackPlayerId: string): GameState {
-    const chess = new Chess()
+  createNewGame(whitePlayerId: string, blackPlayerId: string, options?: { variant?: string, startPosId?: number }): GameState {
+    let fen = '';
+    if ((options?.variant === '960' || options?.variant === 'chess960') && options.startPosId !== undefined) {
+      fen = generate960Fen(options.startPosId);
+    } else {
+      const chess = new Chess();
+      fen = chess.fen();
+    }
+
     return {
       whitePlayerId,
       blackPlayerId,
-      fen: chess.fen(),
+      fen,
       status: 'ongoing',
     }
   }

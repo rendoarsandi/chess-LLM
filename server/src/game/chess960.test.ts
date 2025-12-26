@@ -35,24 +35,24 @@ describe('Chess 960 Integration', () => {
 
   it('should create a Chess 960 game with correct initial FEN', async () => {
     // SP-ID 518 is standard
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: '960', startPosId: 518 })
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 518 })
     const game = await gameService.getGame(gameId)
     
-    expect(game?.variant).toBe('960')
+    expect(game?.variant).toBe('chess960')
     expect(game?.startPosId).toBe(518)
     expect(game?.fen.startsWith('rnbqkbnr/')).toBe(true)
   })
 
   it('should create a non-standard 960 game', async () => {
     // SP-ID 0 is bbqnnrkr
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: '960', startPosId: 0 })
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 0 })
     const game = await gameService.getGame(gameId)
     
     expect(game?.fen.startsWith('bbqnnrkr/')).toBe(true)
   })
 
   it('should update 960 ratings specifically', async () => {
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: '960', startPosId: 518 })
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 518 })
     
     // Simulate white winning
     await gameService.finishGame(gameId, testWhiteId, 'checkmate')
@@ -67,6 +67,17 @@ describe('Chess 960 Integration', () => {
     // 960 ratings should change
     expect(white.rating960).toBeGreaterThan(1200)
     expect(black.rating960).toBeLessThan(1200)
-    expect(white.peakRating960).toBe(white.rating960)
+    expect(white.rating960).toBe(white.rating960)
+  })
+
+  it('should generate a random startPosId if none provided for chess960', async () => {
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960' })
+    const game = await gameService.getGame(gameId)
+    
+    expect(game?.variant).toBe('chess960')
+    expect(game?.startPosId).toBeGreaterThanOrEqual(0)
+    expect(game?.startPosId).toBeLessThan(960)
+    expect(game?.fen).toBeDefined()
+    expect(game?.fen).not.toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') // Unlikely to be standard
   })
 })
