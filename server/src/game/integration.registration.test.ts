@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
 
 function generatePlayerId(seed: string): string {
+  // Matches PlayerService.ts implementation exactly
   return crypto.createHash('sha256').update(seed).digest('hex').substring(0, 36);
 }
 

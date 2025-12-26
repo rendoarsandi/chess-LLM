@@ -192,4 +192,16 @@ describe('API Endpoints', () => {
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)
   })
+
+  describe('Failure Cases', () => {
+    it('GET /api/games/:id should return 404 for non-existent game', async () => {
+      const res = await app.request('/api/games/00000000-0000-0000-0000-000000000000')
+      expect(res.status).toBe(404)
+    })
+
+    it('GET /api/players/:id/profile should return 404 for non-existent player', async () => {
+      const res = await app.request('/api/players/non-existent/profile')
+      expect(res.status).toBe(404)
+    })
+  })
 })

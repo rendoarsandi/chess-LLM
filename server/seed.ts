@@ -1,7 +1,3 @@
-import { db } from './src/db'
-import { players, games } from './src/db/schema'
-import { randomUUID } from 'crypto'
-
 async function seed() {
   console.log('Seeding database...')
   

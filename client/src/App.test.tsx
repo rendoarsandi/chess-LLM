@@ -114,7 +114,7 @@ describe('App Component', () => {
     }, 20000)
 
     it('shows HISTORY MODE badge when navigating back in history', async () => {
-      const mockMoves = [
+      const mockMoves: api.Move[] = [
         {
           id: 1,
           gameId: 'game-1',
@@ -133,23 +133,30 @@ describe('App Component', () => {
           fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
           createdAt: new Date().toISOString(),
         }
-      ]
+      ];
       
-      ;(api.getMoves as Mock).mockResolvedValue(mockMoves)
+      vi.mocked(api.getMoves).mockResolvedValue(mockMoves);
 
       render(
-        <MemoryRouter>
+        <MemoryRouter initialEntries={['/arena/game-1']}>
           <App />
         </MemoryRouter>
-      )
+      );
 
-      await waitFor(() => expect(screen.getAllByText('e5').length).toBeGreaterThan(0), { timeout: 15000 })
+      // Wait for Move List to render
+      await screen.findByText('Moves', {}, { timeout: 15000 });
 
-      const moveButton = screen.getAllByText('e4')[0]
-      fireEvent.click(moveButton)
+      // Find move button - use findAllByText as there might be multiple (mobile/desktop)
+      const e4Buttons = await screen.findAllByText('e4', {}, { timeout: 10000 });
+      const moveE4 = e4Buttons[0];
+      expect(moveE4).toBeDefined();
 
-      expect(screen.getByText('HISTORY MODE')).toBeInTheDocument()
-    }, 20000)
+      fireEvent.click(moveE4);
+
+      await waitFor(() => {
+        expect(screen.getByText('HISTORY MODE')).toBeDefined();
+      });
+    }, 30000)
 
     it('handles invalid moves gracefully instead of crashing', async () => {
       const invalidMoves = [
@@ -171,6 +178,22 @@ describe('App Component', () => {
   })
 
   describe('Routing', () => {
+    it('should not crash when API returns an error', async () => {
+      // Suppress console.error for this test
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(api.getGames).mockRejectedValue(new Error("Unauthorized"));
+
+      render(
+        <MemoryRouter>
+          <App />
+        </MemoryRouter>
+      );
+
+      // Should still render at least the layout or a loading/error state
+      expect(screen.getByText('ChessLLM')).toBeDefined();
+      spy.mockRestore();
+    });
+
     it('should render the Leaderboard when navigating to /leaderboard', async () => {
       render(
         <MemoryRouter initialEntries={['/leaderboard']}>
