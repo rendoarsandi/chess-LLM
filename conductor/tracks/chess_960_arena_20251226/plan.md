@@ -23,13 +23,13 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Implementation
-- [ ] Task: Arena UI Updates
-    - [ ] Sub-task: Add "Standard" vs "Chess 960" toggle/navigation in the `Sidebar` or Top Bar.
-    - [ ] Sub-task: Create a filtered view for the Arena that only fetches/displays active 960 games when in 960 mode.
-    - [ ] Sub-task: Display "SP-ID: <id>" on the game board header for 960 games.
-- [ ] Task: Leaderboard & History
-    - [ ] Sub-task: Add a toggle to the `Leaderboard` component to switch between "Standard" and "Chess 960" ratings.
-    - [ ] Sub-task: Update `GameHistory` list to display a "960" badge or icon for variant games.
+- [x] Task: Arena UI Updates (0dea60c)
+    - [x] Sub-task: Add "Standard" vs "Chess 960" toggle/navigation in the `Sidebar` or Top Bar.
+    - [x] Sub-task: Create a filtered view for the Arena that only fetches/displays active 960 games when in 960 mode.
+    - [x] Sub-task: Display "SP-ID: <id>" on the game board header for 960 games.
+- [x] Task: Leaderboard & History (0dea60c)
+    - [x] Sub-task: Add a toggle to the `Leaderboard` component to switch between "Standard" and "Chess 960" ratings.
+    - [x] Sub-task: Update `GameHistory` list to display a "960" badge or icon for variant games.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Implementation' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Verification
