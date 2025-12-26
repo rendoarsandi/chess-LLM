@@ -5,6 +5,8 @@ export interface Game {
   whitePlayerId: string
   blackPlayerId: string
   status: 'ongoing' | 'completed' | 'draw' | 'paused'
+  variant: 'standard' | 'chess960'
+  startPosId?: number | null
   fen: string
   winnerId: string | null
   gameOverReason?: string | null
@@ -19,10 +21,12 @@ export interface Player {
   name: string
   type: 'llm' | 'human'
   rating: number
+  rating960: number
   wins: number
   losses: number
   draws: number
   peakRating: number
+  peakRating960: number
   version?: string
   provider?: string
   bio?: string
@@ -133,29 +137,14 @@ export async function getMoves(gameId: string): Promise<Move[]> {
   return res.json()
 }
 
-export async function createGame(whitePlayerId: string, blackPlayerId: string): Promise<{ id: string }> {
-  const res = await fetch(`${API_URL}/games`, {
+export async function createGame(whitePlayerId: string, blackPlayerId: string, options?: { variant?: string, startPosId?: number }): Promise<{ id: string }> {
+  const response = await fetch(`${API_URL}/games`, {
     method: 'POST',
-    body: JSON.stringify({ whitePlayerId, blackPlayerId }),
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ whitePlayerId, blackPlayerId, ...options }),
   })
-  if (!res.ok) {
-    const errorText = await res.text();
-    let errorMessage = 'Failed to create game';
-    try {
-      const errorJson = JSON.parse(errorText);
-      errorMessage = errorJson.error || errorMessage;
-    } catch {
-      errorMessage = errorText || errorMessage;
-    }
-    console.error('[API] createGame failed:', {
-      status: res.status,
-      statusText: res.statusText,
-      body: errorText
-    });
-    throw new Error(errorMessage);
-  }
-  return res.json()
+  if (!response.ok) throw new Error('Failed to create game')
+  return response.json()
 }
 
 export async function makeMove(id: string, move: string, thinking?: { reasoning?: string, candidates?: string, opening?: string, thinkingMs?: number }): Promise<{ success: boolean }> {
@@ -277,6 +266,11 @@ export async function getTournamentParticipants(id: string): Promise<TournamentP
   return res.json()
 }
 
+export async function getTournamentParticipantsGrouped(id: string): Promise<TournamentParticipant[]> {
+  const res = await fetch(`${API_URL}/tournaments/${id}/participants`)
+  return res.json()
+}
+
 export async function getTournamentGames(id: string): Promise<Game[]> {
   const res = await fetch(`${API_URL}/tournaments/${id}/games`)
   return res.json()
@@ -319,101 +313,51 @@ export async function getReviewStatus(gameId: string): Promise<GameReview & { an
 }
 
 export async function claimJob(workerId: string): Promise<GameReview | { message: string }> {
-
   const res = await fetch(`${API_URL}/reviews/worker/claim`, {
-
     method: 'POST',
-
     body: JSON.stringify({ workerId }),
-
     headers: { 'Content-Type': 'application/json' }
-
   });
-
   if (!res.ok) throw new Error('Failed to claim job');
-
   return res.json();
-
 }
-
-
 
 export async function sendHeartbeat(reviewId: string): Promise<{ success: boolean }> {
-
   const res = await fetch(`${API_URL}/reviews/worker/heartbeat`, {
-
     method: 'POST',
-
     body: JSON.stringify({ reviewId }),
-
     headers: { 'Content-Type': 'application/json' }
-
   });
-
   if (!res.ok) throw new Error('Failed to send heartbeat');
-
   return res.json();
-
 }
-
-
 
 export async function updateProgress(reviewId: string, current: number, total: number): Promise<{ success: boolean }> {
-
   const res = await fetch(`${API_URL}/reviews/worker/progress`, {
-
     method: 'POST',
-
     body: JSON.stringify({ reviewId, current, total }),
-
     headers: { 'Content-Type': 'application/json' }
-
   });
-
   if (!res.ok) throw new Error('Failed to update progress');
-
   return res.json();
-
 }
-
-
 
 export async function submitResults(reviewId: string, results: MoveAnalysis[]): Promise<{ success: boolean }> {
-
   const res = await fetch(`${API_URL}/reviews/worker/submit`, {
-
     method: 'POST',
-
     body: JSON.stringify({ reviewId, results }),
-
     headers: { 'Content-Type': 'application/json' }
-
   });
-
   if (!res.ok) throw new Error('Failed to submit results');
-
   return res.json();
-
 }
-
-
 
 export async function reportFailure(reviewId: string, error: string): Promise<{ success: boolean }> {
-
   const res = await fetch(`${API_URL}/reviews/worker/failure`, {
-
     method: 'POST',
-
     body: JSON.stringify({ reviewId, error }),
-
     headers: { 'Content-Type': 'application/json' }
-
   });
-
   if (!res.ok) throw new Error('Failed to report failure');
-
   return res.json();
-
 }
-
-

@@ -90,20 +90,18 @@ interface ArenaContentProps {
   showResultOverlay: boolean;
   whitePlayerId: string;
   blackPlayerId: string;
-  setWhitePlayerId: (id: string) => void;
-  setBlackPlayerId: (id: string) => void;
   isCreatingGame: boolean;
   hasOngoingGame: boolean;
-  handleCreateGame: (whiteId: string, blackId: string) => Promise<void>;
+  handleCreateGame: (whiteId: string, blackId: string, variant?: string) => Promise<void>;
   handleTogglePause: () => Promise<void>;
   setShowResultOverlay: (show: boolean) => void;
   setActiveMoveIndex: (index: number | null) => void;
   activeMoveIndex: number | null;
   moves: Move[];
-  players: Player[];
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
+  variant: 'standard' | 'chess960';
 }
 
 const STOCKFISH_IDS = [
@@ -116,10 +114,10 @@ const STOCKFISH_IDS = [
 function ArenaContent({ 
   whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, isThinking,
   isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
-  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId, 
+  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId,
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
-  moves, players, setBoardOrientation, spectatorCount, thinkingStatus
+  moves, setBoardOrientation, spectatorCount, thinkingStatus, variant
 }: ArenaContentProps) {
   const turn = (currentDisplayFen || '').split(' ')[1] || 'w';
   const isWhiteTurn = turn === 'w';
@@ -182,16 +180,21 @@ function ArenaContent({
                 ? "text-primary bg-primary/10 border-primary/20" 
                 : "text-amber-500 bg-amber-500/10 border-amber-500/20"
             )}>
-              {isLive ? 'ARENA' : 'HISTORY MODE'}
+              {isLive ? (variant === 'chess960' ? 'CHESS 960 ARENA' : 'STANDARD ARENA') : 'HISTORY MODE'}
             </span>
           </h1>
           
           {selectedGame && (
-            <div className="hidden sm:flex items-center gap-3 font-black text-[10px] md:text-[11px] uppercase tracking-tighter truncate overflow-hidden">
+            <div className="flex items-center gap-3 font-black text-[10px] md:text-[11px] uppercase tracking-tighter truncate overflow-hidden">
               <span className="text-muted-foreground">Match:</span>
               <span className="text-foreground truncate">{whitePlayer?.name || '...'}</span>
               <span className="text-primary italic px-1">vs</span>
               <span className="text-foreground truncate">{blackPlayer?.name || '...'}</span>
+              {selectedGame.variant === 'chess960' && selectedGame.startPosId !== null && (
+                <span className="ml-2 px-1.5 py-0.5 bg-muted rounded text-[8px] font-black border border-border">
+                  SP-ID: {selectedGame.startPosId}
+                </span>
+              )}
               <div className="flex items-center gap-1.5 ml-2 pl-3 border-l border-border text-muted-foreground">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 {spectatorCount}
@@ -203,7 +206,7 @@ function ArenaContent({
         <div className="flex gap-2 shrink-0 items-center">
           {selectedGame && (
             <div className={cn(
-              "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest mr-2 transition-all",
+              "flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all",
               selectedGame.status === 'ongoing' ? "text-green-500 bg-green-500/10 border-green-500/20" :
               selectedGame.status === 'paused' ? "text-amber-500 bg-amber-500/10 border-amber-500/20" :
               "text-blue-500 bg-blue-500/10 border-blue-500/20"
@@ -288,7 +291,7 @@ function ArenaContent({
                   </p>
                 </div>
                 <div className="flex gap-4">
-                   <Button size="lg" className="font-black tracking-widest px-6 md:px-8 text-xs md:text-sm" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
+                   <Button size="lg" className="font-black tracking-widest px-6 md:px-8 text-xs md:text-sm" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
                      {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'START NEW MATCH'}
                    </Button>
                 </div>
@@ -391,51 +394,6 @@ function ArenaContent({
                   <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
                 </ErrorBoundary>
               </CollapsibleSection>
-              <CollapsibleSection title="Arena Controls">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                    <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
-                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
-                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                    <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
-                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
-                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                        </optgroup>
-                      )}
-                    </select>
-                  </div>
-                  <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
-                    {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
-                  </Button>
-                </div>
-              </CollapsibleSection>
             </div>
           </div>
 
@@ -476,52 +434,6 @@ function ArenaContent({
                 </div>
               </div>
             )}
-            <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
-              <h2 className="text-xl font-bold uppercase tracking-tighter mb-4">Arena Controls</h2>
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
-                  <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
-                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                    )}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
-                  <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
-                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                    </optgroup>
-                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
-                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
-                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
-                      </optgroup>
-                    )}
-                  </select>
-                </div>
-                <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame || hasOngoingGame}>
-                  {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </main>
@@ -553,6 +465,9 @@ function App() {
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const lastProcessedFenRef = useRef<string | null>(null);
+
+  const searchParams = new URLSearchParams(location.search);
+  const currentVariant = (searchParams.get('variant') === 'chess960' ? 'chess960' : 'standard') as 'standard' | 'chess960';
 
   // Global analysis worker - disabled by default
   useAnalysisWorker(false)
@@ -589,7 +504,7 @@ function App() {
     setPlayers(allPlayers);
   }, []);
 
-  const handleCreateGame = async (whiteId: string, blackId: string) => {
+  const handleCreateGame = async (whiteId: string, blackId: string, variant: string = 'standard') => {
     if (isCreatingGame) return;
     if (hasOngoingGame) {
       toast.error("A match is already in progress.", {
@@ -602,7 +517,11 @@ function App() {
     setBlackPlayerId(blackId);
     setLastMoveFromUpdate(null);
     try {
-      const { id } = await createGame(whiteId, blackId);
+      const options: { variant?: string, startPosId?: number } = { variant };
+      if (variant === '960') {
+        options.startPosId = Math.floor(Math.random() * 960);
+      }
+      const { id } = await createGame(whiteId, blackId, options);
       const newGame = await getGame(id);
       handleSelectGame(newGame);
       await fetchAllGames();
@@ -909,14 +828,14 @@ function App() {
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
                     whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
-                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
                     isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
                     handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
                     setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
+                    activeMoveIndex={activeMoveIndex} moves={moves}
                                           setBoardOrientation={setBoardOrientation}
                                           spectatorCount={spectatorCount}
                                           thinkingStatus={thinkingStatus}
+                                          variant={currentVariant}
                                         />
                 } />
                 <Route path="/arena/:gameId" element={
@@ -929,14 +848,14 @@ function App() {
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
                     whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
-                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
                     isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
                     handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
                     setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
+                    activeMoveIndex={activeMoveIndex} moves={moves}
                                               setBoardOrientation={setBoardOrientation}
                                               spectatorCount={spectatorCount}
                                               thinkingStatus={thinkingStatus}
+                                              variant={currentVariant}
                                             />
                 } />
                 <Route path="/leaderboard" element={

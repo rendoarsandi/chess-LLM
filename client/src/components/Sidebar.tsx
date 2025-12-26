@@ -145,7 +145,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
   }, [])
 
   const navItems: NavItem[] = [
-    { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/' },
+    { id: 'arena', icon: LayoutDashboard, label: 'STANDARD ARENA', path: '/' },
+    { id: 'arena960', icon: LayoutDashboard, label: 'CHESS 960 ARENA', path: '/?variant=chess960' },
     { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },

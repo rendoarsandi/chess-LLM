@@ -32,10 +32,12 @@ export function GameHistory({
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [variantFilter, setVariantFilter] = useState<string>("all");
 
   const filteredGames = useMemo(() => {
     return games.filter(game => {
       if (statusFilter !== "all" && game.status !== statusFilter) return false;
+      if (variantFilter !== "all" && game.variant !== variantFilter) return false;
       if (search.trim()) {
         const query = search.toLowerCase();
         const whitePlayer = players.find(p => p.id === game.whitePlayerId);
@@ -84,6 +86,16 @@ export function GameHistory({
               <SelectItem value="draw">DRAW</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={variantFilter} onValueChange={setVariantFilter}>
+            <SelectTrigger className="h-9 w-full sm:w-32 text-[10px] font-black uppercase tracking-widest">
+              <SelectValue placeholder="VARIANT" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ALL VARIANTS</SelectItem>
+              <SelectItem value="standard">STANDARD</SelectItem>
+              <SelectItem value="chess960">CHESS 960</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -128,9 +140,14 @@ export function GameHistory({
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-bold text-xs md:text-sm">
-                            {whitePlayer?.name || '...'} <span className="text-[10px] text-muted-foreground font-normal mx-1 tracking-tighter uppercase italic">vs</span> {blackPlayer?.name || '...'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs md:text-sm">
+                              {whitePlayer?.name || '...'} <span className="text-[10px] text-muted-foreground font-normal mx-1 tracking-tighter uppercase italic">vs</span> {blackPlayer?.name || '...'}
+                            </span>
+                            {game.variant === 'chess960' && (
+                              <span className="text-[8px] font-black bg-primary/10 text-primary border border-primary/20 px-1 rounded uppercase tracking-tighter">960</span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-[10px] font-medium text-muted-foreground">
