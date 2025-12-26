@@ -22,7 +22,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.3",
     "@vitest/coverage-v8": "^4.0.16",
-    "drizzle-kit": "1.0.0-beta.4-4605abe",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
     "tsx": "^4.21.0",
