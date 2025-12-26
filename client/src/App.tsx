@@ -10,7 +10,7 @@ import { EngineAnalysisPanel } from "@/components/EngineAnalysisPanel"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from "react"
-import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame } from "./api"
+import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame, clearHistory } from "./api"
 import type { Game, Move, Player } from "./api"
 import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
@@ -121,7 +121,7 @@ function ArenaContent({
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
   moves, players, setBoardOrientation, spectatorCount, thinkingStatus
 }: ArenaContentProps) {
-  const turn = currentDisplayFen.split(' ')[1];
+  const turn = (currentDisplayFen || '').split(' ')[1] || 'w';
   const isWhiteTurn = turn === 'w';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -558,6 +558,10 @@ function App() {
   useAnalysisWorker(false)
 
   const handleSelectGame = useCallback((game: Game) => {
+    if (!game?.id) {
+      console.warn('[App] Attempted to select invalid game:', game);
+      return;
+    }
     setSelectedGame(game);
     setMoves([]);
     setActiveMoveIndex(null);
@@ -605,9 +609,19 @@ function App() {
       await fetchLeaderboard();
       // Collapse sidebar on game start
       setIsSidebarCollapsed(true);
-    } catch {
-      console.error("Error creating game");
-      toast.error("Failed to start match. Please try again.");
+    } catch (e) {
+      console.error("Error creating game:", e);
+      if (e && typeof e === 'object') {
+        console.error("Error details:", {
+          name: (e as any).name,
+          message: (e as any).message,
+          stack: (e as any).stack,
+          ...e
+        });
+      }
+      toast.error("Failed to start match", {
+        description: e instanceof Error ? e.message : "Please try again."
+      });
     } finally {
       setIsCreatingGame(false);
     }
@@ -623,6 +637,21 @@ function App() {
     fetchAllGames();
   };
 
+  const handleClearHistory = async () => {
+    try {
+      await clearHistory();
+      setSelectedGame(null);
+      setMoves([]);
+      setActiveMoveIndex(null);
+      setLastMoveFromUpdate(null);
+      fetchAllGames();
+      toast.success("Game history cleared successfully");
+    } catch (e) {
+      console.error("Failed to clear history:", e);
+      toast.error("Failed to clear history");
+    }
+  };
+
   const handleTogglePause = async () => {
     if (!selectedGame) return;
     if (selectedGame.status === 'ongoing') await pauseGame(selectedGame.id);
@@ -634,9 +663,9 @@ function App() {
 
   useEffect(() => {
     const initFetch = async () => {
-      await fetchAllGames();
-      await fetchPlayers();
-      await fetchLeaderboard();
+      try { await fetchAllGames(); } catch (e) { console.error("Failed to fetch games", e); }
+      try { await fetchPlayers(); } catch (e) { console.error("Failed to fetch players", e); }
+      try { await fetchLeaderboard(); } catch (e) { console.error("Failed to fetch leaderboard", e); }
     };
     initFetch();
   }, [fetchAllGames, fetchPlayers, fetchLeaderboard]);
@@ -701,7 +730,7 @@ function App() {
   const currentDisplayFen = useMemo(() => {
     // If we are live (activeMoveIndex is null) and have a selected game, use its FEN directly
     // This allows instant updates from WebSocket without waiting for the full move list fetch
-    if (activeMoveIndex === null && selectedGame) {
+    if (activeMoveIndex === null && selectedGame?.fen) {
       return selectedGame.fen;
     }
 
@@ -842,11 +871,8 @@ function App() {
           }).catch(() => navigate('/arena'));
         }
       } else {
-        // No ID, try to auto-select an ongoing game, otherwise clear
-        const ongoingGame = games.find(g => g.status === 'ongoing' || g.status === 'paused');
-        if (ongoingGame) {
-          handleSelectGame(ongoingGame);
-        } else if (selectedGame !== null) {
+        // No ID, clear selection to show the 'Launch Match' screen
+        if (selectedGame !== null) {
           setSelectedGame(null);
           setMoves([]);
           setActiveMoveIndex(null);
@@ -1043,7 +1069,7 @@ function App() {
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
                       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="flex flex-col gap-2"><h2 className="text-4xl font-black tracking-tighter uppercase italic">Arena History</h2><p className="text-muted-foreground font-medium">Review past encounters and analyze model decision patterns.</p></div>
-                        <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} /></div>
+                        <div className="bg-card rounded-xl border border-border p-4 md:p-8 shadow-xl"><GameHistory games={games} players={players} selectedGameId={selectedGame?.id} onSelect={(game) => handleSelectGame(game)} onDelete={handleDeleteGame} onClearAll={handleClearHistory} /></div>
                       </div>
                     </div>
                   </div>

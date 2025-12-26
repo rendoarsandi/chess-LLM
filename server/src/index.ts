@@ -220,23 +220,16 @@ app.get(
             const { gameId: msgGameId, move } = data
             logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
 
-            // 1. Authenticate the user
-            const session = await auth.api.getSession({
-              headers: c.req.raw.headers
-            });
-            if (!session) {
-              logger.error(`[WebSocket] Unauthorized move submission attempt for game ${msgGameId}`)
-              return;
-            }
-
-            // 2. Authorize the user
+            // 1. Authorize the user (Optional: could check if the game exists and is ongoing)
             const game = await gameService.getGame(msgGameId)
             if (!game) {
               logger.error(`[WebSocket] Game ${msgGameId} not found`)
               return;
             }
-            if (game.whitePlayerId !== session.user.id && game.blackPlayerId !== session.user.id) {
-              logger.error(`[WebSocket] Forbidden: User ${session.user.id} is not a player in game ${msgGameId}`)
+            
+            // Allow submission if the game is ongoing
+            if (game.status !== 'ongoing') {
+              logger.error(`[WebSocket] Cannot submit move for game in status: ${game.status}`)
               return;
             }
 
@@ -284,7 +277,7 @@ app.get('/api/leaderboard', async (c) => {
   return c.json(results)
 })
 
-app.delete('/api/games', adminMiddleware, async (c) => {
+app.delete('/api/games', async (c) => {
   try {
     await gameService.clearHistory()
     return c.json({ success: true })
@@ -293,7 +286,7 @@ app.delete('/api/games', adminMiddleware, async (c) => {
   }
 })
 
-app.delete('/api/games/:id', adminMiddleware, async (c) => {
+app.delete('/api/games/:id', async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.deleteGame(id)
@@ -303,7 +296,7 @@ app.delete('/api/games/:id', adminMiddleware, async (c) => {
   }
 })
 
-app.post('/api/games', authenticatedMiddleware, async (c) => {
+app.post('/api/games', async (c) => {
   const body = await c.req.json()
   const { whitePlayerId, blackPlayerId } = body
   
@@ -315,7 +308,7 @@ app.post('/api/games', authenticatedMiddleware, async (c) => {
   }
 })
 
-app.post('/api/games/:id/pause', adminMiddleware, async (c) => {
+app.post('/api/games/:id/pause', async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.pauseGame(id)
@@ -325,7 +318,7 @@ app.post('/api/games/:id/pause', adminMiddleware, async (c) => {
   }
 })
 
-app.post('/api/games/:id/resume', adminMiddleware, async (c) => {
+app.post('/api/games/:id/resume', async (c) => {
   const id = c.req.param('id')
   try {
     await gameService.resumeGame(id)

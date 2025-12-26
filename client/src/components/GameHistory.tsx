@@ -20,12 +20,14 @@ export function GameHistory({
   players,
   onSelect, 
   onDelete, 
+  onClearAll,
   selectedGameId 
 }: { 
   games: Game[], 
   players: Player[],
   onSelect: (game: Game) => void,
   onDelete: (id: string) => void,
+  onClearAll?: () => void,
   selectedGameId?: string 
 }) {
   const [search, setSearch] = useState("");
@@ -49,10 +51,20 @@ export function GameHistory({
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden flex flex-col h-full shadow-lg">
       <div className="p-4 md:p-6 border-b border-border bg-muted/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="font-black text-xl uppercase tracking-tighter italic italic flex items-center gap-2">
-          <Search className="w-5 h-5 text-primary" />
-          Game History
-        </h2>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-black text-xl uppercase tracking-tighter italic italic flex items-center gap-2">
+            <Search className="w-5 h-5 text-primary" />
+            Game History
+          </h2>
+          {onClearAll && games.length > 0 && (
+            <button 
+              onClick={() => { if(confirm("Permanently delete all game history?")) onClearAll(); }}
+              className="text-[9px] font-black uppercase tracking-widest text-destructive hover:underline text-left w-fit"
+            >
+              Clear All History
+            </button>
+          )}
+        </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-2">
           <Input 
@@ -136,10 +148,10 @@ export function GameHistory({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); onSelect(game); }}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onSelect(game); }}>
                             <Eye className="h-3.5 w-3.5 text-primary" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); onDelete(game.id); }}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); onDelete(game.id); }}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>

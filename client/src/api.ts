@@ -93,11 +93,13 @@ export interface TournamentParticipant extends Player {
 
 export async function getGames(): Promise<Game[]> {
   const res = await fetch(`${API_URL}/games`)
+  if (!res.ok) throw new Error('Failed to fetch games')
   return res.json()
 }
 
 export async function getGame(id: string): Promise<Game> {
   const res = await fetch(`${API_URL}/games/${id}`)
+  if (!res.ok) throw new Error('Failed to fetch game')
   return res.json()
 }
 
@@ -105,6 +107,7 @@ export async function deleteGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}`, {
     method: 'DELETE'
   })
+  if (!res.ok) throw new Error('Failed to delete game')
   return res.json()
 }
 
@@ -112,6 +115,7 @@ export async function pauseGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}/pause`, {
     method: 'POST'
   })
+  if (!res.ok) throw new Error('Failed to pause game')
   return res.json()
 }
 
@@ -119,11 +123,13 @@ export async function resumeGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}/resume`, {
     method: 'POST'
   })
+  if (!res.ok) throw new Error('Failed to resume game')
   return res.json()
 }
 
 export async function getMoves(gameId: string): Promise<Move[]> {
   const res = await fetch(`${API_URL}/games/${gameId}/moves`)
+  if (!res.ok) throw new Error('Failed to fetch moves')
   return res.json()
 }
 
@@ -133,6 +139,22 @@ export async function createGame(whitePlayerId: string, blackPlayerId: string): 
     body: JSON.stringify({ whitePlayerId, blackPlayerId }),
     headers: { 'Content-Type': 'application/json' }
   })
+  if (!res.ok) {
+    const errorText = await res.text();
+    let errorMessage = 'Failed to create game';
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMessage = errorJson.error || errorMessage;
+    } catch {
+      errorMessage = errorText || errorMessage;
+    }
+    console.error('[API] createGame failed:', {
+      status: res.status,
+      statusText: res.statusText,
+      body: errorText
+    });
+    throw new Error(errorMessage);
+  }
   return res.json()
 }
 
@@ -142,36 +164,54 @@ export async function makeMove(id: string, move: string, thinking?: { reasoning?
     body: JSON.stringify({ move, thinking }),
     headers: { 'Content-Type': 'application/json' }
   })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to make move')
+  }
   return res.json()
 }
 
 export async function getPlayers(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/players`)
+  if (!res.ok) throw new Error('Failed to fetch players')
   return res.json()
 }
 
 export async function getLeaderboard(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/leaderboard`)
+  if (!res.ok) throw new Error('Failed to fetch leaderboard')
   return res.json()
 }
 
 export async function getPlayerStats(id: string): Promise<PlayerStats> {
   const res = await fetch(`${API_URL}/players/${id}/stats`)
+  if (!res.ok) throw new Error('Failed to fetch player stats')
   return res.json()
 }
 
 export async function getPlayerProfile(id: string): Promise<Player> {
   const res = await fetch(`${API_URL}/players/${id}/profile`)
+  if (!res.ok) throw new Error('Failed to fetch player profile')
   return res.json()
 }
 
 export async function getEloHistory(id: string, period: string = 'all'): Promise<EloSnapshot[]> {
   const res = await fetch(`${API_URL}/players/${id}/elo-history?period=${period}`)
+  if (!res.ok) throw new Error('Failed to fetch ELO history')
   return res.json()
 }
 
 export async function getHeadToHead(id: string): Promise<HeadToHeadRecord[]> {
   const res = await fetch(`${API_URL}/players/${id}/head-to-head`)
+  if (!res.ok) throw new Error('Failed to fetch head-to-head records')
+  return res.json()
+}
+
+export async function clearHistory(): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/games`, {
+    method: 'DELETE'
+  })
+  if (!res.ok) throw new Error('Failed to clear history')
   return res.json()
 }
 
