@@ -18,8 +18,8 @@
 - [x] Task: Update Rating Service (889b6f0)
     - [x] Sub-task: Modify ELO calculation to read/write to `elo_960` when the game variant is 'chess960'.
     - [x] Sub-task: Ensure mixed-variant history doesn't corrupt standard ratings.
-- [~] Task: Bot Integration Updates
-    - [ ] Sub-task: Verify and update `useGameBot` or backend prompts to ensure bots receive the full board state (FEN) clearly, as standard opening books apply differently.
+- [x] Task: Bot Integration Updates (d4cc56c)
+    - [x] Sub-task: Verify and update `useGameBot` or backend prompts to ensure bots receive the full board state (FEN) clearly, as standard opening books apply differently.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Implementation
