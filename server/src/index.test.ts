@@ -126,7 +126,7 @@ describe('API Endpoints', () => {
     const res = await app.request('/api/games/non-existent-id', {
       method: 'DELETE'
     })
-    expect(res.status).toBe(200) // success: true even if not found currently
+    expect(res.status).toBe(404) // Now returns 404 if not found
   })
 
   it('DELETE /api/games should clear history', async () => {

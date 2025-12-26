@@ -220,13 +220,28 @@ app.get(
             const { gameId: msgGameId, move } = data
             logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
 
-            // 1. Authorize the user (Optional: could check if the game exists and is ongoing)
+            // 1. Authorize the user
+            const session = await auth.api.getSession({
+              headers: c.req.raw.headers
+            });
+
+            if (!session) {
+              logger.error(`[WebSocket] Unauthorized move attempt for game ${msgGameId}: No session`)
+              return;
+            }
+
             const game = await gameService.getGame(msgGameId)
             if (!game) {
               logger.error(`[WebSocket] Game ${msgGameId} not found`)
               return;
             }
             
+            // Allow submission only if the user is one of the players
+            if (game.whitePlayerId !== session.user.id && game.blackPlayerId !== session.user.id) {
+              logger.error(`[WebSocket] Forbidden: User ${session.user.id} is not a player in game ${msgGameId}`)
+              return;
+            }
+
             // Allow submission if the game is ongoing
             if (game.status !== 'ongoing') {
               logger.error(`[WebSocket] Cannot submit move for game in status: ${game.status}`)
@@ -277,7 +292,7 @@ app.get('/api/leaderboard', async (c) => {
   return c.json(results)
 })
 
-app.delete('/api/games', async (c) => {
+app.delete('/api/games', adminMiddleware, async (c) => {
   try {
     await gameService.clearHistory()
     return c.json({ success: true })
@@ -286,8 +301,20 @@ app.delete('/api/games', async (c) => {
   }
 })
 
-app.delete('/api/games/:id', async (c) => {
+app.delete('/api/games/:id', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user') as { id: string, email: string }
+  
+  const game = await gameService.getGame(id)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
+
+  if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden: You are not authorized to delete this game' }, 403)
+  }
+
   try {
     await gameService.deleteGame(id)
     return c.json({ success: true })
@@ -296,7 +323,7 @@ app.delete('/api/games/:id', async (c) => {
   }
 })
 
-app.post('/api/games', async (c) => {
+app.post('/api/games', authenticatedMiddleware, async (c) => {
   const body = await c.req.json()
   const { whitePlayerId, blackPlayerId } = body
   
@@ -308,8 +335,20 @@ app.post('/api/games', async (c) => {
   }
 })
 
-app.post('/api/games/:id/pause', async (c) => {
+app.post('/api/games/:id/pause', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user') as { id: string, email: string }
+  
+  const game = await gameService.getGame(id)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
+
+  if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+
   try {
     await gameService.pauseGame(id)
     return c.json({ success: true })
@@ -318,8 +357,20 @@ app.post('/api/games/:id/pause', async (c) => {
   }
 })
 
-app.post('/api/games/:id/resume', async (c) => {
+app.post('/api/games/:id/resume', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user') as { id: string, email: string }
+  
+  const game = await gameService.getGame(id)
+  if (!game) return c.json({ error: 'Game not found' }, 404)
+
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
+
+  if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+
   try {
     await gameService.resumeGame(id)
     return c.json({ success: true })
