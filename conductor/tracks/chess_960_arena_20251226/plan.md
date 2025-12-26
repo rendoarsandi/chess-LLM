@@ -33,6 +33,6 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Implementation' (877838e)
 
 ## Phase 4: Integration & Verification
-- [ ] Task: E2E Testing
+- [x] Task: E2E Testing (877838e)
     - [ ] Sub-task: Create a Playwright test spec `chess960.spec.ts` to verify the full flow: Start 960 game -> Moves -> Result -> 960 Rating Update.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration & Verification' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Integration & Verification' (4febde7)
