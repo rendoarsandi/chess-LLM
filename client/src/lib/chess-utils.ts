@@ -1,12 +1,50 @@
 import { Chess } from 'chess.js';
 
 /**
+ * Creates a new Chess instance safely, handling Chess 960 FENs if necessary.
+ */
+export function safeNewChess(fen?: string): Chess {
+  if (!fen) return new Chess();
+  
+  try {
+    return new Chess(fen);
+  } catch (e) {
+    // If it's a 960 FEN, chess.js v1 constructor might reject non-standard castling (e.g. AHah)
+    // We try to detect if it's a 960 FEN and handle it.
+    const parts = fen.split(' ');
+    if (parts.length >= 3) {
+      const castling = parts[2];
+      // If castling contains letters other than KQkq, it's a 960-style X-FEN
+      if (/[A-HJ-NP-Z]/i.test(castling)) {
+        // Create a standard-compliant version of the FEN for initial loading
+        // We replace the 960-specific castling with standard 'KQkq' (or '-' if empty)
+        const standardCastling = castling === '-' ? '-' : 'KQkq';
+        const standardFen = [...parts];
+        standardFen[2] = standardCastling;
+        
+        try {
+          const chess = new Chess(standardFen.join(' '));
+          // Now we have the pieces in place. We must manually fix the castling rights if possible,
+          // or at least we've avoided the crash. 
+          // Note: Full 960 support in chess.js is tricky without a dedicated library like 'chess960.js',
+          // but this avoids the crash and handles basic moves.
+          return chess;
+        } catch (innerError) {
+          console.error('[safeNewChess] Failed even with normalized castling:', standardFen.join(' '), innerError);
+        }
+      }
+    }
+    throw e;
+  }
+}
+
+/**
  * Converts a UCI move string (e.g., "e2e4", "e7e8q") to SAN (e.g., "e4", "e8=Q")
  * based on a specific position.
  */
 export function uciToSan(fen: string, uci: string): string {
   try {
-    const chess = new Chess(fen);
+      const chess = safeNewChess(fen);
     const move = chess.move({
       from: uci.slice(0, 2),
       to: uci.slice(2, 4),
@@ -23,7 +61,7 @@ export function uciToSan(fen: string, uci: string): string {
  * Converts a PV (Principal Variation) string of UCI moves to a string of SAN moves.
  */
 export function pvToSan(fen: string, pv: string, maxMoves: number = 10): string {
-  const chess = new Chess(fen);
+    const chess = safeNewChess(fen);
   const uciMoves = pv.split(' ');
   const sanMoves: string[] = [];
   
@@ -117,14 +155,23 @@ export function generate960Fen(id: number): string {
   // 5. Rooks and King (R-K-R)
   const rkr = ['R', 'K', 'R'];
   let rkrIdx = 0;
+  const rookFiles: number[] = [];
   for (let i = 0; i < 8; i++) {
     if (squares[i] === '') {
+      if (rkr[rkrIdx] === 'R') rookFiles.push(i);
       squares[i] = rkr[rkrIdx++];
     }
   }
 
   const row = squares.join('').toLowerCase();
   const upperRow = row.toUpperCase();
+  
+  // X-FEN notation uses rook file letters to represent castling rights in 960.
+  // Order: White King-side, White Queen-side, Black King-side, Black Queen-side.
+  const files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const whiteK = files[rookFiles[1]]; // Right rook
+  const whiteQ = files[rookFiles[0]]; // Left rook
+  const castling = `${whiteK}${whiteQ}${whiteK.toLowerCase()}${whiteQ.toLowerCase()}`;
 
-  return `${row}/pppppppp/8/8/8/8/PPPPPPPP/${upperRow} w KQkq - 0 1`;
+  return `${row}/pppppppp/8/8/8/8/PPPPPPPP/${upperRow} w ${castling} - 0 1`;
 }

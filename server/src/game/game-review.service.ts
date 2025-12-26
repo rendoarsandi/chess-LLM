@@ -1,4 +1,4 @@
-import { db as defaultDb } from '../db'
+import { getDb } from '../db'
 import { gameReviews, moveAnalyses } from '../db/schema'
 import { eq, and, lt, asc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
@@ -16,7 +16,7 @@ export class GameReviewService {
   private db: AppDatabase
 
   constructor(db?: AppDatabase) {
-    this.db = db || (defaultDb as unknown as AppDatabase)
+    this.db = db || getDb()
   }
 
   async requestReview(gameId: string) {

@@ -6,13 +6,11 @@ import { ThinkingPanel } from "@/components/ThinkingPanel"
 import { MoveList } from "@/components/MoveList"
 import { PlaybackControls } from "@/components/PlaybackControls"
 import { AdvantageBar } from "@/components/AdvantageBar"
-import { EngineAnalysisPanel } from "@/components/EngineAnalysisPanel"
 import { GameResultOverlay } from "@/components/GameResultOverlay"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { useEffect, useState, useCallback, useMemo, useRef, lazy, Suspense } from "react"
 import { getGames, getGame, createGame, deleteGame, getMoves, getPlayers, getLeaderboard, pauseGame, resumeGame, clearHistory } from "./api"
 import type { Game, Move, Player } from "./api"
-import { Chess } from "chess.js"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import type { EngineEvaluation } from "./lib/stockfish/StockfishWorker"
 import { RotateCcw, Pause, Play, Menu, Loader2 } from "lucide-react"
@@ -32,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu"
 import { Share2, Copy, FileText } from "lucide-react"
+import { generate960Fen, safeNewChess } from "./lib/chess-utils"
 
 // Lazy-loaded components
 const Leaderboard = lazy(() => import("@/components/Leaderboard").then(m => ({ default: m.Leaderboard })));
@@ -126,6 +125,8 @@ function ArenaContent({
   const isWhiteTurn = turn === 'w';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const activeVariant = selectedGame?.variant || variant;
+
   const isPlayerNonLLM = useCallback((player?: Player) => {
     return !!(player?.id && STOCKFISH_IDS.includes(player.id));
   }, []);
@@ -180,10 +181,10 @@ function ArenaContent({
             ChessLLM <span className={cn(
               "not-italic text-[9px] md:text-[10px] px-2 py-0.5 rounded border tracking-widest transition-colors",
               isLive 
-                ? "text-primary bg-primary/10 border-primary/20" 
-                : "text-amber-500 bg-amber-500/10 border-amber-500/20"
+                ? (selectedGame ? (activeVariant === 'chess960' ? "text-amber-500 bg-amber-500/10 border-amber-500/20" : "text-primary bg-primary/10 border-primary/20") : "text-primary bg-primary/10 border-primary/20")
+                : "text-muted-foreground bg-muted/10 border-border"
             )}>
-              {isLive ? (variant === 'chess960' ? 'CHESS 960 ARENA' : 'STANDARD ARENA') : 'HISTORY MODE'}
+              {isLive ? (selectedGame ? (activeVariant === 'chess960' ? 'CHESS 960 ARENA' : 'STANDARD ARENA') : 'ARENA') : (activeVariant === 'chess960' ? '960 HISTORY' : 'HISTORY MODE')}
             </span>
           </h1>
           
@@ -293,9 +294,12 @@ function ArenaContent({
                       : "Select two engines from the controls or visit the History tab to resume a previous encounter."}
                   </p>
                 </div>
-                <div className="flex gap-4">
-                   <Button size="lg" className="font-black tracking-widest px-6 md:px-8 text-xs md:text-sm" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
-                     {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'START NEW MATCH'}
+                <div className="flex flex-col sm:flex-row gap-4">
+                   <Button size="lg" className="font-black tracking-widest px-6 md:px-8 text-xs md:text-sm" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId)} disabled={isCreatingGame}>
+                     {isCreatingGame ? 'STARTING...' : 'START NEW MATCH'}
+                   </Button>
+                   <Button size="lg" variant="outline" className="font-black tracking-widest px-6 md:px-8 text-xs md:text-sm border-2" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, 'chess960')} disabled={isCreatingGame}>
+                     {isCreatingGame ? 'STARTING...' : 'START CHESS 960'}
                    </Button>
                 </div>
               </div>
@@ -344,7 +348,7 @@ function ArenaContent({
                         reason={selectedGame.gameOverReason ?? null}
                         whitePlayerName={whitePlayer?.name}
                         blackPlayerName={blackPlayer?.name}
-                        onNewGame={() => handleCreateGame(whitePlayerId, blackPlayerId)}
+                        onNewGame={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)}
                         onClose={() => setShowResultOverlay(false)}
                       />
                     )}
@@ -382,19 +386,16 @@ function ArenaContent({
                 <ThinkingPanel side="black" modelName={blackPlayer?.name || 'Loading...'} isMobile={isMobile} {...blackThinking} />
               </CollapsibleSection>
 
-              <CollapsibleSection title="Engine Analysis" defaultExpanded={true}>
-                <div className="h-[280px]">
-                  <EngineAnalysisPanel 
-                    fen={currentDisplayFen}
-                    variations={variations}
-                    isThinking={isThinking}
-                  />
-                </div>
-              </CollapsibleSection>
-
-              <CollapsibleSection title="Move List">
+              <CollapsibleSection title="Arena History" defaultExpanded={true}>
                 <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+                  <MoveList 
+                    moves={moves} 
+                    onMoveClick={setActiveMoveIndex} 
+                    selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+                    isLive={isLive} 
+                    variations={variations}
+                    isEngineThinking={isThinking}
+                  />
                 </ErrorBoundary>
               </CollapsibleSection>
               
@@ -438,9 +439,16 @@ function ArenaContent({
                       )}
                     </select>
                   </div>
-                  <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
-                    {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button className="font-black tracking-widest h-10" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, 'standard')} disabled={isCreatingGame}>
+                      {isCreatingGame ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4 fill-current" />}
+                      PLAY STANDARD
+                    </Button>
+                    <Button variant="outline" className="font-black tracking-widest h-10 border-2" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, 'chess960')} disabled={isCreatingGame}>
+                      {isCreatingGame ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <div className="relative mr-2"><Play className="h-4 w-4 fill-current" /><span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-primary text-[4px] font-black text-white">960</span></div>}
+                      PLAY CHESS 960
+                    </Button>
+                  </div>
                 </div>
               </CollapsibleSection>
             </div>
@@ -459,16 +467,15 @@ function ArenaContent({
 
             {selectedGame && (
               <div className="space-y-4">
-                <div className="h-[250px] shrink-0">
-                  <EngineAnalysisPanel 
-                    fen={currentDisplayFen}
-                    variations={variations}
-                    isThinking={isThinking}
-                  />
-                </div>
-
                 <ErrorBoundary fallback={<div className="p-4 bg-muted text-xs text-destructive font-bold uppercase">Move List Error</div>}>
-                  <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
+                  <MoveList 
+                    moves={moves} 
+                    onMoveClick={setActiveMoveIndex} 
+                    selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} 
+                    isLive={isLive} 
+                    variations={variations}
+                    isEngineThinking={isThinking}
+                  />
                 </ErrorBoundary>
 
                 <div className="pt-2">
@@ -525,9 +532,16 @@ function ArenaContent({
                     )}
                   </select>
                 </div>
-                <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
-                  {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button className="font-black tracking-widest h-10" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, 'standard')} disabled={isCreatingGame}>
+                    {isCreatingGame ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4 fill-current" />}
+                    PLAY STANDARD
+                  </Button>
+                  <Button variant="outline" className="font-black tracking-widest h-10 border-2" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, 'chess960')} disabled={isCreatingGame}>
+                    {isCreatingGame ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <div className="relative mr-2"><Play className="h-4 w-4 fill-current" /><span className="absolute -top-1 -right-1 flex h-2 w-2 items-center justify-center rounded-full bg-primary text-[4px] font-black text-white">960</span></div>}
+                    PLAY CHESS 960
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -600,21 +614,15 @@ function App() {
     setPlayers(allPlayers);
   }, []);
 
-  const handleCreateGame = async (whiteId: string, blackId: string, variant: string = 'standard') => {
+  const handleCreateGame = async (whiteId: string, blackId: string, variant: string = currentVariant) => {
     if (isCreatingGame) return;
-    if (hasOngoingGame) {
-      toast.error("A match is already in progress.", {
-        description: "Please complete or delete the current match before starting a new one."
-      });
-      return;
-    }
     setIsCreatingGame(true);
     setWhitePlayerId(whiteId);
     setBlackPlayerId(blackId);
     setLastMoveFromUpdate(null);
     try {
       const options: { variant?: string, startPosId?: number } = { variant };
-      if (variant === 'chess960') {
+      if (variant === 'chess960' || variant === '960') {
         options.startPosId = Math.floor(Math.random() * 960);
       }
       const { id } = await createGame(whiteId, blackId, options);
@@ -706,7 +714,7 @@ function App() {
         // Derive last move squares from SAN if provided
         if (lastUpdate.san) {
           try {
-            const chess = new Chess(prev.fen);
+            const chess = safeNewChess(prev.fen);
             const move = chess.move(lastUpdate.san);
             if (move) {
               setLastMoveFromUpdate({ from: move.from, to: move.to });
@@ -749,7 +757,16 @@ function App() {
       return selectedGame.fen;
     }
 
-    const chess = new Chess();
+    let startFen: string | undefined = undefined;
+    if (selectedGame?.variant === 'chess960' && selectedGame.startPosId !== null && selectedGame.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(selectedGame.startPosId);
+      } catch (e) {
+        console.error('[App] Failed to generate 960 FEN:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     if (moves.length === 0) return chess.fen();
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
     for (let i = 0; i <= index; i++) {
@@ -759,14 +776,23 @@ function App() {
   }, [moves, activeMoveIndex, selectedGame]);
 
   const currentPgn = useMemo(() => {
-    const chess = new Chess();
+    let startFen: string | undefined = undefined;
+    if (selectedGame?.variant === 'chess960' && selectedGame.startPosId !== null && selectedGame.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(selectedGame.startPosId);
+      } catch (e) {
+        console.error('[App] Failed to generate 960 FEN:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     if (moves.length === 0) return "";
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
     for (let i = 0; i <= index; i++) {
       try { chess.move(moves[i].move); } catch { /* ignore */ }
     }
     return chess.pgn();
-  }, [moves, activeMoveIndex]);
+  }, [moves, activeMoveIndex, selectedGame]);
 
   const lastMoveSquares = useMemo(() => {
     // If we are live and have a WebSocket update square, use it immediately
@@ -776,7 +802,17 @@ function App() {
 
     const index = activeMoveIndex !== null ? activeMoveIndex : moves.length - 1;
     if (index < 0 || moves.length === 0) return undefined;
-    const chess = new Chess();
+
+    let startFen: string | undefined = undefined;
+    if (selectedGame?.variant === 'chess960' && selectedGame.startPosId !== null && selectedGame.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(selectedGame.startPosId);
+      } catch (e) {
+        console.error('[App] Failed to generate 960 FEN:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     try {
       for (let i = 0; i < index; i++) {
         try { chess.move(moves[i].move); } catch { /* ignore */ }
@@ -786,7 +822,7 @@ function App() {
     } catch {
       return undefined;
     }
-  }, [moves, activeMoveIndex, lastMoveFromUpdate]);
+  }, [moves, activeMoveIndex, lastMoveFromUpdate, selectedGame]);
 
   const isLive = activeMoveIndex === null || activeMoveIndex === moves.length - 1;
 
@@ -854,7 +890,17 @@ function App() {
   useEffect(() => {
     if (moves.length === 0) return;
     const latestMove = moves[moves.length - 1];
-    const chess = new Chess();
+    
+    let startFen: string | undefined = undefined;
+    if (selectedGame?.variant === 'chess960' && selectedGame.startPosId !== null && selectedGame.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(selectedGame.startPosId);
+      } catch (e) {
+        console.error('[App] Failed to generate 960 FEN for check:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     try {
       for (let i = 0; i < moves.length - 1; i++) {
         try { chess.move(moves[i].move); } catch { /* ignore */ }
@@ -886,8 +932,18 @@ function App() {
           }).catch(() => navigate('/arena'));
         }
       } else {
-        // No ID, clear selection to show the 'Launch Match' screen
-        if (selectedGame !== null) {
+        // No ID, find most recent game matching current variant
+        const matchingGame = games.find(g => g.variant === currentVariant && (g.status === 'ongoing' || g.status === 'paused')) 
+                          || games.find(g => g.variant === currentVariant);
+        
+        if (matchingGame) {
+          if (selectedGame?.id !== matchingGame.id) {
+            console.log('[App] Auto-selecting matching game:', matchingGame.id, matchingGame.variant);
+            setSelectedGame(matchingGame);
+            setMoves([]);
+            setActiveMoveIndex(null);
+          }
+        } else if (selectedGame !== null) {
           setSelectedGame(null);
           setMoves([]);
           setActiveMoveIndex(null);
@@ -899,15 +955,18 @@ function App() {
   // Default game selection logic
   useEffect(() => {
     if (location.pathname === '/') {
-      navigate('/arena', { replace: true });
+      navigate({ pathname: '/arena', search: location.search }, { replace: true });
     }
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       <div className="hidden lg:block">
         <ErrorBoundary fallback={<div className="w-16 h-full border-r border-destructive/20 bg-destructive/5 flex items-center justify-center p-2 text-[8px] font-black text-destructive uppercase writing-vertical-lr tracking-widest">Navigation Error</div>}>
-          <Sidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
+          <Sidebar 
+            isCollapsed={isSidebarCollapsed} 
+            setIsCollapsed={setIsSidebarCollapsed} 
+          />
         </ErrorBoundary>
       </div>
 
@@ -967,7 +1026,12 @@ function App() {
                          </SheetTrigger>
                          <SheetContent side="left" className="p-0 w-72">
                            <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                          </SheetContent>
                        </Sheet>
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">LEADERBOARD</h2>
@@ -991,7 +1055,12 @@ function App() {
                          </SheetTrigger>
                          <SheetContent side="left" className="p-0 w-72">
                            <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                          </SheetContent>
                        </Sheet>
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">PROFILES</h2>
@@ -1055,7 +1124,12 @@ function App() {
                          </SheetTrigger>
                          <SheetContent side="left" className="p-0 w-72">
                            <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                          </SheetContent>
                        </Sheet>
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">PLAYER PROFILE</h2>
@@ -1078,7 +1152,12 @@ function App() {
                          </SheetTrigger>
                          <SheetContent side="left" className="p-0 w-72">
                            <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                          </SheetContent>
                        </Sheet>
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
@@ -1103,7 +1182,12 @@ function App() {
                          </SheetTrigger>
                          <SheetContent side="left" className="p-0 w-72">
                            <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                           <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                           <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                          </SheetContent>
                        </Sheet>
                        <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENTS</h2>
@@ -1125,7 +1209,12 @@ function App() {
                            </SheetTrigger>
                            <SheetContent side="left" className="p-0 w-72">
                              <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                             <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                             <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                            </SheetContent>
                          </Sheet>
                          <h2 className="text-xl font-black tracking-tighter uppercase italic">SETTINGS</h2>
@@ -1146,7 +1235,12 @@ function App() {
                            </SheetTrigger>
                            <SheetContent side="left" className="p-0 w-72">
                              <SheetHeader className="p-6 pb-0 sr-only"><SheetTitle>Navigation</SheetTitle><SheetDescription>Main navigation menu for mobile devices.</SheetDescription></SheetHeader>
-                             <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                             <Sidebar 
+                             isCollapsed={false} 
+                             setIsCollapsed={() => {}} 
+                             mobile 
+                             onItemClick={() => setIsMobileNavOpen(false)} 
+                           />
                            </SheetContent>
                          </Sheet>
                          <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENT MANAGEMENT</h2>

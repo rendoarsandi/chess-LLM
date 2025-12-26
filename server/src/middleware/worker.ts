@@ -1,5 +1,4 @@
 import { Context, Next } from "hono";
-import { auth } from "../lib/auth";
 
 export const workerMiddleware = async (c: Context, next: Next) => {
     // Development Bypass

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import * as schema from './schema'
 import { db } from './index'
+import { eq } from 'drizzle-orm'
 
 describe('Database Schema', () => {
   it('should be able to connect and query the database', async () => {
@@ -10,14 +11,38 @@ describe('Database Schema', () => {
     expect(Array.isArray(result)).toBe(true)
   })
 
+  it('should be able to insert and retrieve Chess 960 stats', async () => {
+    const testId = 'test-960-stats'
+    await db.delete(schema.players).where(eq(schema.players.id, testId))
+    
+    await db.insert(schema.players).values({
+      id: testId,
+      name: '960 Tester',
+      type: 'llm',
+      wins960: 10,
+      rating960: 1500
+    })
+
+    const result = await db.select().from(schema.players).where(eq(schema.players.id, testId))
+    expect(result[0].wins960).toBe(10)
+    expect(result[0].rating960).toBe(1500)
+    
+    await db.delete(schema.players).where(eq(schema.players.id, testId))
+  })
+
   describe('Core Tables', () => {
     it('should have players table defined with ELO, stats, and profile columns', () => {
       expect(schema.players).toBeDefined()
       expect(schema.players.rating).toBeDefined()
+      expect(schema.players.rating960).toBeDefined()
       expect(schema.players.wins).toBeDefined()
       expect(schema.players.losses).toBeDefined()
       expect(schema.players.draws).toBeDefined()
+      expect(schema.players.wins960).toBeDefined()
+      expect(schema.players.losses960).toBeDefined()
+      expect(schema.players.draws960).toBeDefined()
       expect(schema.players.peakRating).toBeDefined()
+      expect(schema.players.peakRating960).toBeDefined()
       expect(schema.players.version).toBeDefined()
       expect(schema.players.provider).toBeDefined()
       expect(schema.players.bio).toBeDefined()

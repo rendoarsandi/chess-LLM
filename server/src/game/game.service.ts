@@ -1,10 +1,10 @@
 import { GameManager } from './game-manager'
 import { gameReviews, games, moveAnalyses, moves, players, ratingHistory } from '../db/schema'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, and } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { calculateEloChange } from './elo'
-import { Chess } from 'chess.js'
 import { logger } from './logger'
+import { generate960Fen, safeNewChess } from '../lib/chess-utils'
 import { TournamentService } from './tournament.service'
 import { SocketService } from './socket.service'
 import { AppDatabase } from '../db/types'
@@ -18,19 +18,25 @@ export class GameService {
   ) {}
 
   async createGame(whitePlayerId: string, blackPlayerId: string, metadata?: { tournamentId?: string, roundNumber?: number, variant?: string, startPosId?: number }) {
-    // Check for existing ongoing games (unless it's a tournament game)
+    // Check for existing ongoing non-tournament game only if this is NOT a tournament game
     if (!metadata?.tournamentId) {
-      const ongoingGames = await this.db.select().from(games).where(eq(games.status, 'ongoing'))
-      if (ongoingGames.length > 0) {
+      const ongoingNonTournamentGames = await this.db.select().from(games).where(
+        and(
+          sql`${games.status} IN ('ongoing', 'paused')`,
+          sql`${games.tournamentId} IS NULL`
+        )
+      )
+      if (ongoingNonTournamentGames.length > 0) {
         throw new Error('A game is already in progress. Please complete or delete it first.')
       }
     }
 
     const id = randomUUID()
-    const variant = (metadata?.variant === 'chess960' ? 'chess960' : 'standard') as "standard" | "chess960"
+    const is960 = metadata?.variant === 'chess960' || metadata?.variant === '960'
+    const variant = (is960 ? 'chess960' : 'standard') as "standard" | "chess960"
     
     let startPosId = metadata?.startPosId
-    if (variant === 'chess960' && startPosId === undefined) {
+    if (is960 && startPosId === undefined) {
       startPosId = Math.floor(Math.random() * 960)
     }
 
@@ -154,7 +160,16 @@ export class GameService {
       throw new Error(`Game is already finished (status: ${game.status})`)
     }
 
-    const chess = new Chess(game.fen)
+    let startFen: string | undefined = undefined;
+    if (game.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
+      startFen = generate960Fen(game.startPosId);
+    }
+
+    const chess = safeNewChess(startFen)
+    if (game.pgn) {
+      chess.loadPgn(game.pgn)
+    }
+
     const moveResult = chess.move(move)
     if (!moveResult) {
       throw new Error('Invalid move')
@@ -162,7 +177,16 @@ export class GameService {
 
     const nextFen = chess.fen()
     const isGameOver = chess.isGameOver()
-    const winner = this.gm.getWinner(nextFen)
+    
+    // Determine winner based on the current state of the historied chess instance
+    let winner: 'white' | 'black' | 'draw' | null = null;
+    if (isGameOver) {
+      if (chess.isCheckmate()) {
+        winner = chess.turn() === 'w' ? 'black' : 'white';
+      } else {
+        winner = 'draw';
+      }
+    }
 
     logger.info(`[GameService] Move applied: ${moveResult.san}. isGameOver: ${isGameOver}, winner: ${winner}`)
 
@@ -175,7 +199,7 @@ export class GameService {
       gameId,
       moveNumber,
       playerColor,
-      move: moveResult.san, // Use SAN instead of the raw move string
+      move: moveResult.san, 
       fen: nextFen,
       opening: thinking?.opening,
       candidates: thinking?.candidates,
@@ -206,24 +230,7 @@ export class GameService {
     }
 
     // Update PGN
-    let pgn = game.pgn || "";
-    try {
-      const pgnChess = new Chess();
-      if (pgn) {
-        pgnChess.loadPgn(pgn);
-      } else {
-        // Fallback to rebuilding if PGN is empty (should only happen for first move or legacy data)
-        const allMoves = await this.db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.moveNumber)
-        for (const m of allMoves) {
-          try { pgnChess.move(m.move); } catch { /* ignore */ }
-        }
-      }
-      pgnChess.move(moveResult.san)
-      pgn = pgnChess.pgn()
-    } catch (e) {
-      logger.debug(`[GameService] Error updating PGN for game ${gameId}:`, e);
-      // Fallback: don't break the move if PGN fails
-    }
+    const pgn = chess.pgn()
 
     await this.db.update(games)
       .set({ 
@@ -310,9 +317,9 @@ export class GameService {
         .set({
           rating960: newWhiteRating,
           peakRating960: Math.max(whitePlayer.peakRating960, newWhiteRating),
-          wins: whitePlayer.wins + (whiteScore === 1 ? 1 : 0),
-          losses: whitePlayer.losses + (whiteScore === 0 ? 1 : 0),
-          draws: whitePlayer.draws + (whiteScore === 0.5 ? 1 : 0),
+          wins960: whitePlayer.wins960 + (whiteScore === 1 ? 1 : 0),
+          losses960: whitePlayer.losses960 + (whiteScore === 0 ? 1 : 0),
+          draws960: whitePlayer.draws960 + (whiteScore === 0.5 ? 1 : 0),
         })
         .where(eq(players.id, whiteId))
 
@@ -320,9 +327,9 @@ export class GameService {
         .set({
           rating960: newBlackRating,
           peakRating960: Math.max(blackPlayer.peakRating960, newBlackRating),
-          wins: blackPlayer.wins + (blackScore === 1 ? 1 : 0),
-          losses: blackPlayer.losses + (blackScore === 0 ? 1 : 0),
-          draws: blackPlayer.draws + (blackScore === 0.5 ? 1 : 0),
+          wins960: blackPlayer.wins960 + (blackScore === 1 ? 1 : 0),
+          losses960: blackPlayer.losses960 + (blackScore === 0 ? 1 : 0),
+          draws960: blackPlayer.draws960 + (blackScore === 0.5 ? 1 : 0),
         })
         .where(eq(players.id, blackId))
     } else {

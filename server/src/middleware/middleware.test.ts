@@ -98,7 +98,8 @@ describe('Middlewares', () => {
           ipAddress: '',
           token: 'session-token'
         }
-      })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
 
       await workerMiddleware(mockContext as unknown as Context, next)
 

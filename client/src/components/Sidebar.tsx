@@ -1,7 +1,7 @@
 import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, BarChart3, History } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
-import { NavLink } from "react-router"
+import { NavLink, useLocation } from "react-router"
 import { useEffect, useState } from "react"
 import { getTournaments } from "@/api"
 
@@ -22,48 +22,57 @@ interface NavContentProps {
 }
 
 function NavContent({ isCollapsed, navItems, onItemClick }: NavContentProps) {
+  const location = useLocation();
+  
   return (
     <>
       <div className="flex flex-col w-full gap-2 px-3 flex-1">
-        {navItems.map((item) => (
-          <NavLink 
-            key={item.id}
-            to={item.path}
-            onClick={onItemClick}
-            className={({ isActive }) => cn(
-              "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
-              isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              isCollapsed ? "justify-center" : "justify-start"
-            )}
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            {!isCollapsed && (
-              <div className="flex items-center justify-between flex-1">
-                <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300">
-                  {item.label}
-                </span>
-                {item.indicator && (
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50" />
-                )}
-              </div>
-            )}
-            {isCollapsed && (
-              <>
-                {item.indicator && (
-                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse border-2 border-background" />
-                )}
-                <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                  {item.label}
-                </span>
-              </>
-            )}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          const isActive = location.pathname + location.search === item.path || 
+                          (item.path === '/arena' && location.pathname === '/arena' && !location.search);
+          
+          return (
+            <NavLink 
+              key={item.id}
+              to={item.path}
+              onClick={onItemClick}
+              className={cn(
+                "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
+                isActive 
+                  ? "bg-primary/10 text-primary border border-primary/20" 
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                isCollapsed ? "justify-center" : "justify-start"
+              )}
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              {!isCollapsed && (
+                <div className="flex items-center justify-between flex-1">
+                  <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300">
+                    {item.label}
+                  </span>
+                  {item.indicator && (
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50" />
+                  )}
+                </div>
+              )}
+              {isCollapsed && (
+                <>
+                  {item.indicator && (
+                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse border-2 border-background" />
+                  )}
+                  <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          );
+        })}
       </div>
 
-      <div className="w-full px-3 mt-auto">
+      <div className="w-full px-3 mt-auto mb-2">
         <div className={cn(
-          "flex items-center gap-4 p-3 rounded-xl bg-primary/10 text-primary border border-primary/20",
+          "flex items-center gap-4 p-3 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20",
           isCollapsed ? "justify-center" : "justify-start"
         )}>
           <Settings className="h-5 w-5 shrink-0 animate-spin-slow" />
@@ -104,8 +113,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
   }, [])
 
   const navItems: NavItem[] = [
-    { id: 'arena', icon: LayoutDashboard, label: 'STANDARD ARENA', path: '/' },
-    { id: 'arena960', icon: LayoutDashboard, label: 'CHESS 960 ARENA', path: '/?variant=chess960' },
+    { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/arena' },
     { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },

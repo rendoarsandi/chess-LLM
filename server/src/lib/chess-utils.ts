@@ -1,3 +1,33 @@
+import { Chess } from 'chess.js';
+
+/**
+ * Creates a new Chess instance safely, handling Chess 960 FENs if necessary.
+ */
+export function safeNewChess(fen?: string): Chess {
+  if (!fen) return new Chess();
+  
+  try {
+    return new Chess(fen);
+  } catch (e) {
+    const parts = fen.split(' ');
+    if (parts.length >= 3) {
+      const castling = parts[2];
+      if (/[A-HJ-NP-Z]/i.test(castling)) {
+        const standardCastling = castling === '-' ? '-' : 'KQkq';
+        const standardFen = [...parts];
+        standardFen[2] = standardCastling;
+        
+        try {
+          return new Chess(standardFen.join(' '));
+        } catch (innerError) {
+          console.error('[safeNewChess] Server failed even with normalized castling:', standardFen.join(' '), innerError);
+        }
+      }
+    }
+    throw e;
+  }
+}
+
 /**
  * Generates a Chess 960 (Fischer Random) starting FEN string from a given SP-ID (0-959).
  */
@@ -54,14 +84,23 @@ export function generate960Fen(id: number): string {
   // 5. Rooks and King (R-K-R)
   const rkr = ['R', 'K', 'R'];
   let rkrIdx = 0;
+  const rookFiles: number[] = [];
   for (let i = 0; i < 8; i++) {
     if (squares[i] === '') {
+      if (rkr[rkrIdx] === 'R') rookFiles.push(i);
       squares[i] = rkr[rkrIdx++];
     }
   }
 
   const row = squares.join('').toLowerCase();
   const upperRow = row.toUpperCase();
+  
+  // X-FEN notation uses rook file letters to represent castling rights in 960.
+  // Order: White King-side, White Queen-side, Black King-side, Black Queen-side.
+  const files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const whiteK = files[rookFiles[1]]; // Right rook
+  const whiteQ = files[rookFiles[0]]; // Left rook
+  const castling = `${whiteK}${whiteQ}${whiteK.toLowerCase()}${whiteQ.toLowerCase()}`;
 
-  return `${row}/pppppppp/8/8/8/8/PPPPPPPP/${upperRow} w KQkq - 0 1`;
+  return `${row}/pppppppp/8/8/8/8/PPPPPPPP/${upperRow} w ${castling} - 0 1`;
 }

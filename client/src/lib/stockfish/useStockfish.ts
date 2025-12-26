@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { StockfishWorker } from './StockfishWorker';
 import type { EngineEvaluation } from './StockfishWorker';
-import { Chess } from 'chess.js';
+import { safeNewChess } from "../chess-utils";
 
 export function useStockfish(fen: string | null, onBestMove?: (move: string) => void) {
   const [evaluation, setEvaluation] = useState<EngineEvaluation | null>(null);
@@ -49,7 +49,7 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
       
       // Immediate detection of terminal positions to avoid stale evaluations
       try {
-        const chess = new Chess(fen);
+        const chess = safeNewChess(fen);
         if (chess.isGameOver()) {
           const sideToMove = fen.split(' ')[1] as 'w' | 'b';
           

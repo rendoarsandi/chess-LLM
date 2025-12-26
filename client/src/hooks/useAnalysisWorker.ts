@@ -3,7 +3,7 @@ import { claimJob, getMoves, sendHeartbeat, submitResults, updateProgress, repor
 import type { MoveAnalysis } from '../api';
 import { AnalysisWorker } from '../lib/stockfish/AnalysisWorker';
 import { ClassificationEngine } from '../lib/ClassificationEngine';
-import { Chess } from 'chess.js';
+import { safeNewChess } from '../lib/chess-utils';
 
 const WORKER_ID = `worker-${Math.random().toString(36).substring(2, 9)}`;
 const POLLING_INTERVAL = 5000;
@@ -77,7 +77,7 @@ export function useAnalysisWorker(enabled: boolean = true) {
       console.log(`[useAnalysisWorker] [${reviewId}] Step 2: Found ${totalMoves} moves`);
       
       const analyses: MoveAnalysis[] = [];
-      const chess = new Chess();
+      const chess = safeNewChess();
 
       const getNumericEval = (pv: { cp?: number; mate?: number } | undefined, isWhiteTurn: boolean) => {
         if (!pv) return 0;
@@ -121,7 +121,7 @@ export function useAnalysisWorker(enabled: boolean = true) {
         // If move is NOT in top 3, we MUST evaluate it specifically to get its real score
         if (!movePV) {
             console.log(`[useAnalysisWorker] [${reviewId}] Move ${move.move} not in top 3, performing dedicated evaluation...`);
-            const chessTemp = new Chess(beforeFen);
+            const chessTemp = safeNewChess(beforeFen);
             try {
                 chessTemp.move(move.move);
                 const afterFen = chessTemp.fen();

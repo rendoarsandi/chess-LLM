@@ -1,99 +1,102 @@
-import type { Move, MoveAnalysis } from "@/api";
-import { Star, Zap, Check, CheckCheck, Info, AlertTriangle, XCircle, Search } from "lucide-react";
+import type { Move } from "@/api";
 import { cn } from "@/lib/utils";
-import { uciToSan } from "@/lib/chess-utils";
+import { uciToSan, pvToSan } from "@/lib/chess-utils";
+import type { EngineEvaluation } from "@/lib/stockfish/StockfishWorker";
 
 interface MoveListProps {
   moves: Move[]
-  onMoveClick: (index: number) => void
-  selectedMoveIndex?: number
+  onMoveClick: (index: number | null) => void
+  selectedMoveIndex: number | null
   isLive?: boolean
-  analyses?: MoveAnalysis[]
+  variations?: EngineEvaluation[]
+  isEngineThinking?: boolean
 }
 
-export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analyses }: MoveListProps) {
-  const renderClassificationIcon = (moveNumber: number, playerColor: 'white' | 'black') => {
-    if (!analyses) return null;
-    
-    // Find analysis by moveNumber and playerColor
-    const analysis = analyses.find(a => a.moveNumber === moveNumber && a.playerColor === playerColor);
-    
-    if (!analysis) return null;
-
-    const iconMap: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
-      brilliant: { icon: Zap, color: "text-cyan-400", label: "!!" },
-      great: { icon: Star, color: "text-blue-400", label: "!" },
-      best: { icon: CheckCheck, color: "text-green-400", label: "★" },
-      excellent: { icon: Check, color: "text-green-500", label: "" },
-      good: { icon: Check, color: "text-slate-400", label: "" },
-      book: { icon: Info, color: "text-orange-400", label: "📖" },
-      inaccuracy: { icon: Info, color: "text-yellow-400", label: "?!" },
-      mistake: { icon: AlertTriangle, color: "text-orange-500", label: "?" },
-      blunder: { icon: XCircle, color: "text-red-500", label: "??" },
-      miss: { icon: Search, color: "text-purple-400", label: "X" },
-    };
-
-    const cfg = iconMap[analysis.classification];
-    if (!cfg) return null;
-
-    const Icon = cfg.icon;
-    return (
-      <div className={cn("inline-flex items-center gap-0.5 ml-1", cfg.color)} title={analysis.classification.toUpperCase()}>
-        <Icon className="w-2.5 h-2.5" />
-        {cfg.label && <span className="text-[7px] font-black">{cfg.label}</span>}
-      </div>
-    );
-  };
-
-  // Group into rows
+export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, variations, isEngineThinking }: MoveListProps) {
+  // Group moves into pairs for the table
   const pairs: { number: number, white?: { m: Move, idx: number, displayMove: string }, black?: { m: Move, idx: number, displayMove: string } }[] = []
-  
-  // We need to preserve the original index for onMoveClick
   moves.forEach((move, originalIdx) => {
     let pair = pairs.find(p => p.number === move.moveNumber)
     if (!pair) {
       pair = { number: move.moveNumber }
       pairs.push(pair)
     }
-
-    // Determine the FEN BEFORE this move to allow SAN conversion if the move is raw UCI
-    // moves[originalIdx - 1] contains the FEN AFTER the previous move, which is the FEN BEFORE this move.
-    const beforeFen = originalIdx === 0 
-      ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' 
-      : moves[originalIdx - 1].fen;
-    
-    // If the move looks like UCI (e.g. e2e4) and isn't already SAN (which usually doesn't have 4 chars unless it's a promotion or castling, but those are distinct)
-    // Actually, uciToSan is safe to call on SAN moves too as it will just try to apply them.
+    const beforeFen = originalIdx === 0 ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : moves[originalIdx - 1].fen;
     const isUci = /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move.move);
     const displayMove = isUci ? uciToSan(beforeFen, move.move) : move.move;
-
-    if (move.playerColor === 'white') {
-      pair.white = { m: move, idx: originalIdx, displayMove }
-    } else {
-      pair.black = { m: move, idx: originalIdx, displayMove }
-    }
+    if (move.playerColor === 'white') pair.white = { m: move, idx: originalIdx, displayMove }
+    else pair.black = { m: move, idx: originalIdx, displayMove }
   })
-
-  // Sort pairs by move number
   pairs.sort((a, b) => a.number - b.number)
 
+  const currentMoveFen = selectedMoveIndex !== null && moves[selectedMoveIndex] 
+    ? moves[selectedMoveIndex].fen 
+    : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg flex flex-col h-[300px]">
-      <div className="p-3 border-b border-border bg-muted/50 flex justify-between items-center">
-        <h3 className="font-bold text-sm uppercase tracking-wider">Moves</h3>
-        {isLive && moves.length > 0 && (
-          <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500 animate-pulse bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-            LIVE
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-xl flex flex-col h-full min-h-[450px]">
+      {/* Engine Analysis (NOW ON TOP) */}
+      <div className="p-3 border-b border-border bg-muted/20 shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            Engine Lines
+            {isEngineThinking && (
+              <span className="flex gap-0.5">
+                <span className="w-0.5 h-0.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-0.5 h-0.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-0.5 h-0.5 bg-primary rounded-full animate-bounce"></span>
+              </span>
+            )}
           </span>
+          {variations && variations[0] && (
+            <span className="text-[8px] font-mono text-muted-foreground/60">DEPTH {variations[0].depth}</span>
+          )}
+        </div>
+        
+        <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar pr-1">
+          {variations && variations.length > 0 ? (
+            variations.map((v) => {
+              const score = v.isMate ? `M${v.mateIn}` : (v.score / 100 > 0 ? `+${(v.score / 100).toFixed(2)}` : (v.score / 100).toFixed(2));
+              const isWhiteAdvantage = v.isMate ? (v.mateIn ?? 0) > 0 : v.score > 0;
+              return (
+                <div key={v.multipv} className="flex flex-col gap-1">
+                  <div className="flex items-start gap-2">
+                    <span className={cn(
+                      "text-[9px] font-black px-1.5 py-0.5 rounded leading-none min-w-[2.8rem] text-center shrink-0",
+                      v.isMate ? "bg-primary text-primary-foreground" : isWhiteAdvantage ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                    )}>
+                      {score}
+                    </span>
+                    <div className="text-[10px] font-mono leading-tight text-foreground/80 break-words">
+                      {pvToSan(currentMoveFen, v.pv || "", 15)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-4 text-center">
+              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter opacity-30 italic">Awaiting Analysis...</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Move History Header */}
+      <div className="px-3 py-2 border-b border-border bg-muted/40 flex justify-between items-center shrink-0">
+        <h3 className="font-black text-[10px] uppercase tracking-widest italic">Move History</h3>
+        {isLive && moves.length > 0 && (
+          <span className="text-[8px] font-black text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">LIVE</span>
         )}
       </div>
-      <div className="flex-1 overflow-y-auto p-2">
-        <table className="w-full text-sm border-separate border-spacing-y-1">
+
+      {/* Move History Table (NOW BELOW) */}
+      <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+        <table className="w-full text-xs border-separate border-spacing-y-0.5">
           <tbody>
             {pairs.map((pair) => (
               <tr key={pair.number}>
-                <td className="w-8 text-muted-foreground font-mono text-xs pr-2 text-right">
+                <td className="w-8 text-muted-foreground font-mono text-[10px] pr-2 text-right opacity-40 italic">
                   {pair.number}.
                 </td>
                 <td className="w-1/2">
@@ -101,12 +104,11 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
                     <button
                       onClick={() => onMoveClick(pair.white!.idx)}
                       className={cn(
-                        "w-full flex items-center px-2 py-1 rounded font-medium transition-colors text-left",
-                        selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                        "w-full flex items-center px-2 py-1.5 rounded font-bold transition-all text-left",
+                        selectedMoveIndex === pair.white.idx ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-muted/50 text-foreground/80'
                       )}
                     >
                       <span className="truncate">{pair.white.displayMove}</span>
-                      {renderClassificationIcon(pair.number, 'white')}
                     </button>
                   )}
                 </td>
@@ -115,12 +117,11 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
                     <button
                       onClick={() => onMoveClick(pair.black!.idx)}
                       className={cn(
-                        "w-full flex items-center px-2 py-1 rounded font-medium transition-colors text-left",
-                        selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                        "w-full flex items-center px-2 py-1.5 rounded font-bold transition-all text-left",
+                        selectedMoveIndex === pair.black.idx ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-muted/50 text-foreground/80'
                       )}
                     >
                       <span className="truncate">{pair.black.displayMove}</span>
-                      {renderClassificationIcon(pair.number, 'black')}
                     </button>
                   )}
                 </td>
@@ -129,8 +130,8 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, analys
           </tbody>
         </table>
         {moves.length === 0 && (
-          <div className="h-full flex items-center justify-center text-muted-foreground italic py-8">
-            No moves yet.
+          <div className="h-full flex items-center justify-center text-muted-foreground italic py-12 opacity-30">
+            <p className="text-[10px] font-black uppercase tracking-widest">No moves recorded</p>
           </div>
         )}
       </div>

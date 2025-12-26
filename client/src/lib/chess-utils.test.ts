@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { generate960Fen } from './chess-utils'
-import { Chess } from 'chess.js'
+import { generate960Fen, safeNewChess } from './chess-utils'
 
 describe('Chess 960 Utils', () => {
   describe('generate960Fen', () => {
@@ -25,8 +24,8 @@ describe('Chess 960 Utils', () => {
         expect(fens.has(fen), `ID ${i} generated a duplicate FEN`).toBe(false)
         fens.add(fen)
 
-        // 2. Check structural validity with chess.js
-        const chess = new Chess(fen)
+        // 2. Check structural validity with safeNewChess
+        const chess = safeNewChess(fen)
         expect(chess.fen(), `ID ${i} produced an invalid FEN for chess.js`).toBeDefined()
         
         // 3. Verify piece count (8 pieces in first rank)

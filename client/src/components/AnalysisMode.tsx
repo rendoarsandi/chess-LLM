@@ -7,7 +7,7 @@ import { PlaybackControls } from './PlaybackControls';
 import { useStockfish } from '../lib/stockfish/useStockfish';
 import { Button } from './ui/button';
 import { ChevronLeft, Share2, Download } from 'lucide-react';
-import { Chess } from 'chess.js';
+import { generate960Fen, safeNewChess } from '../lib/chess-utils';
 
 export const AnalysisMode: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -68,17 +68,36 @@ export const AnalysisMode: React.FC = () => {
   }, [gameId, review, fetchStatus]);
 
   const currentDisplayFen = useMemo(() => {
-    const chess = new Chess();
+    let startFen: string | undefined = undefined;
+    if (game?.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(game.startPosId);
+      } catch (e) {
+        console.error('[AnalysisMode] Failed to generate 960 FEN:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     if (moves.length === 0 || activeIndex === null) return chess.fen();
     for (let i = 0; i <= activeIndex; i++) {
       try { chess.move(moves[i].move); } catch { /* ignore */ }
     }
     return chess.fen();
-  }, [moves, activeIndex]);
+  }, [moves, activeIndex, game]);
 
   const lastMoveSquares = useMemo(() => {
     if (activeIndex === null || activeIndex < 0 || moves.length === 0) return undefined;
-    const chess = new Chess();
+
+    let startFen: string | undefined = undefined;
+    if (game?.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
+      try {
+        startFen = generate960Fen(game.startPosId);
+      } catch (e) {
+        console.error('[AnalysisMode] Failed to generate 960 FEN:', e);
+      }
+    }
+
+    const chess = safeNewChess(startFen);
     try {
       for (let i = 0; i < activeIndex; i++) {
         try { chess.move(moves[i].move); } catch { /* ignore */ }
@@ -88,7 +107,7 @@ export const AnalysisMode: React.FC = () => {
     } catch {
       return undefined;
     }
-  }, [moves, activeIndex]);
+  }, [moves, activeIndex, game]);
 
   const { evaluation, variations } = useStockfish(currentDisplayFen);
 
@@ -156,7 +175,7 @@ export const AnalysisMode: React.FC = () => {
             <MoveList 
               moves={moves}
               onMoveClick={setActiveIndex}
-              selectedMoveIndex={activeIndex !== null ? activeIndex : undefined}
+              selectedMoveIndex={activeIndex}
             />
           </div>
         </div>

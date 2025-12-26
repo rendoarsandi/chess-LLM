@@ -25,8 +25,10 @@ export const adminMiddleware = async (c: Context, next: Next) => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             }
-        } as any;
+        } as unknown as ReturnType<typeof auth.api.getSession> extends Promise<infer T> ? T : never;
     }
+
+    if (!session) return c.json({ error: 'Unauthorized' }, 401);
 
     c.set("user", session.user);
     c.set("session", session.session);

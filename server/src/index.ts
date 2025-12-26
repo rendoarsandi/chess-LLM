@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { db } from './db'
+import { getDb } from './db'
 import { GameManager } from './game/game-manager'
 import { GameService } from './game/game.service'
 import { PlayerService } from './game/player.service'
@@ -55,10 +55,10 @@ app.use('*', cors())
 // Initialize services
 const gameManager = new GameManager()
 const socketService = new SocketService()
-const playerService = new PlayerService(db)
-const tournamentService = new TournamentService(db)
-const gameService = new GameService(db, gameManager, tournamentService, socketService)
-const gameReviewService = new GameReviewService(db)
+const playerService = new PlayerService(getDb())
+const tournamentService = new TournamentService(getDb())
+const gameService = new GameService(getDb(), gameManager, tournamentService, socketService)
+const gameReviewService = new GameReviewService(getDb())
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -128,6 +128,7 @@ const STOCKFISH_VERY_HIGH_ID = '00000000-0000-0000-0000-000000000013'
 
 export async function initializePlayers() {
     console.log('[Main] Synchronizing LLM configurations...')
+    const currentDb = getDb()
     
     const hardcodedModels = [
         { provider: 'gemini', modelId: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', rating: 2500 },
@@ -148,14 +149,14 @@ export async function initializePlayers() {
 
     // 1. Ensure built-in players exist in 'players' table
     for (const p of builtinPlayers) {
-        await db.insert(players).values({ ...p, peakRating: p.rating }).onConflictDoNothing()
+        await currentDb.insert(players).values({ ...p, peakRating: p.rating }).onConflictDoNothing()
     }
 
     // 2. Sync LLM configurations
     await playerService.syncHardcodedConfigs(hardcodedModels)
     
     // 3. Get all active IDs from configurations and builtin list
-    const activeConfigs = await db.select().from(llmConfigurations)
+    const activeConfigs = await currentDb.select().from(llmConfigurations)
     const activePlayerIds = [
         ...builtinPlayers.map(p => p.id),
         ...activeConfigs.filter((c: LLMConfig) => c.playerId).map((c: LLMConfig) => c.playerId)
@@ -163,10 +164,10 @@ export async function initializePlayers() {
 
     // 4. Remove any players NOT in the allowed list (orphaned test profiles)
     if (process.env.NODE_ENV !== 'test') {
-        const allDbPlayers = await db.select().from(players)
+        const allDbPlayers = await currentDb.select().from(players)
         for (const p of allDbPlayers) {
             if (!activePlayerIds.includes(p.id)) {
-                await db.delete(players).where(eq(players.id, p.id))
+                await currentDb.delete(players).where(eq(players.id, p.id))
                 console.log(`[Main] Deleted orphaned player profile: ${p.name} (${p.id})`)
             }
         }
@@ -178,15 +179,20 @@ export async function initializePlayers() {
     console.log('[Main] Player initialization complete.')
 }
 
-export const initPromise = initializePlayers().catch(console.error)
+// Export initPromise so tests can wait for it if they don't run initializePlayers themselves
+export let initPromise: Promise<void> | undefined
+
+if (process.env.NODE_ENV !== 'test') {
+  initPromise = initializePlayers().catch(console.error)
+}
 
 // Default LLM player for background loop (fallback) - will be overridden by registry
 const defaultLlmPlayer = { 
     makeMove: async () => null, 
     getLastThinking: () => null 
 }
-const gameLoopService = new GameLoopService(db, gameService, defaultLlmPlayer, socketService)
-const tournamentLoopService = new TournamentLoopService(db, tournamentService, gameService)
+const gameLoopService = new GameLoopService(getDb(), gameService, defaultLlmPlayer, socketService)
+const tournamentLoopService = new TournamentLoopService(getDb(), tournamentService, gameService)
 
 // Start background loop
 if (process.env.NODE_ENV !== 'test') {
@@ -221,7 +227,7 @@ app.get(
             logger.info(`[WebSocket] Received SUBMIT_MOVE for game ${msgGameId}: ${move}`)
 
             // 1. Authorize the user (Bypassed for dev)
-            let session = await auth.api.getSession({
+            const session = await auth.api.getSession({
               headers: c.req.raw.headers
             });
 
@@ -264,7 +270,7 @@ app.get(
 
 // API Routes
 app.get('/api/games', async (c) => {
-  const allGames = await db.select().from(games).orderBy(desc(games.createdAt))
+  const allGames = await getDb().select().from(games).orderBy(desc(games.createdAt))
   return c.json(allGames)
 })
 
@@ -277,12 +283,12 @@ app.get('/api/games/:id', async (c) => {
 
 app.get('/api/games/:id/moves', async (c) => {
   const gameId = c.req.param('id')
-  const results = await db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
+  const results = await getDb().select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
   return c.json(results)
 })
 
 app.get('/api/leaderboard', async (c) => {
-  const results = await db.select().from(players).orderBy(desc(players.rating))
+  const results = await getDb().select().from(players).orderBy(desc(players.rating))
   return c.json(results)
 })
 
@@ -297,16 +303,15 @@ app.delete('/api/games', adminMiddleware, async (c) => {
 
 app.delete('/api/games/:id', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
-  const user = c.get('user') as { id: string, email: string }
   
   const game = await gameService.getGame(id)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && user.email === adminEmail
-
   // Bypass check for dev
   /*
+  const user = c.get('user') as { id: string, email: string }
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
   if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden: You are not authorized to delete this game' }, 403)
   }
@@ -322,10 +327,10 @@ app.delete('/api/games/:id', authenticatedMiddleware, async (c) => {
 
 app.post('/api/games', authenticatedMiddleware, async (c) => {
   const body = await c.req.json()
-  const { whitePlayerId, blackPlayerId } = body
+  const { whitePlayerId, blackPlayerId, ...options } = body
   
   try {
-    const gameId = await gameService.createGame(whitePlayerId, blackPlayerId)
+    const gameId = await gameService.createGame(whitePlayerId, blackPlayerId, options)
     return c.json({ id: gameId }, 201)
   } catch (e) {
     return c.json({ error: (e as Error).message }, 400)
@@ -334,16 +339,15 @@ app.post('/api/games', authenticatedMiddleware, async (c) => {
 
 app.post('/api/games/:id/pause', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
-  const user = c.get('user') as { id: string, email: string }
   
   const game = await gameService.getGame(id)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && user.email === adminEmail
-
   // Bypass check for dev
   /*
+  const user = c.get('user') as { id: string, email: string }
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
   if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden' }, 403)
   }
@@ -359,16 +363,15 @@ app.post('/api/games/:id/pause', authenticatedMiddleware, async (c) => {
 
 app.post('/api/games/:id/resume', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
-  const user = c.get('user') as { id: string, email: string }
   
   const game = await gameService.getGame(id)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
-  const adminEmail = process.env.ADMIN_EMAIL
-  const isAdmin = adminEmail && user.email === adminEmail
-
   // Bypass check for dev
   /*
+  const user = c.get('user') as { id: string, email: string }
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
   if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden' }, 403)
   }
@@ -386,13 +389,13 @@ app.post('/api/games/:id/move', authenticatedMiddleware, async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   const { move, thinking } = body
-  const user = c.get('user') as { id: string }
 
   const game = await gameService.getGame(id)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
   // Verify authorization: User must be one of the players (if players are human) (Bypassed for dev)
   /*
+  const user = c.get('user') as { id: string }
   if (game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden: You are not a player in this game' }, 403)
   }
@@ -407,7 +410,7 @@ app.post('/api/games/:id/move', authenticatedMiddleware, async (c) => {
 })
 
 app.get('/api/players', async (c) => {
-  const allPlayers = await db.select().from(players)
+  const allPlayers = await getDb().select().from(players)
   return c.json(allPlayers)
 })
 
@@ -454,7 +457,7 @@ app.get('/api/players/:id/head-to-head', async (c) => {
 })
 
 app.get('/api/tournaments', async (c) => {
-  const allTournaments = await db.select().from(tournaments).orderBy(desc(tournaments.createdAt))
+  const allTournaments = await getDb().select().from(tournaments).orderBy(desc(tournaments.createdAt))
   return c.json(allTournaments)
 })
 
@@ -467,7 +470,7 @@ app.get('/api/tournaments/:id', async (c) => {
 
 app.get('/api/tournaments/:id/participants', async (c) => {
   const id = c.req.param('id')
-  const results = await db.select({
+  const results = await getDb().select({
     id: players.id,
     name: players.name,
     type: players.type,
@@ -489,20 +492,22 @@ app.get('/api/tournaments/:id/participants', async (c) => {
 
 app.get('/api/tournaments/:id/games', async (c) => {
   const id = c.req.param('id')
-  const results = await db.select().from(games).where(eq(games.tournamentId, id)).orderBy(desc(games.roundNumber), desc(games.createdAt))
+  const results = await getDb().select().from(games).where(eq(games.tournamentId, id)).orderBy(desc(games.roundNumber), desc(games.createdAt))
   return c.json(results)
 })
 
 // Game Review Routes
 app.post('/api/reviews/:gameId', authenticatedMiddleware, async (c) => {
   const gameId = c.req.param('gameId')
-  const user = c.get('user') as { id: string, email: string }
   
   const game = await gameService.getGame(gameId)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
   // Only players or admins can request a review (Bypassed for dev)
   /*
+  const user = c.get('user') as { id: string, email: string }
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
   if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden: You are not authorized to request a review for this game' }, 403)
   }
@@ -514,13 +519,15 @@ app.post('/api/reviews/:gameId', authenticatedMiddleware, async (c) => {
 
 app.get('/api/reviews/:gameId', authenticatedMiddleware, async (c) => {
   const gameId = c.req.param('gameId')
-  const user = c.get('user') as { id: string, email: string }
 
   const game = await gameService.getGame(gameId)
   if (!game) return c.json({ error: 'Game not found' }, 404)
 
   // Only players or admins can view review status/results (Bypassed for dev)
   /*
+  const user = c.get('user') as { id: string, email: string }
+  const adminEmail = process.env.ADMIN_EMAIL
+  const isAdmin = adminEmail && user.email === adminEmail
   if (!isAdmin && game.whitePlayerId !== user.id && game.blackPlayerId !== user.id) {
     return c.json({ error: 'Forbidden: You are not authorized to view the review for this game' }, 403)
   }

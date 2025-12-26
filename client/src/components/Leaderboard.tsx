@@ -156,9 +156,15 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
                   </TableCell>
                   <TableCell className="text-right hidden sm:table-cell py-4 px-4">
                     <div className="flex items-center justify-end gap-1 font-mono text-[10px] md:text-xs">
-                      <span className="text-emerald-500 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">{player.wins}W</span>
-                      <span className="text-red-500 font-bold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">{player.losses}L</span>
-                      <span className="text-muted-foreground font-bold bg-muted px-1.5 py-0.5 rounded border border-border">{player.draws}D</span>
+                      <span className="text-emerald-500 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        {variant === 'chess960' ? player.wins960 : player.wins}W
+                      </span>
+                      <span className="text-red-500 font-bold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
+                        {variant === 'chess960' ? player.losses960 : player.losses}L
+                      </span>
+                      <span className="text-muted-foreground font-bold bg-muted px-1.5 py-0.5 rounded border border-border">
+                        {variant === 'chess960' ? player.draws960 : player.draws}D
+                      </span>
                     </div>
                   </TableCell>
                 </motion.tr>

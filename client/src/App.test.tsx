@@ -1,5 +1,9 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import App from "./App"
 import * as api from "./api"
 import { MemoryRouter } from "react-router"
@@ -21,6 +25,21 @@ vi.mock("./api", () => ({
   getTournaments: vi.fn(),
 }))
 
+// Mock hooks to avoid WebSocket and async logic issues
+vi.mock("./hooks/useGameSocket", () => ({
+  useGameSocket: vi.fn(() => ({
+    lastUpdate: null,
+    thinkingStatus: 'idle',
+    spectatorCount: 0,
+    lastMessage: null,
+    sendMessage: vi.fn()
+  }))
+}))
+
+vi.mock("./hooks/useGameBot", () => ({
+  useGameBot: vi.fn()
+}))
+
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -37,17 +56,20 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 describe("App Integration", () => {
-  const mockPlayers: Player[] = [
-    { 
-      id: '1', name: 'Gemini 1.5 Pro', type: 'llm', rating: 1500, rating960: 1500, 
-      wins: 10, losses: 5, draws: 2, peakRating: 1550, peakRating960: 1550, createdAt: new Date().toISOString() 
-    },
-    { 
-      id: '2', name: 'Groq Llama 3', type: 'llm', rating: 1450, rating960: 1450, 
-      wins: 8, losses: 7, draws: 3, peakRating: 1480, peakRating960: 1480, createdAt: new Date().toISOString() 
-    },
-  ]
-
+    const mockPlayers: Player[] = [
+      {
+        id: '1', name: 'Gemini 1.5 Pro', type: 'llm', rating: 1500, rating960: 1500,
+        wins: 10, losses: 5, draws: 2, 
+        wins960: 5, losses960: 2, draws960: 1,
+        peakRating: 1550, peakRating960: 1550, createdAt: new Date().toISOString()
+      },
+      {
+        id: '2', name: 'Groq Llama 3', type: 'llm', rating: 1450, rating960: 1450,
+        wins: 8, losses: 7, draws: 3, 
+        wins960: 4, losses960: 3, draws960: 2,
+        peakRating: 1480, peakRating960: 1480, createdAt: new Date().toISOString()
+      },
+    ];
   const mockGame: Game = {
     id: 'game-123',
     whitePlayerId: '1',
@@ -159,17 +181,31 @@ describe("App Integration", () => {
   })
 
   it("allows navigating to the leaderboard", async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter initialEntries={["/arena"]}>
         <App />
       </MemoryRouter>
     )
 
-    const leaderboardLink = screen.getByText(/LEADERBOARD/i)
-    fireEvent.click(leaderboardLink)
+    // Find the LEADERBOARD link in the sidebar
+    const leaderboardLink = screen.getByRole('link', { name: /LEADERBOARD/i })
+    await user.click(leaderboardLink)
 
-    await waitFor(() => {
-      expect(screen.getByText(/Model Rankings/i)).toBeInTheDocument()
-    })
+    // Wait for the "Model Rankings" heading to appear
+    const heading = await screen.findByText(/Model Rankings/i)
+    
+    expect(heading).toBeInTheDocument()
+  })
+
+  it("renders the leaderboard when accessed directly", async () => {
+    render(
+      <MemoryRouter initialEntries={["/leaderboard"]}>
+        <App />
+      </MemoryRouter>
+    )
+
+    const heading = await screen.findByText(/Model Rankings/i)
+    expect(heading).toBeInTheDocument()
   })
 })

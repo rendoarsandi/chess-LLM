@@ -1,6 +1,5 @@
-import { Chess } from 'chess.js'
 import { Player } from './player.interface'
-import { generate960Fen } from '../lib/chess-utils'
+import { generate960Fen, safeNewChess } from '../lib/chess-utils'
 
 export interface GameState {
   whitePlayerId: string
@@ -25,7 +24,7 @@ export class GameManager {
     if ((options?.variant === '960' || options?.variant === 'chess960') && options.startPosId !== undefined) {
       fen = generate960Fen(options.startPosId);
     } else {
-      const chess = new Chess();
+      const chess = safeNewChess();
       fen = chess.fen();
     }
 
@@ -39,7 +38,7 @@ export class GameManager {
 
   isValidMove(fen: string, move: string): boolean {
     try {
-      const chess = new Chess(fen)
+      const chess = safeNewChess(fen)
       const result = chess.move(move)
       return !!result
     } catch {
@@ -48,18 +47,18 @@ export class GameManager {
   }
 
   getNextState(fen: string, move: string): string {
-    const chess = new Chess(fen)
+    const chess = safeNewChess(fen)
     chess.move(move)
     return chess.fen()
   }
 
   isGameOver(fen: string): boolean {
-    const chess = new Chess(fen)
+    const chess = safeNewChess(fen)
     return chess.isGameOver()
   }
 
   getWinner(fen: string): 'white' | 'black' | 'draw' | null {
-    const chess = new Chess(fen)
+    const chess = safeNewChess(fen)
     if (!chess.isGameOver()) return null
     if (chess.isCheckmate()) {
       return chess.turn() === 'w' ? 'black' : 'white'

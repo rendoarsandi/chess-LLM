@@ -19,8 +19,8 @@ describe('System Player Registration Integration', () => {
     await db.delete(llmConfigurations)
     await db.delete(tournamentParticipants)
     await db.delete(games)
-    await db.delete(players)
     await db.delete(tournaments)
+    await db.delete(players)
   })
 
   it('should have Groq models registered in the database', async () => {

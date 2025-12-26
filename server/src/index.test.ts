@@ -38,7 +38,8 @@ describe('API Endpoints', () => {
         ipAddress: null,
         userAgent: null
       }
-    })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
     process.env.ADMIN_EMAIL = 'admin@example.com'
   })
 

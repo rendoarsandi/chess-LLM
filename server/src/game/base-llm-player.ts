@@ -1,5 +1,5 @@
 import { Player } from './player.interface'
-import { Chess } from 'chess.js'
+import { safeNewChess } from '../lib/chess-utils'
 import { logger } from './logger'
 
 export interface LlmService {
@@ -27,7 +27,7 @@ export abstract class BaseLlmPlayer implements Player {
   }
 
   async makeMove(fen: string, history: string[] = [], variant: string = 'standard'): Promise<string | null> {
-    const chess = new Chess(fen)
+    const chess = safeNewChess(fen)
     const legalMoves = chess.moves()
     let currentPrompt = this.constructPrompt(fen, history, legalMoves, variant)
     let attempts = 0
@@ -112,7 +112,7 @@ Return your response in the EXACT JSON format requested.`
   }
 
   protected constructPrompt(fen: string, history: string[], legalMoves: string[], variant: string): string {
-    const chess = new Chess(fen)
+    const chess = safeNewChess(fen)
     const turn = chess.turn() === 'w' ? 'White' : 'Black'
     const asciiBoard = chess.ascii()
     

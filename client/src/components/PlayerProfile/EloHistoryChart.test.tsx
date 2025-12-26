@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react';
 import { EloHistoryChart } from './EloHistoryChart';
 

@@ -25,6 +25,9 @@ export interface Player {
   wins: number
   losses: number
   draws: number
+  wins960: number
+  losses960: number
+  draws960: number
   peakRating: number
   peakRating960: number
   version?: string
