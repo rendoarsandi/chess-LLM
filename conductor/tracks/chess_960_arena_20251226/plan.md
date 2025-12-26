@@ -2,9 +2,9 @@
 
 ## Phase 1: Database & Core Logic
 - [x] Task: Database Schema Migration (cd46261)
-    - [ ] Sub-task: Update `games` table schema to include `variant` (enum/text, default 'standard') and `start_pos_id` (int, nullable).
-    - [ ] Sub-task: Update `players` (or rankings) table to include `elo_960` column.
-    - [ ] Sub-task: Generate and apply Drizzle migrations.
+    - [x] Sub-task: Update `games` table schema to include `variant` (enum/text, default 'standard') and `start_pos_id` (int, nullable).
+    - [x] Sub-task: Update `players` (or rankings) table to include `elo_960` column.
+    - [x] Sub-task: Generate and apply Drizzle migrations.
 - [x] Task: Chess 960 Logic Implementation (1b08e2d)
     - [x] Sub-task: Implement a utility in `chess-utils.ts` to generate Chess 960 starting FENs based on an SP-ID (0-959).
     - [x] Sub-task: Write unit tests to verify FEN generation and validity for a sample of SP-IDs.
