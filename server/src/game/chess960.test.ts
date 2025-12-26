@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { GameService } from './game.service'
 import { GameManager } from './game-manager'
-import { players, games } from '../db/schema'
+import { players } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import { AppDatabase } from '../db/types'
 import { db } from '../db'
