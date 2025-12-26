@@ -11,14 +11,14 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Core Logic' (Protocol in workflow.md)
 
 ## Phase 2: Backend Game Loop & Services
-- [~] Task: Update Game Service
+- [x] Task: Update Game Service (889b6f0)
     - [x] Sub-task: Modify game creation logic to accept a `variant` parameter.
-    - [ ] Sub-task: Implement "True Random" logic to select SP-ID 0-959 when creating a 960 game.
-    - [ ] Sub-task: Ensure `chess.js` instance is initialized correctly with the 960 FEN.
-- [~] Task: Update Rating Service
+    - [x] Sub-task: Implement "True Random" logic to select SP-ID 0-959 when creating a 960 game.
+    - [x] Sub-task: Ensure `chess.js` instance is initialized correctly with the 960 FEN.
+- [x] Task: Update Rating Service (889b6f0)
     - [x] Sub-task: Modify ELO calculation to read/write to `elo_960` when the game variant is 'chess960'.
     - [x] Sub-task: Ensure mixed-variant history doesn't corrupt standard ratings.
-- [ ] Task: Bot Integration Updates
+- [~] Task: Bot Integration Updates
     - [ ] Sub-task: Verify and update `useGameBot` or backend prompts to ensure bots receive the full board state (FEN) clearly, as standard opening books apply differently.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
 
