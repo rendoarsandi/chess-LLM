@@ -1,102 +1,11 @@
+import type { 
+  Game, Player, Move, PlayerStats, EloSnapshot, HeadToHeadRecord, 
+  LLMConfig, Tournament, TournamentParticipant, GameReview, MoveAnalysis 
+} from './types'
+
 const API_URL = '/api'
 
-export interface Game {
-  id: string
-  whitePlayerId: string
-  blackPlayerId: string
-  status: 'ongoing' | 'completed' | 'draw' | 'paused'
-  variant: 'standard' | 'chess960'
-  startPosId?: number | null
-  fen: string
-  winnerId: string | null
-  gameOverReason?: string | null
-  tournamentId?: string | null
-  roundNumber?: number | null
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Player {
-  id: string
-  name: string
-  type: 'llm' | 'human'
-  rating: number
-  rating960: number
-  wins: number
-  losses: number
-  draws: number
-  wins960: number
-  losses960: number
-  draws960: number
-  peakRating: number
-  peakRating960: number
-  version?: string
-  provider?: string
-  bio?: string
-  createdAt: string
-}
-
-export interface PlayerStats {
-  favoriteOpenings: { opening: string, count: number }[]
-  avgThinkingMs: number | null
-}
-
-export interface EloSnapshot {
-  id: number
-  playerId: string
-  rating: number
-  gameId: string | null
-  createdAt: string
-}
-
-export interface HeadToHeadRecord {
-  opponentId: string
-  opponentName: string
-  wins: number
-  losses: number
-  draws: number
-}
-
-export interface LLMConfig {
-  id: number
-  provider: string
-  modelId: string
-  apiKey: string | null
-  isActive: boolean
-  isHardcoded: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Move {
-  id: number
-  gameId: string
-  moveNumber: number
-  playerColor: 'white' | 'black'
-  move: string
-  fen: string
-  opening?: string
-  candidates?: string
-  reasoning?: string
-  thinkingMs?: number
-  createdAt?: string
-}
-
-export interface Tournament {
-  id: string
-  name: string
-  status: 'scheduled' | 'active' | 'completed'
-  startTime: string
-  timeControlSettings: string | null
-  currentRound: number
-  totalRounds: number
-  createdAt: string
-}
-
-export interface TournamentParticipant extends Player {
-  score: number
-  buchholz: number
-}
+export type { Game, Player, Move, PlayerStats, EloSnapshot, HeadToHeadRecord, LLMConfig, Tournament, TournamentParticipant, GameReview, MoveAnalysis }
 
 export async function getGames(): Promise<Game[]> {
   const res = await fetch(`${API_URL}/games`)
@@ -269,34 +178,12 @@ export async function getTournamentParticipants(id: string): Promise<TournamentP
   return res.json()
 }
 
-export async function getTournamentParticipantsGrouped(id: string): Promise<TournamentParticipant[]> {
-  const res = await fetch(`${API_URL}/tournaments/${id}/participants`)
-  return res.json()
-}
-
 export async function getTournamentGames(id: string): Promise<Game[]> {
   const res = await fetch(`${API_URL}/tournaments/${id}/games`)
   return res.json()
 }
 
 // Game Review API
-export interface GameReview {
-  id: string;
-  gameId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  workerId?: string;
-  progressCurrent: number;
-  progressTotal: number;
-}
-
-export interface MoveAnalysis {
-  moveNumber: number;
-  playerColor: 'white' | 'black';
-  classification: string;
-  evaluation: number;
-  bestLine?: string;
-}
-
 export async function requestReview(gameId: string): Promise<GameReview> {
   const res = await fetch(`${API_URL}/reviews/${gameId}`, { method: 'POST' });
   if (!res.ok) {

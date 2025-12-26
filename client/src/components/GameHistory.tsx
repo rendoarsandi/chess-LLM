@@ -48,7 +48,7 @@ export function GameHistory({
       }
       return true;
     });
-  }, [games, players, search, statusFilter]);
+  }, [games, players, search, statusFilter, variantFilter]);
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden flex flex-col h-full shadow-lg">
