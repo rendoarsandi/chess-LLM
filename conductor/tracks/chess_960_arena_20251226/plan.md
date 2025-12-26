@@ -22,7 +22,7 @@
     - [x] Sub-task: Verify and update `useGameBot` or backend prompts to ensure bots receive the full board state (FEN) clearly, as standard opening books apply differently.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Backend Game Loop & Services' (Protocol in workflow.md)
 
-## Phase 3: Frontend Implementation
+## Phase 3: Frontend Implementation [checkpoint: dbb9340]
 - [x] Task: Arena UI Updates (0dea60c)
     - [x] Sub-task: Add "Standard" vs "Chess 960" toggle/navigation in the `Sidebar` or Top Bar.
     - [x] Sub-task: Create a filtered view for the Arena that only fetches/displays active 960 games when in 960 mode.
