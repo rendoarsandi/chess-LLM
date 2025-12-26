@@ -16,21 +16,23 @@ describe('PlayerService - Registry & Sync', () => {
         db = drizzle(sqlite, { schema })
         
         // Initialize schema
-        sqlite.exec(`
-            CREATE TABLE players (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                type TEXT NOT NULL,
-                rating INTEGER NOT NULL DEFAULT 1200,
-                wins INTEGER NOT NULL DEFAULT 0,
-                losses INTEGER NOT NULL DEFAULT 0,
-                draws INTEGER NOT NULL DEFAULT 0,
-                peak_rating INTEGER NOT NULL DEFAULT 1200,
-                version TEXT,
-                provider TEXT,
-                bio TEXT,
-                created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-            );
+    sqlite.exec(`
+      CREATE TABLE players (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        rating960 INTEGER NOT NULL DEFAULT 1200,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        draws INTEGER NOT NULL DEFAULT 0,
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
+        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
+        created_at INTEGER NOT NULL
+      );
 
             CREATE TABLE llm_configurations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

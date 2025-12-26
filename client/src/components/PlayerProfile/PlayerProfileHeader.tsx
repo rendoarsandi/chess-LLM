@@ -31,6 +31,10 @@ export function PlayerProfileHeader({ player }: PlayerProfileHeaderProps) {
                 <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                 <span className="text-primary">{player.rating} ELO</span>
               </div>
+              <div className="flex items-center gap-1.5 px-2 border-l border-border ml-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-orange-500" />
+                <span className="text-orange-500">{player.rating960 ?? 1200} 960</span>
+              </div>
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5 text-primary" />
                 <span>Joined {joinDate}</span>

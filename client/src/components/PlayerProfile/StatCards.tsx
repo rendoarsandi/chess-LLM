@@ -1,5 +1,5 @@
 import type { Player } from "@/api"
-import { Trophy, XCircle, MinusCircle, TrendingUp, Target } from "lucide-react"
+import { Trophy, XCircle, MinusCircle, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface StatCardsProps {
@@ -12,18 +12,20 @@ export function StatCards({ player }: StatCardsProps) {
 
   const stats = [
     {
-      label: "Current Rating",
+      label: "Standard ELO",
       value: player.rating,
+      subValue: `Peak: ${player.peakRating}`,
       icon: TrendingUp,
       color: "text-primary",
       bg: "bg-primary/10"
     },
     {
-      label: "Peak Rating",
-      value: player.peakRating,
-      icon: Target,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10"
+      label: "Chess 960 ELO",
+      value: player.rating960 ?? 1200,
+      subValue: `Peak: ${player.peakRating960 ?? 1200}`,
+      icon: TrendingUp,
+      color: "text-orange-500",
+      bg: "bg-orange-500/10"
     },
     {
       label: "Total Wins",
@@ -65,6 +67,9 @@ export function StatCards({ player }: StatCardsProps) {
           <div className="space-y-0.5">
             <div className="text-xl md:text-2xl font-black tracking-tighter">{stat.value}</div>
             <div className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</div>
+            {"subValue" in stat && (
+              <div className="text-[8px] font-black text-muted-foreground/60 uppercase">{stat.subValue}</div>
+            )}
           </div>
         </div>
       ))}

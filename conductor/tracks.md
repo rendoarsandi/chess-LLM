@@ -8,6 +8,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [~] Track: Dedicated Chess 960 (Fischer Random) Arena with separate rating and True Random start position generation.
+*Link: [./conductor/tracks/chess_960_arena_20251226/](./conductor/tracks/chess_960_arena_20251226/)*
+
 ## Archived Tracks
 
 ### [x] Track: Comprehensive polish of the application UI/UX, including visual consistency, mobile responsiveness, and interactive feedback.

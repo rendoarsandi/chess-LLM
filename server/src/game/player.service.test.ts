@@ -19,16 +19,17 @@ describe('PlayerService', () => {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
-        rating REAL NOT NULL,
-        peak_rating REAL NOT NULL,
-        provider TEXT,
-        version TEXT,
-        bio TEXT,
+        rating INTEGER NOT NULL DEFAULT 1200,
+        rating960 INTEGER NOT NULL DEFAULT 1200,
         wins INTEGER NOT NULL DEFAULT 0,
         losses INTEGER NOT NULL DEFAULT 0,
         draws INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        peak_rating INTEGER NOT NULL DEFAULT 1200,
+        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
+        version TEXT,
+        provider TEXT,
+        bio TEXT,
+        created_at INTEGER NOT NULL
       );
 
       CREATE TABLE llm_configurations (
@@ -58,6 +59,8 @@ describe('PlayerService', () => {
         fen TEXT NOT NULL,
         pgn TEXT,
         status TEXT NOT NULL,
+        variant TEXT NOT NULL DEFAULT 'standard',
+        start_pos_id INTEGER,
         winner_id TEXT,
         game_over_reason TEXT,
         tournament_id TEXT,
