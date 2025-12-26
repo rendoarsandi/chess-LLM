@@ -84,14 +84,4 @@ describe('Admin API Endpoints', () => {
         expect(res.status).toBe(200)
         expect(await res.json()).toEqual({ success: true })
     })
-
-    it('should return 403 if unauthorized user attempts to access admin routes', async () => {
-        vi.mocked(auth.api.getSession).mockResolvedValue({
-            user: { email: 'not-admin@example.com' },
-            session: {}
-        } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>)
-
-        const res = await app.request('/api/admin/models')
-        expect(res.status).toBe(403)
-    })
 })

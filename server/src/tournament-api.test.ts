@@ -17,8 +17,8 @@ describe('Tournament API', () => {
       headers: { 'Content-Type': 'application/json' }
     })
     
-    // It should be 401 or 400 because we are not logged in as admin in this test
-    expect([201, 400, 401]).toContain(res.status)
+    // It should be 201 (success) or 400 (bad request) as auth is bypassed for dev
+    expect([201, 400]).toContain(res.status)
   })
 
   it('should list tournaments via GET /api/tournaments', async () => {

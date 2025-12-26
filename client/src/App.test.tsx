@@ -140,7 +140,7 @@ describe("App Integration", () => {
     vi.mocked(api.getMoves).mockResolvedValue(invalidMoves)
     vi.mocked(api.getGame).mockResolvedValue({
       ...mockGame,
-      status: 'black_win',
+      status: 'completed',
       winnerId: '2',
       gameOverReason: 'illegal move detected'
     })

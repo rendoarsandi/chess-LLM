@@ -90,6 +90,8 @@ interface ArenaContentProps {
   showResultOverlay: boolean;
   whitePlayerId: string;
   blackPlayerId: string;
+  setWhitePlayerId: (id: string) => void;
+  setBlackPlayerId: (id: string) => void;
   isCreatingGame: boolean;
   hasOngoingGame: boolean;
   handleCreateGame: (whiteId: string, blackId: string, variant?: string) => Promise<void>;
@@ -98,6 +100,7 @@ interface ArenaContentProps {
   setActiveMoveIndex: (index: number | null) => void;
   activeMoveIndex: number | null;
   moves: Move[];
+  players: Player[];
   setBoardOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
   spectatorCount: number;
   thinkingStatus: 'thinking' | 'idle';
@@ -114,10 +117,10 @@ const STOCKFISH_IDS = [
 function ArenaContent({ 
   whitePlayer, blackPlayer, isMobile, whiteThinking, blackThinking, evaluation, variations, isThinking,
   isLive, selectedGame, currentDisplayFen, boardOrientation, lastMoveSquares, 
-  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId,
+  currentPgn, showResultOverlay, whitePlayerId, blackPlayerId, setWhitePlayerId, setBlackPlayerId,
   isCreatingGame, hasOngoingGame, 
   handleCreateGame, handleTogglePause, setShowResultOverlay, setActiveMoveIndex, activeMoveIndex, 
-  moves, setBoardOrientation, spectatorCount, thinkingStatus, variant
+  moves, players, setBoardOrientation, spectatorCount, thinkingStatus, variant
 }: ArenaContentProps) {
   const turn = (currentDisplayFen || '').split(' ')[1] || 'w';
   const isWhiteTurn = turn === 'w';
@@ -394,6 +397,52 @@ function ArenaContent({
                   <MoveList moves={moves} onMoveClick={setActiveMoveIndex} selectedMoveIndex={activeMoveIndex !== null ? activeMoveIndex : moves.length - 1} isLive={isLive} />
                 </ErrorBoundary>
               </CollapsibleSection>
+              
+              <CollapsibleSection title="Arena Controls">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
+                    <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
+                    <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                      <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                      {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                        <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                          {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                        </optgroup>
+                      )}
+                    </select>
+                  </div>
+                  <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
+                    {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
+                  </Button>
+                </div>
+              </CollapsibleSection>
             </div>
           </div>
 
@@ -434,6 +483,53 @@ function ArenaContent({
                 </div>
               </div>
             )}
+
+            <div className="bg-card p-6 rounded-lg border border-border shadow-sm">
+              <h2 className="text-xl font-bold uppercase tracking-tighter mb-4">Arena Controls</h2>
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">White Engine</label>
+                  <select value={whitePlayerId} onChange={(e) => setWhitePlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Black Engine</label>
+                  <select value={blackPlayerId} onChange={(e) => setBlackPlayerId(e.target.value)} className="w-full bg-muted text-foreground rounded border border-border px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <optgroup label="Google Gemini" className="text-primary font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'gemini').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="Groq Arena" className="text-orange-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'groq').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    <optgroup label="System Engines" className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background">
+                      {players.filter(p => p.provider === 'system').map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                    </optgroup>
+                    {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).length > 0 && (
+                      <optgroup label="Other" className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background">
+                        {players.filter(p => !['gemini', 'groq', 'system'].includes(p.provider || '')).map((p) => <option key={p.id} value={p.id} className="text-sm font-medium normal-case bg-background">{p.name}</option>)}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+                <Button className="w-full font-black tracking-widest" onClick={() => handleCreateGame(whitePlayerId, blackPlayerId, variant)} disabled={isCreatingGame || hasOngoingGame}>
+                  {isCreatingGame ? 'STARTING...' : hasOngoingGame ? 'MATCH IN PROGRESS' : 'LAUNCH MATCH'}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -518,7 +614,7 @@ function App() {
     setLastMoveFromUpdate(null);
     try {
       const options: { variant?: string, startPosId?: number } = { variant };
-      if (variant === '960') {
+      if (variant === 'chess960') {
         options.startPosId = Math.floor(Math.random() * 960);
       }
       const { id } = await createGame(whiteId, blackId, options);
@@ -828,10 +924,11 @@ function App() {
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
                     whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
                     isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
                     handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
                     setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-                    activeMoveIndex={activeMoveIndex} moves={moves}
+                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
                                           setBoardOrientation={setBoardOrientation}
                                           spectatorCount={spectatorCount}
                                           thinkingStatus={thinkingStatus}
@@ -848,10 +945,11 @@ function App() {
                     boardOrientation={boardOrientation} lastMoveSquares={lastMoveSquares}
                     currentPgn={currentPgn} showResultOverlay={showResultOverlay}
                     whitePlayerId={whitePlayerId} blackPlayerId={blackPlayerId}
+                    setWhitePlayerId={setWhitePlayerId} setBlackPlayerId={setBlackPlayerId}
                     isCreatingGame={isCreatingGame} hasOngoingGame={hasOngoingGame}
                     handleCreateGame={handleCreateGame} handleTogglePause={handleTogglePause}
                     setShowResultOverlay={setShowResultOverlay} setActiveMoveIndex={setActiveMoveIndex}
-                    activeMoveIndex={activeMoveIndex} moves={moves}
+                    activeMoveIndex={activeMoveIndex} moves={moves} players={players}
                                               setBoardOrientation={setBoardOrientation}
                                               spectatorCount={spectatorCount}
                                               thinkingStatus={thinkingStatus}

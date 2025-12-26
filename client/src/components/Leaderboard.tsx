@@ -103,7 +103,7 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
             </TableRow>
           </TableHeader>
           <TableBody>
-            <AnimatePresence initial={false} mode="wait">
+            <AnimatePresence initial={false}>
               {sortedPlayers.map((player, index) => (
                 <motion.tr
                   key={`${player.id}-${variant}`}

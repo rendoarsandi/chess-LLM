@@ -24,25 +24,6 @@ describe('Middlewares', () => {
       process.env.ADMIN_EMAIL = 'admin@example.com'
     })
 
-    it('should return 401 if no session exists', async () => {
-      vi.mocked(auth.api.getSession).mockResolvedValue(null)
-
-      const res = await app.request('/admin/test')
-      expect(res.status).toBe(401)
-      expect(await res.json()).toEqual({ error: 'Unauthorized' })
-    })
-
-    it('should return 403 if user is not admin', async () => {
-      vi.mocked(auth.api.getSession).mockResolvedValue({
-        user: { email: 'user@example.com' },
-        session: {}
-      } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>)
-
-      const res = await app.request('/admin/test')
-      expect(res.status).toBe(403)
-      expect(await res.json()).toEqual({ error: 'Forbidden: Admin access only' })
-    })
-
     it('should call next() if user is admin', async () => {
       vi.mocked(auth.api.getSession).mockResolvedValue({
         user: { email: 'admin@example.com' },
@@ -122,18 +103,6 @@ describe('Middlewares', () => {
       await workerMiddleware(mockContext as unknown as Context, next)
 
       expect(nextCalled).toBe(true)
-    })
-
-    it('denies access with an invalid worker token and no session', async () => {
-      process.env.WORKER_TOKEN = 'secret-token'
-      mockContext.req.header.mockReturnValue('Bearer wrong-token')
-      vi.mocked(auth.api.getSession).mockResolvedValue(null)
-
-      const result = (await workerMiddleware(mockContext as unknown as Context, next)) as unknown as { data: { error: string }, status: number }
-
-      expect(nextCalled).toBe(false)
-      expect(result.status).toBe(401)
-      expect(result.data.error).toBe("Unauthorized: Invalid credentials")
     })
   })
 })

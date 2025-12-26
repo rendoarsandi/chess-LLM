@@ -1,8 +1,7 @@
-import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, LogOut, LogIn, BarChart3, History } from "lucide-react"
+import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, BarChart3, History } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
-import { NavLink, useNavigate } from "react-router"
-import { authClient } from "@/lib/auth-client"
+import { NavLink } from "react-router"
 import { useEffect, useState } from "react"
 import { getTournaments } from "@/api"
 
@@ -19,12 +18,10 @@ interface NavItem {
 interface NavContentProps {
   isCollapsed: boolean;
   navItems: NavItem[];
-  session: { user: { id: string; name: string; email: string; image?: string | null }; session: { id: string; userId: string; expiresAt: Date; token: string; createdAt: Date; updatedAt: Date } } | null;
-  handleLogout: () => Promise<void>;
   onItemClick?: () => void;
 }
 
-function NavContent({ isCollapsed, navItems, session, handleLogout, onItemClick }: NavContentProps) {
+function NavContent({ isCollapsed, navItems, onItemClick }: NavContentProps) {
   return (
     <>
       <div className="flex flex-col w-full gap-2 px-3 flex-1">
@@ -65,53 +62,17 @@ function NavContent({ isCollapsed, navItems, session, handleLogout, onItemClick 
       </div>
 
       <div className="w-full px-3 mt-auto">
-        {session ? (
-          <Button
-            variant="ghost"
-            className={cn(
-              "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full text-destructive hover:bg-destructive/10 hover:text-destructive",
-              isCollapsed ? "justify-center" : "justify-start"
-            )}
-            onClick={() => {
-              handleLogout();
-              onItemClick?.();
-            }}
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            {!isCollapsed && (
-              <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300 text-left flex-1">
-                LOGOUT
-              </span>
-            )}
-            {isCollapsed && (
-              <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-destructive text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                LOGOUT
-              </span>
-            )}
-          </Button>
-        ) : (
-          <NavLink
-            to="/login"
-            onClick={onItemClick}
-            className={({ isActive }) => cn(
-              "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
-              isActive ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              isCollapsed ? "justify-center" : "justify-start"
-            )}
-          >
-            <LogIn className="h-5 w-5 shrink-0" />
-            {!isCollapsed && (
-              <span className="font-bold text-[10px] tracking-widest transition-opacity duration-300 text-left flex-1">
-                LOGIN
-              </span>
-            )}
-            {isCollapsed && (
-              <span className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded border border-border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                LOGIN
-              </span>
-            )}
-          </NavLink>
-        )}
+        <div className={cn(
+          "flex items-center gap-4 p-3 rounded-xl bg-primary/10 text-primary border border-primary/20",
+          isCollapsed ? "justify-center" : "justify-start"
+        )}>
+          <Settings className="h-5 w-5 shrink-0 animate-spin-slow" />
+          {!isCollapsed && (
+            <span className="font-bold text-[10px] tracking-widest uppercase">
+              DEV MODE
+            </span>
+          )}
+        </div>
       </div>
     </>
   )
@@ -126,8 +87,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, mobile }: SidebarProps) {
-  const { data: session } = authClient.useSession()
-  const navigate = useNavigate()
   const [hasLiveTournament, setHasLiveTournament] = useState(false)
 
   useEffect(() => {
@@ -151,21 +110,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
-    ...(session ? [
-      { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
-      { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
-    ] : []),
+    { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
+    { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
   ];
-
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          navigate("/")
-        }
-      }
-    })
-  }
 
   return (
     <nav className={cn(
@@ -197,8 +144,6 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
       <NavContent 
         isCollapsed={isCollapsed && !mobile} 
         navItems={navItems} 
-        session={session} 
-        handleLogout={handleLogout}
         onItemClick={onItemClick}
       />
     </nav>
