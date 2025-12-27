@@ -294,11 +294,10 @@ export class GameService {
     if (!whitePlayer || !blackPlayer || !game) return
 
     const is960 = game.variant === 'chess960'
-      // Calculate new ratings
-      const whiteRating = await this.getRating(game.whitePlayerId, game.variant);
-      const blackRating = await this.getRating(game.blackPlayerId, game.variant);
+    const whiteRating = await this.getRating(whiteId, game.variant)
+    const blackRating = await this.getRating(blackId, game.variant)
 
-      let whiteScore = 0.5
+    let whiteScore = 0.5
     let blackScore = 0.5
 
     if (status === 'completed') {
@@ -312,47 +311,25 @@ export class GameService {
     const newWhiteRating = whiteRating + whiteChange
     const newBlackRating = blackRating + blackChange
 
-    if (is960) {
-      await this.db.update(players)
-        .set({
-          rating960: newWhiteRating,
-          peakRating960: Math.max(whitePlayer.peakRating960, newWhiteRating),
-          wins960: whitePlayer.wins960 + (whiteScore === 1 ? 1 : 0),
-          losses960: whitePlayer.losses960 + (whiteScore === 0 ? 1 : 0),
-          draws960: whitePlayer.draws960 + (whiteScore === 0.5 ? 1 : 0),
-        })
-        .where(eq(players.id, whiteId))
+    const updatePlayer = async (id: string, player: typeof players.$inferSelect, newRating: number, score: number) => {
+      const updateData = is960 ? {
+        rating960: newRating,
+        peakRating960: Math.max(player.peakRating960, newRating),
+        wins960: player.wins960 + (score === 1 ? 1 : 0),
+        losses960: player.losses960 + (score === 0 ? 1 : 0),
+        draws960: player.draws960 + (score === 0.5 ? 1 : 0),
+      } : {
+        rating: newRating,
+        peakRating: Math.max(player.peakRating, newRating),
+        wins: player.wins + (score === 1 ? 1 : 0),
+        losses: player.losses + (score === 0 ? 1 : 0),
+        draws: player.draws + (score === 0.5 ? 1 : 0),
+      };
+      await this.db.update(players).set(updateData).where(eq(players.id, id));
+    };
 
-      await this.db.update(players)
-        .set({
-          rating960: newBlackRating,
-          peakRating960: Math.max(blackPlayer.peakRating960, newBlackRating),
-          wins960: blackPlayer.wins960 + (blackScore === 1 ? 1 : 0),
-          losses960: blackPlayer.losses960 + (blackScore === 0 ? 1 : 0),
-          draws960: blackPlayer.draws960 + (blackScore === 0.5 ? 1 : 0),
-        })
-        .where(eq(players.id, blackId))
-    } else {
-      await this.db.update(players)
-        .set({
-          rating: newWhiteRating,
-          peakRating: Math.max(whitePlayer.peakRating, newWhiteRating),
-          wins: whitePlayer.wins + (whiteScore === 1 ? 1 : 0),
-          losses: whitePlayer.losses + (whiteScore === 0 ? 1 : 0),
-          draws: whitePlayer.draws + (whiteScore === 0.5 ? 1 : 0),
-        })
-        .where(eq(players.id, whiteId))
-
-      await this.db.update(players)
-        .set({
-          rating: newBlackRating,
-          peakRating: Math.max(blackPlayer.peakRating, newBlackRating),
-          wins: blackPlayer.wins + (blackScore === 1 ? 1 : 0),
-          losses: blackPlayer.losses + (blackScore === 0 ? 1 : 0),
-          draws: blackPlayer.draws + (blackScore === 0.5 ? 1 : 0),
-        })
-        .where(eq(players.id, blackId))
-    }
+    await updatePlayer(whiteId, whitePlayer, newWhiteRating, whiteScore);
+    await updatePlayer(blackId, blackPlayer, newBlackRating, blackScore);
 
     // Record history
     await this.db.insert(ratingHistory).values([
@@ -361,14 +338,14 @@ export class GameService {
     ])
 
     // Update tournament scores if applicable
-    if (this.ts && gameId) {
+    if (this.ts && game.tournamentId) {
       if (status === 'draw') {
-        await this.ts.updateParticipantScore(game.tournamentId!, whiteId, 5)
-        await this.ts.updateParticipantScore(game.tournamentId!, blackId, 5)
+        await this.ts.updateParticipantScore(game.tournamentId, whiteId, 5)
+        await this.ts.updateParticipantScore(game.tournamentId, blackId, 5)
       } else if (status === 'completed' && winnerId) {
         const loserId = winnerId === whiteId ? blackId : whiteId
-        await this.ts.updateParticipantScore(game.tournamentId!, winnerId, 10)
-        await this.ts.updateParticipantScore(game.tournamentId!, loserId, 0)
+        await this.ts.updateParticipantScore(game.tournamentId, winnerId, 10)
+        await this.ts.updateParticipantScore(game.tournamentId, loserId, 0)
       }
     }
   }

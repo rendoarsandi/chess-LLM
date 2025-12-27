@@ -8,20 +8,36 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
   const [variations, setVariations] = useState<Record<number, EngineEvaluation>>({});
   const [isThinking, setIsThinking] = useState(false);
   const engineRef = useRef<StockfishWorker | null>(null);
-  const lastFenRef = useRef<string | null>(null);
+  const activeFenRef = useRef<string | null>(null);
+  const lastEvaluatedFenRef = useRef<string | null>(null);
+  const STABILITY_THRESHOLD = 10;
 
   const onEngineMessage = useCallback((evalData: EngineEvaluation) => {
-    // We only update the main evaluation for the bar if it's the primary line (MultiPV 1)
-    if (evalData.multipv === 1) {
-      setEvaluation(evalData);
+    const currentFen = activeFenRef.current;
+    if (!currentFen) return;
+
+    const isNewFen = currentFen !== lastEvaluatedFenRef.current;
+
+    // If it's a new FEN, wait for stability before clearing/replacing the old data
+    if (isNewFen && evalData.depth < STABILITY_THRESHOLD) {
+      return; 
     }
-    
-    // Track all variations for potential UI display (Top 3 lines)
-    if (evalData.multipv) {
+
+    // If we reached stability for the new FEN, or it's an update for the already stable FEN
+    if (isNewFen && evalData.depth >= STABILITY_THRESHOLD) {
+      lastEvaluatedFenRef.current = currentFen;
+      // Clear variations entirely when we transition to the new FEN
+      setVariations({ [evalData.multipv || 1]: evalData });
+    } else {
+      // Normal update for current stable FEN
       setVariations(prev => ({
         ...prev,
-        [evalData.multipv!]: evalData
+        [evalData.multipv || 1]: evalData
       }));
+    }
+
+    if (evalData.multipv === 1) {
+      setEvaluation(evalData);
     }
   }, []);
 
@@ -44,41 +60,22 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
   }, [onEngineMessage, handleBestMove]);
 
   useEffect(() => {
-    if (fen && engineRef.current && fen !== lastFenRef.current) {
-      lastFenRef.current = fen;
+    if (fen && engineRef.current && fen !== activeFenRef.current) {
+      activeFenRef.current = fen;
       
-      // Clear previous analysis state immediately to avoid stale data
-      // Use setTimeout to satisfy ESLint react-hooks/set-state-in-effect
-      setTimeout(() => {
-        setEvaluation(null);
-        setVariations({});
-      }, 0);
-      
-      // Immediate detection of terminal positions to avoid stale evaluations
+      // Immediate detection of terminal positions
       try {
         const chess = safeNewChess(fen);
         if (chess.isGameOver()) {
           const sideToMove = fen.split(' ')[1] as 'w' | 'b';
           
-          // Use setTimeout to avoid synchronous setState in effect
           setTimeout(() => {
-            if (chess.isCheckmate()) {
-              setEvaluation({
-                score: 0,
-                isMate: true,
-                mateIn: 0,
-                depth: 0,
-                sideToMove
-              });
-            } else {
-              // Draw
-              setEvaluation({
-                score: 0,
-                isMate: false,
-                depth: 0,
-                sideToMove
-              });
-            }
+            const finalEval = chess.isCheckmate() 
+              ? { score: 0, isMate: true, mateIn: 0, depth: 0, sideToMove }
+              : { score: 0, isMate: false, depth: 0, sideToMove };
+            
+            setEvaluation(finalEval);
+            setVariations({ 1: finalEval });
             setIsThinking(false);
           }, 0);
           return;
@@ -87,16 +84,13 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
         console.warn('[useStockfish] Invalid FEN:', fen, e);
       }
 
-      // We use a small timeout to avoid "setState in effect" lint error for synchronous calls
       setTimeout(() => setIsThinking(true), 0);
       
-      // Debounce analysis to prevent crashes during rapid move navigation
-      // 250ms is safer for WASM stability during rapid history browsing
       const timeoutId = setTimeout(() => {
         if (engineRef.current) {
           engineRef.current.analyze(fen, 18);
         }
-      }, 250);
+      }, 150); // Reduced delay slightly for better responsiveness
 
       return () => {
         clearTimeout(timeoutId);

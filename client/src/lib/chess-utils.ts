@@ -1,9 +1,18 @@
-import { Chess } from 'chess.js';
+import { Chess } from 'chess.js'
+import type { Player } from '../types'
 
-/**
- * Creates a new Chess instance safely, handling Chess 960 FENs if necessary.
- */
-export function safeNewChess(fen?: string): Chess {
+export const STOCKFISH_IDS = [
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000011',
+  '00000000-0000-0000-0000-000000000012',
+  '00000000-0000-0000-0000-000000000013'
+];
+
+export function isPlayerNonLLM(player?: Player | { id: string }) {
+  return !!(player?.id && STOCKFISH_IDS.includes(player.id));
+}
+
+export function safeNewChess(fen?: string) {
   if (!fen) return new Chess();
   
   try {

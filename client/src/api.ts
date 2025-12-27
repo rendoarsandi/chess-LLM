@@ -9,13 +9,19 @@ export type { Game, Player, Move, PlayerStats, EloSnapshot, HeadToHeadRecord, LL
 
 export async function getGames(): Promise<Game[]> {
   const res = await fetch(`${API_URL}/games`)
-  if (!res.ok) throw new Error('Failed to fetch games')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch games')
+  }
   return res.json()
 }
 
 export async function getGame(id: string): Promise<Game> {
   const res = await fetch(`${API_URL}/games/${id}`)
-  if (!res.ok) throw new Error('Failed to fetch game')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch game')
+  }
   return res.json()
 }
 
@@ -23,7 +29,10 @@ export async function deleteGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}`, {
     method: 'DELETE'
   })
-  if (!res.ok) throw new Error('Failed to delete game')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to delete game')
+  }
   return res.json()
 }
 
@@ -31,7 +40,10 @@ export async function pauseGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}/pause`, {
     method: 'POST'
   })
-  if (!res.ok) throw new Error('Failed to pause game')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to pause game')
+  }
   return res.json()
 }
 
@@ -39,13 +51,19 @@ export async function resumeGame(id: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games/${id}/resume`, {
     method: 'POST'
   })
-  if (!res.ok) throw new Error('Failed to resume game')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to resume game')
+  }
   return res.json()
 }
 
 export async function getMoves(gameId: string): Promise<Move[]> {
   const res = await fetch(`${API_URL}/games/${gameId}/moves`)
-  if (!res.ok) throw new Error('Failed to fetch moves')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch moves')
+  }
   return res.json()
 }
 
@@ -55,7 +73,10 @@ export async function createGame(whitePlayerId: string, blackPlayerId: string, o
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ whitePlayerId, blackPlayerId, ...options }),
   })
-  if (!response.ok) throw new Error('Failed to create game')
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to create game')
+  }
   return response.json()
 }
 
@@ -74,37 +95,55 @@ export async function makeMove(id: string, move: string, thinking?: { reasoning?
 
 export async function getPlayers(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/players`)
-  if (!res.ok) throw new Error('Failed to fetch players')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch players')
+  }
   return res.json()
 }
 
 export async function getLeaderboard(): Promise<Player[]> {
   const res = await fetch(`${API_URL}/leaderboard`)
-  if (!res.ok) throw new Error('Failed to fetch leaderboard')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch leaderboard')
+  }
   return res.json()
 }
 
 export async function getPlayerStats(id: string): Promise<PlayerStats> {
   const res = await fetch(`${API_URL}/players/${id}/stats`)
-  if (!res.ok) throw new Error('Failed to fetch player stats')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch player stats')
+  }
   return res.json()
 }
 
 export async function getPlayerProfile(id: string): Promise<Player> {
   const res = await fetch(`${API_URL}/players/${id}/profile`)
-  if (!res.ok) throw new Error('Failed to fetch player profile')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch player profile')
+  }
   return res.json()
 }
 
 export async function getEloHistory(id: string, period: string = 'all'): Promise<EloSnapshot[]> {
   const res = await fetch(`${API_URL}/players/${id}/elo-history?period=${period}`)
-  if (!res.ok) throw new Error('Failed to fetch ELO history')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch ELO history')
+  }
   return res.json()
 }
 
 export async function getHeadToHead(id: string): Promise<HeadToHeadRecord[]> {
   const res = await fetch(`${API_URL}/players/${id}/head-to-head`)
-  if (!res.ok) throw new Error('Failed to fetch head-to-head records')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch head-to-head records')
+  }
   return res.json()
 }
 
@@ -112,7 +151,10 @@ export async function clearHistory(): Promise<{ success: boolean }> {
   const res = await fetch(`${API_URL}/games`, {
     method: 'DELETE'
   })
-  if (!res.ok) throw new Error('Failed to clear history')
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to clear history')
+  }
   return res.json()
 }
 

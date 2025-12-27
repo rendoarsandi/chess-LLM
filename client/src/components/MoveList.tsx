@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Move } from "@/api";
 import { cn } from "@/lib/utils";
 import { uciToSan, pvToSan } from "@/lib/chess-utils";
@@ -13,6 +14,15 @@ interface MoveListProps {
 }
 
 export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, variations, isEngineThinking }: MoveListProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when moves change
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [moves.length]);
+
   // Group moves into pairs for the table
   const pairs: { number: number, white?: { m: Move, idx: number, displayMove: string }, black?: { m: Move, idx: number, displayMove: string } }[] = []
   moves.forEach((move, originalIdx) => {
@@ -34,7 +44,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, variat
     : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-xl flex flex-col h-full min-h-[450px]">
+    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-xl flex flex-col h-[500px]">
       {/* Engine Analysis (NOW ON TOP) */}
       <div className="p-3 border-b border-border bg-muted/20 shrink-0">
         <div className="flex items-center justify-between mb-2">
@@ -91,7 +101,7 @@ export function MoveList({ moves, onMoveClick, selectedMoveIndex, isLive, variat
       </div>
 
       {/* Move History Table (NOW BELOW) */}
-      <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-2 custom-scrollbar">
         <table className="w-full text-xs border-separate border-spacing-y-0.5">
           <tbody>
             {pairs.map((pair) => (
