@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { adminMiddleware } from '../middleware/admin'
 import { llmConfigService } from '../db/llm_config'
 import { TournamentService } from '../game/tournament.service'
+import { getSqliteClient } from '../db'
 
 export const adminRoutes = (tournamentService: TournamentService) => {
   const admin = new Hono()
@@ -53,6 +54,36 @@ export const adminRoutes = (tournamentService: TournamentService) => {
       return c.json(tournament, 201)
     } catch (e) {
       return c.json({ error: (e as Error).message }, 400)
+    }
+  })
+
+  // DB Execution endpoints for Dev Console
+  admin.post('/db/execute', async (c) => {
+    const { sql } = await c.req.json()
+    if (!sql) return c.json({ error: 'SQL query is required' }, 400)
+
+    try {
+      const sqlite = getSqliteClient()
+      const stmt = sqlite.prepare(sql)
+      let result
+      if (sql.trim().toUpperCase().startsWith('SELECT') || sql.trim().toUpperCase().startsWith('PRAGMA')) {
+        result = stmt.all()
+      } else {
+        result = stmt.run()
+      }
+      return c.json({ success: true, result })
+    } catch (e) {
+      return c.json({ success: false, error: (e as Error).message }, 400)
+    }
+  })
+
+  admin.get('/db/tables', async (c) => {
+    try {
+      const sqlite = getSqliteClient()
+      const tables = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table'").all()
+      return c.json({ success: true, tables })
+    } catch (e) {
+      return c.json({ success: false, error: (e as Error).message }, 400)
     }
   })
 

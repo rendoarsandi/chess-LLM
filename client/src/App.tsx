@@ -8,7 +8,7 @@ import type { Game, Move, Player } from "@/types"
 import { useStockfish } from "./lib/stockfish/useStockfish"
 import { Menu } from "lucide-react"
 import { cn } from "./lib/utils"
-import { Routes, Route, useNavigate, useLocation, useParams } from "react-router"
+import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router"
 import { toast } from "sonner"
 import { useGameSocket } from "./hooks/useGameSocket"
 import { useGameBot } from "./hooks/useGameBot"
@@ -22,7 +22,6 @@ const Leaderboard = lazy(() => import("@/components/Leaderboard").then(m => ({ d
 const PlayerProfile = lazy(() => import("@/components/PlayerProfile").then(m => ({ default: m.PlayerProfile })));
 const GameHistory = lazy(() => import("@/components/GameHistory").then(m => ({ default: m.GameHistory })));
 const AnalysisMode = lazy(() => import("@/components/AnalysisMode").then(m => ({ default: m.AnalysisMode })));
-const AdminLogin = lazy(() => import("@/components/AdminLogin").then(m => ({ default: m.AdminLogin })));
 const AdminSettings = lazy(() => import("@/components/AdminSettings").then(m => ({ default: m.AdminSettings })));
 const TournamentManagement = lazy(() => import("@/components/TournamentManagement").then(m => ({ default: m.TournamentManagement })));
 const TournamentList = lazy(() => import("@/components/TournamentList").then(m => ({ default: m.TournamentList })));
@@ -442,7 +441,7 @@ function App() {
             </div>
           } />
           <Route path="/tournaments/:id" element={<TournamentDetail />} />
-          <Route path="/login" element={<AdminLogin />} />
+          <Route path="/login" element={<Navigate to="/arena" replace />} />
           <Route path="/admin/settings" element={<ProtectedRoute><div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden"><header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0"><Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
   <SheetTrigger asChild>
     <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">

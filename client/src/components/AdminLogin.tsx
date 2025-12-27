@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,13 @@ export function AdminLogin() {
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
+    const { data: session } = authClient.useSession()
+
+    useEffect(() => {
+        if (session) {
+            navigate("/admin/settings", { replace: true })
+        }
+    }, [session, navigate])
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -36,6 +43,8 @@ export function AdminLogin() {
             setIsLoading(false)
         }
     }
+
+    if (session) return null;
 
     return (
         <div className="flex-1 flex items-center justify-center p-4">
