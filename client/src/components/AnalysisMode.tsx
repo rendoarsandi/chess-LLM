@@ -109,7 +109,7 @@ export const AnalysisMode: React.FC = () => {
     }
   }, [moves, activeIndex, game]);
 
-  const { evaluation, variations } = useStockfish(currentDisplayFen);
+  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen);
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
@@ -176,6 +176,8 @@ export const AnalysisMode: React.FC = () => {
               moves={moves}
               onMoveClick={setActiveIndex}
               selectedMoveIndex={activeIndex}
+              variations={variations}
+              isEngineThinking={isThinking}
             />
           </div>
         </div>

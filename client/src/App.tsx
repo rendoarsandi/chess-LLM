@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import { useGameSocket } from "./hooks/useGameSocket"
 import { useGameBot } from "./hooks/useGameBot"
 import { useAnalysisWorker } from "./hooks/useAnalysisWorker"
-import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./components/ui/sheet"
 import { Button } from "./components/ui/button"
 import { generate960Fen, safeNewChess } from "./lib/chess-utils"
 
@@ -264,8 +264,12 @@ function App() {
       if (segments[1]) {
         if (selectedGame?.id !== segments[1]) getGame(segments[1]).then(game => { if (game) { setSelectedGame(game); setMoves([]); setActiveMoveIndex(null); } }).catch((err) => { console.error('Failed to fetch game', err); navigate('/arena'); });
       } else {
-        const matchingGame = games.find(g => g.variant === currentVariant && (g.status === 'ongoing' || g.status === 'paused')) || games.find(g => g.variant === currentVariant);
-        if (matchingGame && selectedGame?.id !== matchingGame.id) { setSelectedGame(matchingGame); setMoves([]); setActiveMoveIndex(null); }
+        // If navigating to base /arena, clear selected game for a fresh start
+        if (selectedGame !== null) {
+          setSelectedGame(null);
+          setMoves([]);
+          setActiveMoveIndex(null);
+        }
       }
     }
   }, [location.pathname, selectedGame, games, navigate, currentVariant]);
@@ -294,7 +298,20 @@ function App() {
           <Route path="/leaderboard" element={
             <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
                 <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                  <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet>
+                  <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-72">
+                      <SheetHeader className="p-6 pb-0 sr-only">
+                        <SheetTitle>Navigation</SheetTitle>
+                        <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+                      </SheetHeader>
+                      <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                    </SheetContent>
+                  </Sheet>
                   <h2 className="text-xl font-black tracking-tighter uppercase italic">LEADERBOARD</h2>
                 </header>
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
@@ -308,7 +325,20 @@ function App() {
           <Route path="/profiles" element={
             <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
               <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                  <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet>
+                  <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-72">
+                      <SheetHeader className="p-6 pb-0 sr-only">
+                        <SheetTitle>Navigation</SheetTitle>
+                        <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+                      </SheetHeader>
+                      <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                    </SheetContent>
+                  </Sheet>
                   <h2 className="text-xl font-black tracking-tighter uppercase italic">PROFILES</h2>
               </header>
               <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
@@ -342,7 +372,20 @@ function App() {
           <Route path="/profiles/:id" element={
             <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
               <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet>
+                <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="p-0 w-72">
+                    <SheetHeader className="p-6 pb-0 sr-only">
+                      <SheetTitle>Navigation</SheetTitle>
+                      <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+                    </SheetHeader>
+                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                  </SheetContent>
+                </Sheet>
                 <h2 className="text-xl font-black tracking-tighter uppercase italic">PLAYER PROFILE</h2>
               </header>
               <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar"><div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"><PlayerProfileRoute navigate={navigate} /></div></div>
@@ -351,7 +394,20 @@ function App() {
           <Route path="/history" element={
             <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
               <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet>
+                <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="p-0 w-72">
+                    <SheetHeader className="p-6 pb-0 sr-only">
+                      <SheetTitle>Navigation</SheetTitle>
+                      <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+                    </SheetHeader>
+                    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                  </SheetContent>
+                </Sheet>
                 <h2 className="text-xl font-black tracking-tighter uppercase italic">HISTORY</h2>
               </header>
               <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
@@ -366,7 +422,20 @@ function App() {
           <Route path="/tournaments" element={
             <div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
                <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
-                 <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet>
+                 <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-72">
+                      <SheetHeader className="p-6 pb-0 sr-only">
+                        <SheetTitle>Navigation</SheetTitle>
+                        <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+                      </SheetHeader>
+                      <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+                    </SheetContent>
+                 </Sheet>
                  <h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENTS</h2>
                </header>
                <div className="flex-1 overflow-y-auto"><TournamentList /></div>
@@ -374,8 +443,34 @@ function App() {
           } />
           <Route path="/tournaments/:id" element={<TournamentDetail />} />
           <Route path="/login" element={<AdminLogin />} />
-          <Route path="/admin/settings" element={<ProtectedRoute><div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden"><header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0"><Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet><h2 className="text-xl font-black tracking-tighter uppercase italic">SETTINGS</h2></header><div className="flex-1 overflow-y-auto"><AdminSettings /></div></div></ProtectedRoute>} />
-          <Route path="/admin/tournaments" element={<ProtectedRoute><div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden"><header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0"><Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}><SheetTrigger asChild><Button variant="ghost" size="icon" className="lg:hidden h-8 w-8"><Menu className="h-5 w-5" /></Button></SheetTrigger><SheetContent side="left" className="p-0 w-72"><Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} /></SheetContent></Sheet><h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENT MANAGEMENT</h2></header><div className="flex-1 overflow-y-auto"><TournamentManagement /></div></div></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute><div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden"><header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0"><Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+  <SheetTrigger asChild>
+    <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+      <Menu className="h-5 w-5" />
+    </Button>
+  </SheetTrigger>
+  <SheetContent side="left" className="p-0 w-72">
+    <SheetHeader className="p-6 pb-0 sr-only">
+      <SheetTitle>Navigation</SheetTitle>
+      <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+    </SheetHeader>
+    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+  </SheetContent>
+</Sheet><h2 className="text-xl font-black tracking-tighter uppercase italic">SETTINGS</h2></header><div className="flex-1 overflow-y-auto"><AdminSettings /></div></div></ProtectedRoute>} />
+          <Route path="/admin/tournaments" element={<ProtectedRoute><div className="flex-1 flex flex-col min-w-0 bg-background overflow-hidden"><header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0"><Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+  <SheetTrigger asChild>
+    <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+      <Menu className="h-5 w-5" />
+    </Button>
+  </SheetTrigger>
+  <SheetContent side="left" className="p-0 w-72">
+    <SheetHeader className="p-6 pb-0 sr-only">
+      <SheetTitle>Navigation</SheetTitle>
+      <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
+    </SheetHeader>
+    <Sidebar isCollapsed={false} setIsCollapsed={() => {}} mobile onItemClick={() => setIsMobileNavOpen(false)} />
+  </SheetContent>
+</Sheet><h2 className="text-xl font-black tracking-tighter uppercase italic">TOURNAMENT MANAGEMENT</h2></header><div className="flex-1 overflow-y-auto"><TournamentManagement /></div></div></ProtectedRoute>} />
         </Routes>
       </Suspense>
     </div>

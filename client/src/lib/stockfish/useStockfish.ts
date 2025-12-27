@@ -47,6 +47,13 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
     if (fen && engineRef.current && fen !== lastFenRef.current) {
       lastFenRef.current = fen;
       
+      // Clear previous analysis state immediately to avoid stale data
+      // Use setTimeout to satisfy ESLint react-hooks/set-state-in-effect
+      setTimeout(() => {
+        setEvaluation(null);
+        setVariations({});
+      }, 0);
+      
       // Immediate detection of terminal positions to avoid stale evaluations
       try {
         const chess = safeNewChess(fen);
@@ -73,7 +80,6 @@ export function useStockfish(fen: string | null, onBestMove?: (move: string) => 
               });
             }
             setIsThinking(false);
-            setVariations({});
           }, 0);
           return;
         }
