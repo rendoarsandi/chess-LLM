@@ -27,7 +27,7 @@ describe('Middlewares', () => {
     it('should call next() if user is admin', async () => {
       vi.mocked(auth.api.getSession).mockResolvedValue({
         user: { email: 'admin@example.com' },
-        session: {}
+        session: {},
       } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>)
 
       const res = await app.request('/admin/test')
@@ -39,10 +39,10 @@ describe('Middlewares', () => {
   describe('Worker Middleware', () => {
     let mockContext: {
       req: {
-        header: ReturnType<typeof vi.fn>;
-        raw: { headers: Headers };
-      };
-      json: ReturnType<typeof vi.fn>;
+        header: ReturnType<typeof vi.fn>
+        raw: { headers: Headers }
+      }
+      json: ReturnType<typeof vi.fn>
     }
     let nextCalled: boolean
 
@@ -77,29 +77,28 @@ describe('Middlewares', () => {
       process.env.ADMIN_EMAIL = 'admin@example.com'
       process.env.WORKER_TOKEN = 'secret-token'
       mockContext.req.header.mockReturnValue('Invalid')
-      
+
       vi.mocked(auth.api.getSession).mockResolvedValue({
-        user: { 
-          email: 'admin@example.com', 
-          id: '1', 
-          name: 'Admin', 
-          emailVerified: true, 
-          createdAt: new Date(), 
+        user: {
+          email: 'admin@example.com',
+          id: '1',
+          name: 'Admin',
+          emailVerified: true,
+          createdAt: new Date(),
           updatedAt: new Date(),
-          banned: false
+          banned: false,
         },
-        session: { 
-          id: 's1', 
-          userId: '1', 
-          expiresAt: new Date(), 
-          createdAt: new Date(), 
-          updatedAt: new Date(), 
-          userAgent: '', 
+        session: {
+          id: 's1',
+          userId: '1',
+          expiresAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userAgent: '',
           ipAddress: '',
-          token: 'session-token'
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
+          token: 'session-token',
+        },
+      } as Awaited<ReturnType<typeof auth.api.getSession>>)
 
       await workerMiddleware(mockContext as unknown as Context, next)
 
