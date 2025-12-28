@@ -8,9 +8,9 @@ import { auth } from './lib/auth'
 vi.mock('./lib/auth', () => ({
   auth: {
     api: {
-      getSession: vi.fn()
-    }
-  }
+      getSession: vi.fn(),
+    },
+  },
 }))
 
 describe('API Endpoints', () => {
@@ -26,7 +26,7 @@ describe('API Endpoints', () => {
         image: null,
         role: 'admin',
         banned: false,
-        banReason: null
+        banReason: null,
       },
       session: {
         id: 'session-id',
@@ -36,10 +36,9 @@ describe('API Endpoints', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         ipAddress: null,
-        userAgent: null
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
+        userAgent: null,
+      },
+    } as Awaited<ReturnType<typeof auth.api.getSession>>)
     process.env.ADMIN_EMAIL = 'admin@example.com'
   })
 
@@ -64,15 +63,18 @@ describe('API Endpoints', () => {
     await db.delete(players).where(or(eq(players.id, 'test-p1'), eq(players.id, 'test-p2')))
 
     // Insert players to satisfy FK constraints
-    await db.insert(players).values([
-      { id: 'test-p1', name: 'Test P1', type: 'human', createdAt: new Date() },
-      { id: 'test-p2', name: 'Test P2', type: 'human', createdAt: new Date() }
-    ]).onConflictDoNothing()
+    await db
+      .insert(players)
+      .values([
+        { id: 'test-p1', name: 'Test P1', type: 'human', createdAt: new Date() },
+        { id: 'test-p2', name: 'Test P2', type: 'human', createdAt: new Date() },
+      ])
+      .onConflictDoNothing()
 
     const res = await app.request('/api/games', {
       method: 'POST',
       body: JSON.stringify({ whitePlayerId: 'test-p1', blackPlayerId: 'test-p2' }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     })
     expect(res.status).toBe(201)
   })
@@ -88,25 +90,28 @@ describe('API Endpoints', () => {
     await db.delete(players).where(or(eq(players.id, whitePlayerId), eq(players.id, blackPlayerId)))
 
     // Create a game first
-    await db.insert(players).values([
-      { id: whitePlayerId, name: 'Test P1', type: 'human', createdAt: new Date() },
-      { id: blackPlayerId, name: 'Test P2', type: 'human', createdAt: new Date() }
-    ]).onConflictDoNothing()
+    await db
+      .insert(players)
+      .values([
+        { id: whitePlayerId, name: 'Test P1', type: 'human', createdAt: new Date() },
+        { id: blackPlayerId, name: 'Test P2', type: 'human', createdAt: new Date() },
+      ])
+      .onConflictDoNothing()
 
     const createRes = await app.request('/api/games', {
       method: 'POST',
       body: JSON.stringify({ whitePlayerId, blackPlayerId }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     })
     const { id: gameId } = await createRes.json()
 
     const moveRes = await app.request(`/api/games/${gameId}/move`, {
       method: 'POST',
-      body: JSON.stringify({ 
-        move: 'e4', 
-        thinking: { opening: 'King Pawn', reasoning: 'Control' } 
+      body: JSON.stringify({
+        move: 'e4',
+        thinking: { opening: 'King Pawn', reasoning: 'Control' },
       }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     })
     expect(moveRes.status).toBe(200)
 
@@ -125,36 +130,39 @@ describe('API Endpoints', () => {
 
   it('DELETE /api/games/:id should delete a game', async () => {
     const res = await app.request('/api/games/non-existent-id', {
-      method: 'DELETE'
+      method: 'DELETE',
     })
     expect(res.status).toBe(404) // Now returns 404 if not found
   })
 
   it('DELETE /api/games should clear history', async () => {
     const res = await app.request('/api/games', {
-      method: 'DELETE'
+      method: 'DELETE',
     })
     expect(res.status).toBe(200)
   })
 
   it('GET /api/leaderboard should return ranked players', async () => {
     // Insert players with different ratings
-    await db.insert(players).values([
-      { id: 'leader-1', name: 'Pro', type: 'llm', rating: 1500, createdAt: new Date() },
-      { id: 'leader-2', name: 'Noob', type: 'llm', rating: 1000, createdAt: new Date() },
-      { id: 'leader-3', name: 'Average', type: 'llm', rating: 1200, createdAt: new Date() }
-    ]).onConflictDoNothing()
+    await db
+      .insert(players)
+      .values([
+        { id: 'leader-1', name: 'Pro', type: 'llm', rating: 1500, createdAt: new Date() },
+        { id: 'leader-2', name: 'Noob', type: 'llm', rating: 1000, createdAt: new Date() },
+        { id: 'leader-3', name: 'Average', type: 'llm', rating: 1200, createdAt: new Date() },
+      ])
+      .onConflictDoNothing()
 
     const res = await app.request('/api/leaderboard')
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)
     expect(data.length).toBeGreaterThanOrEqual(3)
-    
+
     // Check sorting
     expect(data[0].rating).toBeGreaterThanOrEqual(data[1].rating)
     expect(data[1].rating).toBeGreaterThanOrEqual(data[2].rating)
-    
+
     // Check fields
     expect(data[0]).toHaveProperty('wins')
     expect(data[0]).toHaveProperty('peakRating')
@@ -162,16 +170,19 @@ describe('API Endpoints', () => {
 
   it('GET /api/players/:id/profile should return player profile', async () => {
     const playerId = 'profile-test-1'
-    await db.insert(players).values({
-      id: playerId,
-      name: 'Gemini Profile',
-      type: 'llm',
-      version: '1.5',
-      provider: 'Google',
-      bio: 'Test bio',
-      rating: 1200,
-      createdAt: new Date()
-    }).onConflictDoNothing()
+    await db
+      .insert(players)
+      .values({
+        id: playerId,
+        name: 'Gemini Profile',
+        type: 'llm',
+        version: '1.5',
+        provider: 'Google',
+        bio: 'Test bio',
+        rating: 1200,
+        createdAt: new Date(),
+      })
+      .onConflictDoNothing()
 
     const res = await app.request(`/api/players/${playerId}/profile`)
     expect(res.status).toBe(200)
