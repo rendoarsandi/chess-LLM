@@ -2,7 +2,7 @@
 
 ## Phase 1: Server-Side Type Hardening
 - [x] Task: Refactor `server/src/index.test.ts` to replace `any` casts with proper Hono `Context` mocks. f9827fb
-- [ ] Task: Refactor `server/src/middleware/middleware.test.ts` to replace `any` casts with proper types.
+- [x] Task: Refactor `server/src/middleware/middleware.test.ts` to replace `any` casts with proper types. 605f4bb
 - [ ] Task: Review and refactor `server/src/middleware/admin.ts` and `auth.ts` to reduce or explain `as unknown as` casting.
 - [ ] Task: Run `npm run check -w server` to verify type safety.
 - [ ] Task: Conductor - User Manual Verification 'Server Type Hardening' (Protocol in workflow.md)
