@@ -1,182 +1,202 @@
 export interface EngineEvaluation {
-  score: number; // in centipawns
-  isMate: boolean;
-  mateIn?: number;
-  depth: number;
-  multipv?: number;
-  pv?: string;
-  sideToMove?: 'w' | 'b';
+  score: number // in centipawns
+  isMate: boolean
+  mateIn?: number
+  depth: number
+  multipv?: number
+  pv?: string
+  sideToMove?: 'w' | 'b'
 }
 
-export type EngineCallback = (evaluation: EngineEvaluation) => void;
-export type BestMoveCallback = (move: string) => void;
+export type EngineCallback = (evaluation: EngineEvaluation) => void
+export type BestMoveCallback = (move: string) => void
 
 interface AnalysisRequest {
-  fen: string;
-  depth: number;
-  generation: number;
-  onStart?: () => void;
-  isBestMoveRequest?: boolean;
+  fen: string
+  depth: number
+  generation: number
+  onStart?: () => void
+  isBestMoveRequest?: boolean
 }
 
 export class StockfishWorker {
-  private worker: Worker | null = null;
-  private onEvaluation: EngineCallback | null = null;
-  private onBestMove: BestMoveCallback | null = null;
-  private isTerminated: boolean = false;
-  private multiPv: number = 3;
-  
-  // State Machine
-  private isEngineReady: boolean = false;        // readyok received
-  private isSearching: boolean = false;         // 'go' sent, waiting for 'bestmove'
-  private isStopping: boolean = false;          // 'stop' sent, waiting for 'bestmove'
-  
-  private currentGeneration: number = 0;
-  private lastExecutedGeneration: number = -1;
-  private pendingRequest: AnalysisRequest | null = null;
-  private currentSideToMove: 'w' | 'b' = 'w';
+  private worker: Worker | null = null
+  private onEvaluation: EngineCallback | null = null
+  private onBestMove: BestMoveCallback | null = null
+  private isTerminated: boolean = false
+  private multiPv: number = 3
 
-  constructor(callback: EngineCallback, multiPv: number = 3, onBestMove?: BestMoveCallback) {
-    this.onEvaluation = callback;
-    this.onBestMove = onBestMove || null;
-    this.multiPv = multiPv;
-    this.init();
+  // State Machine
+  private isEngineReady: boolean = false // readyok received
+  private isSearching: boolean = false // 'go' sent, waiting for 'bestmove'
+  private isStopping: boolean = false // 'stop' sent, waiting for 'bestmove'
+
+  private currentGeneration: number = 0
+  private lastExecutedGeneration: number = -1
+  private pendingRequest: AnalysisRequest | null = null
+  private currentSideToMove: 'w' | 'b' = 'w'
+
+  constructor(
+    callback: EngineCallback,
+    multiPv: number = 3,
+    onBestMove?: BestMoveCallback,
+    existingWorker?: Worker,
+  ) {
+    this.onEvaluation = callback
+    this.onBestMove = onBestMove || null
+    this.multiPv = multiPv
+    this.init(existingWorker)
   }
 
-  private init() {
-    console.log('[StockfishWorker] Initializing worker. Origin:', window.location.origin, 'Isolated:', window.crossOriginIsolated);
-    if (typeof Worker === 'undefined') {
-      console.error('[StockfishWorker] Web Workers are not supported in this environment.');
-      this.isTerminated = true;
-      return;
+  private init(existingWorker?: Worker) {
+    console.log(
+      '[StockfishWorker] Initializing worker. Origin:',
+      window.location.origin,
+      'Isolated:',
+      window.crossOriginIsolated,
+    )
+    if (typeof Worker === 'undefined' && !existingWorker) {
+      console.error('[StockfishWorker] Web Workers are not supported in this environment.')
+      this.isTerminated = true
+      return
     }
     try {
-      console.log('[StockfishWorker] Attempting to create Worker from /stockfish/stockfish.js');
-      const workerUrl = '/stockfish/stockfish.js';
-      
-      // Pre-flight check to see if the script is accessible
-      fetch(workerUrl, { method: 'HEAD' })
-        .then(resp => {
-          console.log('[StockfishWorker] Pre-flight check status:', resp.status, resp.statusText);
-          if (!resp.ok) console.error('[StockfishWorker] Worker script might not be accessible!');
-        })
-        .catch(err => console.error('[StockfishWorker] Pre-flight check failed:', err));
+      console.log('[StockfishWorker] Attempting to create Worker from /stockfish/stockfish.js')
+      const workerUrl = '/stockfish/stockfish.js'
 
-      this.worker = new Worker(workerUrl);
-      console.log('[StockfishWorker] Worker object created successfully');
-      
+      // Pre-flight check to see if the script is accessible
+      if (!existingWorker) {
+        fetch(workerUrl, { method: 'HEAD' })
+          .then((resp) => {
+            console.log('[StockfishWorker] Pre-flight check status:', resp.status, resp.statusText)
+            if (!resp.ok) console.error('[StockfishWorker] Worker script might not be accessible!')
+          })
+          .catch((err) => console.error('[StockfishWorker] Pre-flight check failed:', err))
+      }
+
+      this.worker = existingWorker || new Worker(workerUrl)
+      console.log('[StockfishWorker] Worker object created successfully')
+
       this.worker.onerror = (err) => {
-        console.error('[StockfishWorker] Worker error event:', err);
-        const errorMsg = `[StockfishWorker] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`;
-        console.error(errorMsg);
-        if (err.error) console.error('[StockfishWorker] Error object:', err.error);
-      };
+        console.error('[StockfishWorker] Worker error event:', err)
+        const errorMsg = `[StockfishWorker] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`
+        console.error(errorMsg)
+        if (err.error) console.error('[StockfishWorker] Error object:', err.error)
+      }
 
       this.worker.onmessage = (e) => {
-        if (this.isTerminated) return;
+        if (this.isTerminated) return
         // console.debug('[StockfishWorker] Raw message:', e.data);
-        this.handleMessage(e.data);
-      };
-      
+        this.handleMessage(e.data)
+      }
+
       // Small delay before first command
       setTimeout(() => {
-        this.sendMessage('uci');
-      }, 100);
+        this.sendMessage('uci')
+      }, 100)
     } catch (error) {
-      console.error('[StockfishWorker] Critical failure during initialization:', error);
-      this.isTerminated = true;
+      console.error('[StockfishWorker] Critical failure during initialization:', error)
+      this.isTerminated = true
     }
   }
 
   private handleMessage = (message: string) => {
-    if (typeof message !== 'string') return;
+    if (typeof message !== 'string') return
 
     if (message.startsWith('uciok')) {
-      console.log('[StockfishWorker] Engine UCI ready');
-      this.sendMessage('setoption name Threads value 1');
-      this.sendMessage('setoption name Hash value 32'); 
-      this.sendMessage(`setoption name MultiPV value ${this.multiPv}`);
-      this.sendMessage('ucinewgame');
-      this.sendMessage('isready');
-      return;
+      console.log('[StockfishWorker] Engine UCI ready')
+      this.sendMessage('setoption name Threads value 1')
+      this.sendMessage('setoption name Hash value 32')
+      this.sendMessage(`setoption name MultiPV value ${this.multiPv}`)
+      this.sendMessage('ucinewgame')
+      this.sendMessage('isready')
+      return
     }
 
     if (message.startsWith('readyok')) {
-      this.isEngineReady = true;
-      this.processQueue();
-      return;
+      this.isEngineReady = true
+      this.processQueue()
+      return
     }
 
     if (message.startsWith('bestmove')) {
-      this.isSearching = false;
-      this.isStopping = false;
-      const parts = message.split(' ');
-      if (parts.length >= 2 && this.onBestMove && this.lastExecutedGeneration === this.currentGeneration) {
-        this.onBestMove(parts[1]);
+      this.isSearching = false
+      this.isStopping = false
+      const parts = message.split(' ')
+      if (
+        parts.length >= 2 &&
+        this.onBestMove &&
+        this.lastExecutedGeneration === this.currentGeneration
+      ) {
+        this.onBestMove(parts[1])
       }
-      this.processQueue();
-      return;
+      this.processQueue()
+      return
     }
 
     // Process info messages that have a score
     if (message.startsWith('info') && message.includes('score')) {
-      const evaluation = this.parseInfo(message);
-      
+      const evaluation = this.parseInfo(message)
+
       // Safety check: only emit evaluations for the most recent FEN request
-      if (evaluation && this.onEvaluation && this.lastExecutedGeneration === this.currentGeneration) {
-        this.onEvaluation(evaluation);
+      if (
+        evaluation &&
+        this.onEvaluation &&
+        this.lastExecutedGeneration === this.currentGeneration
+      ) {
+        this.onEvaluation(evaluation)
       }
     }
   }
 
   private processQueue() {
     if (this.isTerminated || !this.isEngineReady || this.isStopping || this.isSearching) {
-      return;
+      return
     }
 
     if (this.pendingRequest) {
-      const req = this.pendingRequest;
-      this.pendingRequest = null;
-      this.executeAnalysis(req);
+      const req = this.pendingRequest
+      this.pendingRequest = null
+      this.executeAnalysis(req)
     }
   }
 
   private executeAnalysis(req: AnalysisRequest) {
-    this.lastExecutedGeneration = req.generation;
-    this.isSearching = true;
-    
+    this.lastExecutedGeneration = req.generation
+    this.isSearching = true
+
     // Extract side to move from FEN for normalization
-    const fenParts = req.fen.split(' ');
+    const fenParts = req.fen.split(' ')
     if (fenParts.length > 1) {
-      this.currentSideToMove = fenParts[1] === 'b' ? 'b' : 'w';
+      this.currentSideToMove = fenParts[1] === 'b' ? 'b' : 'w'
     }
 
-    if (req.onStart) req.onStart();
-    
-    this.sendMessage(`position fen ${req.fen}`);
-    this.sendMessage(`go depth ${req.depth}`);
+    if (req.onStart) req.onStart()
+
+    this.sendMessage(`position fen ${req.fen}`)
+    this.sendMessage(`go depth ${req.depth}`)
   }
 
   private parseInfo = (message: string): EngineEvaluation | null => {
     if (message.includes('upperbound') || message.includes('lowerbound')) {
-      return null;
+      return null
     }
 
-    const depthMatch = message.match(/depth (\d+)/);
-    const scoreMatch = message.match(/score (cp|mate) (-?\d+)/);
-    const multipvMatch = message.match(/multipv (\d+)/);
-    const pvMatch = message.match(/ pv (.+)/);
+    const depthMatch = message.match(/depth (\d+)/)
+    const scoreMatch = message.match(/score (cp|mate) (-?\d+)/)
+    const multipvMatch = message.match(/multipv (\d+)/)
+    const pvMatch = message.match(/ pv (.+)/)
 
-    if (!depthMatch || !scoreMatch) return null;
+    if (!depthMatch || !scoreMatch) return null
 
-    const depth = parseInt(depthMatch[1]);
-    const type = scoreMatch[1];
-    let value = parseInt(scoreMatch[2]);
-    const multipv = multipvMatch ? parseInt(multipvMatch[1]) : 1;
-    const pv = pvMatch ? pvMatch[1] : undefined;
+    const depth = parseInt(depthMatch[1])
+    const type = scoreMatch[1]
+    let value = parseInt(scoreMatch[2])
+    const multipv = multipvMatch ? parseInt(multipvMatch[1]) : 1
+    const pv = pvMatch ? pvMatch[1] : undefined
 
     if (this.currentSideToMove === 'b') {
-      value = -value;
+      value = -value
     }
 
     return {
@@ -186,88 +206,92 @@ export class StockfishWorker {
       depth,
       multipv,
       pv,
-      sideToMove: this.currentSideToMove
-    };
+      sideToMove: this.currentSideToMove,
+    }
   }
 
   public analyze(fen: string, depth: number = 15, onStart?: () => void) {
-    if (!this.worker || this.isTerminated) return;
+    if (!this.worker || this.isTerminated) return
 
-    this.currentGeneration++;
-    
-    const request: AnalysisRequest = {
-      fen,
-      depth,
-      generation: this.currentGeneration,
-      onStart
-    };
+    this.currentGeneration++
 
-    // If we are currently searching, we MUST stop first and wait for 'bestmove'
-    if (this.isSearching || this.isStopping) {
-      this.pendingRequest = request;
-      if (!this.isStopping) {
-        this.isStopping = true;
-        this.sendMessage('stop');
-      }
-      return;
-    }
-
-    // If we are not initialized or ready, queue it
-    if (!this.isEngineReady) {
-      this.pendingRequest = request;
-      return;
-    }
-
-    // Engine is idle and ready, execute immediately
-    this.executeAnalysis(request);
-  }
-
-  public getBestMove(fen: string, depth: number = 18, onStart?: () => void) {
-    if (!this.worker || this.isTerminated) return;
-
-    this.currentGeneration++;
-    
     const request: AnalysisRequest = {
       fen,
       depth,
       generation: this.currentGeneration,
       onStart,
-      isBestMoveRequest: true
-    };
+    }
+
+    // If we are currently searching, we MUST stop first and wait for 'bestmove'
+    if (this.isSearching || this.isStopping) {
+      this.pendingRequest = request
+      if (!this.isStopping) {
+        this.isStopping = true
+        this.sendMessage('stop')
+      }
+      return
+    }
+
+    // If we are not initialized or ready, queue it
+    if (!this.isEngineReady) {
+      this.pendingRequest = request
+      return
+    }
+
+    // Engine is idle and ready, execute immediately
+    this.executeAnalysis(request)
+  }
+
+  public getBestMove(fen: string, depth: number = 18, onStart?: () => void) {
+    if (!this.worker || this.isTerminated) return
+
+    this.currentGeneration++
+
+    const request: AnalysisRequest = {
+      fen,
+      depth,
+      generation: this.currentGeneration,
+      onStart,
+      isBestMoveRequest: true,
+    }
 
     if (this.isSearching || this.isStopping) {
-      this.pendingRequest = request;
+      this.pendingRequest = request
       if (!this.isStopping) {
-        this.isStopping = true;
-        this.sendMessage('stop');
+        this.isStopping = true
+        this.sendMessage('stop')
       }
-      return;
+      return
     }
 
     if (!this.isEngineReady) {
-      this.pendingRequest = request;
-      return;
+      this.pendingRequest = request
+      return
     }
 
-    this.executeAnalysis(request);
+    this.executeAnalysis(request)
   }
 
   private sendMessage(command: string) {
     if (this.worker && !this.isTerminated) {
       try {
-        this.worker.postMessage(command);
+        this.worker.postMessage(command)
       } catch (e) {
-        console.error('[StockfishWorker] Failed to send message:', e);
-        this.terminate();
+        console.error('[StockfishWorker] Failed to send message:', e)
+        this.terminate()
       }
     }
   }
 
   public terminate() {
-    this.isTerminated = true;
+    this.isTerminated = true
     if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
+      this.worker.terminate()
+      this.worker = null
     }
+  }
+
+  public getIsTerminated(): boolean {
+    return this.isTerminated
   }
 }
