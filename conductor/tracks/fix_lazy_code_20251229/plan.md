@@ -8,12 +8,12 @@
 - [x] Task: Run `npm run check -w server` to verify type safety. f6a5a25
 - [x] Task: Conductor - User Manual Verification 'Server Type Hardening' (Protocol in workflow.md) 897b2db
 
-## Phase 2: Client-Side Test Refactoring [checkpoint: ff8b48f]
+## Phase 2: Client-Side Test Refactoring [checkpoint: 6073da1]
 
 - [x] Task: Refactor `client/src/lib/stockfish/AnalysisWorker.test.ts` to eliminate `as unknown as` hacks. ff8b48f
 - [x] Task: Refactor other client worker tests (StockfishPlayerService, StockfishWorker) to use cleaner testing patterns. ff8b48f
 - [x] Task: Run `npm test -w client` to ensure no regressions in worker tests. ff8b48f
-- [ ] Task: Conductor - User Manual Verification 'Client Test Refactoring' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Client Test Refactoring' (Protocol in workflow.md) 6073da1
 
 ## Phase 3: AI Artifact & Stub Cleanup [checkpoint: ff8b48f]
 
