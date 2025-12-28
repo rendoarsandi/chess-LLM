@@ -16,6 +16,10 @@ export const adminMiddleware = async (c: Context, next: Next) => {
         emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+        image: null,
+        role: 'admin',
+        banned: false,
+        banReason: null,
       },
       session: {
         id: 'dev-session-id',
@@ -24,8 +28,10 @@ export const adminMiddleware = async (c: Context, next: Next) => {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
         createdAt: new Date(),
         updatedAt: new Date(),
+        ipAddress: null,
+        userAgent: null,
       },
-    } as unknown as Awaited<ReturnType<typeof auth.api.getSession>> // Safe development-only fallback when better-auth is not active.
+    } as Awaited<ReturnType<typeof auth.api.getSession>>
   }
 
   if (!session) return c.json({ error: 'Unauthorized' }, 401)
