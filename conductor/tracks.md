@@ -14,10 +14,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 _Link: [./conductor/archive/chess_960_arena_20251226/](./conductor/archive/chess_960_arena_20251226/)_
 
-### [ ] Track: Node.js to Cloudflare Workers (Web Standards) Migration
-
-_Link: [./conductor/archive/web_standard_migration_20251228/](./conductor/archive/web_standard_migration_20251228/)_
-
 ### [x] Track: Comprehensive polish of the application UI/UX, including visual consistency, mobile responsiveness, and interactive feedback.
 
 _Link: [./conductor/archive/ui_ux_polish_20251223/](./conductor/archive/ui_ux_polish_20251223/)_

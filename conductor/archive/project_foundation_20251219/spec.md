@@ -17,4 +17,4 @@ This track establishes the architectural foundation of ChessLLM. It focuses on s
 
 - Must run in a Node.js environment (Termux compatible).
 - Local-first architecture (SQLite).
-- Ready for future Cloudflare deployment.
+- Ready for deployment.

@@ -40,7 +40,7 @@
 
 - **Local Development:** Optimized for Termux/Node.js.
 - **Persistence:** SQLite managed by Drizzle Kit for schema migrations.
-- **Future Path:** Architected for seamless migration to Cloudflare Workers, D1, and Durable Objects.
+- **Future Path:** Continued optimization of the Node.js backend and local SQLite database.
 
 ## External Integrations
 
