@@ -50,12 +50,10 @@ export const AnalysisMode: React.FC = () => {
 
         // Initial check for review
         try {
-          console.log(`[AnalysisMode] Checking status for game: ${gameId}`)
           const reviewData = await getReviewStatus(gameId)
-          console.log(`[AnalysisMode] Found existing review:`, reviewData)
           setReview(reviewData)
-        } catch (error) {
-          console.log(`[AnalysisMode] No review found:`, error)
+        } catch {
+          // No existing review found
         }
       } catch (error) {
         console.error('Failed to fetch analysis data:', error)

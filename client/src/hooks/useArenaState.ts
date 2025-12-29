@@ -17,11 +17,9 @@ import { useGameBot } from './useGameBot'
 import { useAnalysisWorker } from './useAnalysisWorker'
 import { useStockfish } from '../lib/stockfish/useStockfish'
 import { generate960Fen, safeNewChess } from '../lib/chess-utils'
+import { STOCKFISH_LOW_ID, STOCKFISH_MED_ID } from '../lib/constants'
 import { toast } from 'sonner'
 import type { Game, Move, Player } from '@/types'
-
-const STOCKFISH_LOW_ID = '00000000-0000-0000-0000-000000000010'
-const STOCKFISH_MED_ID = '00000000-0000-0000-0000-000000000011'
 
 export function useArenaState() {
   const navigate = useNavigate()
@@ -70,8 +68,12 @@ export function useArenaState() {
   )
 
   const fetchAllGames = useCallback(async () => {
-    const allGames = await getGames()
-    setGames(allGames)
+    try {
+      const allGames = await getGames()
+      setGames(allGames)
+    } catch (err) {
+      console.error('Failed to fetch games', err)
+    }
   }, [])
 
   const fetchLeaderboard = useCallback(async () => {
@@ -84,8 +86,12 @@ export function useArenaState() {
   }, [])
 
   const fetchPlayers = useCallback(async () => {
-    const allPlayers = await getPlayers()
-    setPlayers(allPlayers)
+    try {
+      const allPlayers = await getPlayers()
+      setPlayers(allPlayers)
+    } catch (err) {
+      console.error('Failed to fetch players', err)
+    }
   }, [])
 
   const handleCreateGame = async (
@@ -134,8 +140,11 @@ export function useArenaState() {
       setLastMoveFromUpdate(null)
       fetchAllGames()
       toast.success('Game history cleared')
-    } catch {
-      toast.error('Failed to clear history')
+    } catch (err) {
+      console.error('Failed to clear history', err)
+      toast.error('Failed to clear history', {
+        description: err instanceof Error ? err.message : 'Please try again.',
+      })
     }
   }
 

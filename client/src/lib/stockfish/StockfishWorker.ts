@@ -49,44 +49,22 @@ export class StockfishWorker {
   }
 
   private init(existingWorker?: Worker) {
-    console.log(
-      '[StockfishWorker] Initializing worker. Origin:',
-      window.location.origin,
-      'Isolated:',
-      window.crossOriginIsolated,
-    )
     if (typeof Worker === 'undefined' && !existingWorker) {
       console.error('[StockfishWorker] Web Workers are not supported in this environment.')
       this.isTerminated = true
       return
     }
     try {
-      console.log('[StockfishWorker] Attempting to create Worker from /stockfish/stockfish.js')
       const workerUrl = '/stockfish/stockfish.js'
 
-      // Pre-flight check to see if the script is accessible
-      if (!existingWorker) {
-        fetch(workerUrl, { method: 'HEAD' })
-          .then((resp) => {
-            console.log('[StockfishWorker] Pre-flight check status:', resp.status, resp.statusText)
-            if (!resp.ok) console.error('[StockfishWorker] Worker script might not be accessible!')
-          })
-          .catch((err) => console.error('[StockfishWorker] Pre-flight check failed:', err))
-      }
-
       this.worker = existingWorker || new Worker(workerUrl)
-      console.log('[StockfishWorker] Worker object created successfully')
 
       this.worker.onerror = (err) => {
-        console.error('[StockfishWorker] Worker error event:', err)
-        const errorMsg = `[StockfishWorker] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`
-        console.error(errorMsg)
-        if (err.error) console.error('[StockfishWorker] Error object:', err.error)
+        console.error('[StockfishWorker] Worker error:', err.message || 'Unknown error')
       }
 
       this.worker.onmessage = (e) => {
         if (this.isTerminated) return
-        // console.debug('[StockfishWorker] Raw message:', e.data);
         this.handleMessage(e.data)
       }
 
@@ -104,7 +82,6 @@ export class StockfishWorker {
     if (typeof message !== 'string') return
 
     if (message.startsWith('uciok')) {
-      console.log('[StockfishWorker] Engine UCI ready')
       this.sendMessage('setoption name Threads value 1')
       this.sendMessage('setoption name Hash value 32')
       this.sendMessage(`setoption name MultiPV value ${this.multiPv}`)

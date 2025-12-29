@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+const RECONNECT_DELAY_MS = 3000
+
 export interface GameUpdate {
   fen: string
   status: 'ongoing' | 'completed' | 'draw' | 'paused'
@@ -39,6 +41,7 @@ export function useGameSocket(gameId: string | undefined) {
   const [lastMessage, setLastMessage] = useState<SocketMessage | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
   const connectRef = useRef<(() => void) | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const sendMessage = useCallback((message: ClientMessage) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -107,10 +110,14 @@ export function useGameSocket(gameId: string | undefined) {
       console.log(
         `[WebSocket] Disconnected from game ${gameId}. Code: ${event.code}, Reason: ${event.reason}`,
       )
-      // Reconnect after 3 seconds
-      setTimeout(() => {
+      // Clear any existing reconnect timeout
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+      // Reconnect after delay
+      reconnectTimeoutRef.current = setTimeout(() => {
         if (connectRef.current) connectRef.current()
-      }, 3000)
+      }, RECONNECT_DELAY_MS)
     }
 
     socket.onerror = () => {
@@ -128,6 +135,11 @@ export function useGameSocket(gameId: string | undefined) {
   useEffect(() => {
     connect()
     return () => {
+      // Clear reconnect timeout on cleanup
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
       if (socketRef.current) {
         socketRef.current.close()
       }

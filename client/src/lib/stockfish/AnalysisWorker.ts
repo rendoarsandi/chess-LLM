@@ -49,7 +49,6 @@ export class AnalysisWorker {
       this.sendMessage('ucinewgame')
       this.sendMessage('isready')
     } else if (message.startsWith('readyok')) {
-      console.log('[AnalysisWorker] Engine is READY')
       this.isEngineReady = true
     } else if (message.startsWith('info') && this.currentAnalysis) {
       const parsed = this.parseInfoLine(message)

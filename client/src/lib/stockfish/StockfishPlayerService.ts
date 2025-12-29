@@ -26,46 +26,18 @@ export class StockfishPlayerService {
   }
 
   private init(existingWorker?: Worker) {
-    console.log(
-      '[StockfishPlayerService] Initializing worker. Origin:',
-      window.location.origin,
-      'Isolated:',
-      window.crossOriginIsolated,
-    )
     if (typeof Worker === 'undefined' && !existingWorker) {
       console.error('[StockfishPlayerService] Web Workers are not supported in this environment.')
       this.isTerminated = true
       return
     }
     try {
-      console.log(
-        '[StockfishPlayerService] Attempting to create Worker from /stockfish/stockfish.js',
-      )
       const workerUrl = '/stockfish/stockfish.js'
 
-      // Pre-flight check to see if the script is accessible
-      if (!existingWorker) {
-        fetch(workerUrl, { method: 'HEAD' })
-          .then((resp) => {
-            console.log(
-              '[StockfishPlayerService] Pre-flight check status:',
-              resp.status,
-              resp.statusText,
-            )
-            if (!resp.ok)
-              console.error('[StockfishPlayerService] Worker script might not be accessible!')
-          })
-          .catch((err) => console.error('[StockfishPlayerService] Pre-flight check failed:', err))
-      }
-
       this.worker = existingWorker || new Worker(workerUrl)
-      console.log('[StockfishPlayerService] Worker object created successfully')
 
       this.worker.onerror = (err) => {
-        console.error('[StockfishPlayerService] Worker error event:', err)
-        const errorMsg = `[StockfishPlayerService] Worker.onerror: ${err.message || 'Unknown message'} at ${err.filename || 'unknown'}:${err.lineno || 0}`
-        console.error(errorMsg)
-        if (err.error) console.error('[StockfishPlayerService] Error object:', err.error)
+        console.error('[StockfishPlayerService] Worker error:', err.message || 'Unknown error')
       }
       this.worker.onmessage = (e) => this.handleMessage(e.data)
 
@@ -83,13 +55,11 @@ export class StockfishPlayerService {
     if (this.isTerminated || typeof message !== 'string') return
 
     if (message.startsWith('uciok')) {
-      console.log('[StockfishPlayerService] Engine UCI ready')
       this.sendMessage('setoption name Threads value 1')
       this.sendMessage('setoption name Hash value 32')
       this.sendMessage('ucinewgame')
       this.sendMessage('isready')
     } else if (message.startsWith('readyok')) {
-      console.log('[StockfishPlayerService] Engine Ready (readyok)')
       this.isEngineReady = true
       this.processQueue()
     } else if (message.startsWith('bestmove')) {

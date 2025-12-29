@@ -32,21 +32,17 @@ export function useAnalysisWorker(enabled: boolean = true) {
 
     const poll = async () => {
       if (isProcessingRef.current) {
-        console.debug('[useAnalysisWorker] Already processing, skipping poll')
         return
       }
 
       try {
-        console.debug(`[useAnalysisWorker] Polling for jobs... (ID: ${WORKER_ID})`)
         const job = await claimJob(WORKER_ID)
 
         if (job && 'id' in job && job.status === 'processing') {
           if (isProcessingRef.current) {
-            console.warn('[useAnalysisWorker] Race condition detected, ignoring second job')
             return
           }
           isProcessingRef.current = true
-          console.info(`[useAnalysisWorker] === STARTING JOB: ${job.id} ===`)
 
           // Start heartbeat
           heartbeatId = setInterval(() => {
@@ -57,11 +53,10 @@ export function useAnalysisWorker(enabled: boolean = true) {
 
           try {
             await processJob(job.id, job.gameId)
-            console.info(`[useAnalysisWorker] === FINISHED JOB: ${job.id} ===`)
           } catch (processError) {
             const errorMsg =
               processError instanceof Error ? processError.message : String(processError)
-            console.error(`[useAnalysisWorker] !!! JOB FAILED: ${job.id} !!!`, errorMsg)
+            console.error(`[useAnalysisWorker] Job failed: ${job.id}`, errorMsg)
             await reportFailure(job.id, errorMsg).catch((err) =>
               console.error('[useAnalysisWorker] Failed to report failure:', err),
             )
@@ -72,8 +67,6 @@ export function useAnalysisWorker(enabled: boolean = true) {
             }
             isProcessingRef.current = false
           }
-        } else {
-          console.log('[useAnalysisWorker] No jobs available', job)
         }
       } catch (error) {
         console.error('[useAnalysisWorker] Polling error:', error)
@@ -83,10 +76,8 @@ export function useAnalysisWorker(enabled: boolean = true) {
     }
 
     const processJob = async (reviewId: string, gameId: string) => {
-      console.log(`[useAnalysisWorker] [${reviewId}] Step 1: Fetching moves...`)
       const moves = await getMoves(gameId)
       const totalMoves = moves.length
-      console.log(`[useAnalysisWorker] [${reviewId}] Step 2: Found ${totalMoves} moves`)
 
       const analyses: MoveAnalysis[] = []
       const chess = safeNewChess()
@@ -112,16 +103,11 @@ export function useAnalysisWorker(enabled: boolean = true) {
         const beforeFen = chess.fen()
         const isWhiteToMove = beforeFen.split(' ')[1] === 'w'
 
-        console.log(
-          `[useAnalysisWorker] [${reviewId}] Step 3: Analyzing move ${i + 1}/${totalMoves} (${move.move})`,
-        )
-
         const result = await analysisWorkerRef.current!.analyzePosition(beforeFen, 18, 3)
 
         // Safe result handling
         const topPV = result.pvs[0]
         if (!topPV) {
-          console.warn(`[useAnalysisWorker] [${reviewId}] No engine PVs for position: ${beforeFen}`)
           analyses.push({
             moveNumber: move.moveNumber,
             playerColor: move.playerColor,
@@ -137,9 +123,6 @@ export function useAnalysisWorker(enabled: boolean = true) {
 
         // If move is NOT in top 3, we MUST evaluate it specifically to get its real score
         if (!movePV) {
-          console.log(
-            `[useAnalysisWorker] [${reviewId}] Move ${move.move} not in top 3, performing dedicated evaluation...`,
-          )
           const chessTemp = safeNewChess(beforeFen)
           try {
             chessTemp.move(move.move)
@@ -161,8 +144,7 @@ export function useAnalysisWorker(enabled: boolean = true) {
             }
 
             movePV = { cp: -afterCp, pv: move.move, multipv: 0, depth: 18 }
-          } catch (e) {
-            console.warn(`[useAnalysisWorker] [${reviewId}] Failed to evaluate custom move:`, e)
+          } catch {
             movePV = topPV // Fallback
           }
         }
@@ -193,7 +175,6 @@ export function useAnalysisWorker(enabled: boolean = true) {
       }
 
       await submitResults(reviewId, analyses)
-      console.log(`[useAnalysisWorker] Submitted results for job: ${reviewId}`)
     }
 
     poll()

@@ -190,6 +190,10 @@ export async function clearHistory(): Promise<{ success: boolean }> {
 // Admin API
 export async function getAdminModels(): Promise<LLMConfig[]> {
   const res = await fetch(`${API_URL}/admin/models`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch admin models')
+  }
   return res.json()
 }
 
@@ -199,6 +203,10 @@ export async function createAdminModel(config: Partial<LLMConfig>): Promise<LLMC
     body: JSON.stringify(config),
     headers: { 'Content-Type': 'application/json' },
   })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to create admin model')
+  }
   return res.json()
 }
 
@@ -208,6 +216,10 @@ export async function updateAdminModel(id: number, config: Partial<LLMConfig>): 
     body: JSON.stringify(config),
     headers: { 'Content-Type': 'application/json' },
   })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to update admin model')
+  }
   return res.json()
 }
 
@@ -215,17 +227,29 @@ export async function deleteAdminModel(id: number): Promise<{ success: boolean }
   const res = await fetch(`${API_URL}/admin/models/${id}`, {
     method: 'DELETE',
   })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to delete admin model')
+  }
   return res.json()
 }
 
 // Tournament API
 export async function getTournaments(): Promise<Tournament[]> {
   const res = await fetch(`${API_URL}/tournaments`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch tournaments')
+  }
   return res.json()
 }
 
 export async function getTournament(id: string): Promise<Tournament> {
   const res = await fetch(`${API_URL}/tournaments/${id}`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch tournament')
+  }
   return res.json()
 }
 
@@ -241,16 +265,28 @@ export async function createTournament(data: {
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
   })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to create tournament')
+  }
   return res.json()
 }
 
 export async function getTournamentParticipants(id: string): Promise<TournamentParticipant[]> {
   const res = await fetch(`${API_URL}/tournaments/${id}/participants`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch tournament participants')
+  }
   return res.json()
 }
 
 export async function getTournamentGames(id: string): Promise<Game[]> {
   const res = await fetch(`${API_URL}/tournaments/${id}/games`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch tournament games')
+  }
   return res.json()
 }
 

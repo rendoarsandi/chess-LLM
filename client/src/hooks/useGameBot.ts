@@ -28,12 +28,9 @@ export function useGameBot(
     if (lastMessage.type === 'REQUEST_MOVE' && lastMessage.gameId === gameId) {
       const { fen, constraints } = lastMessage
 
-      console.log(`[GameBot] Received REQUEST_MOVE for game ${gameId}, FEN: ${fen}`)
-
       playerServiceRef.current
         .calculateMove(fen, constraints.depth, constraints.skillLevel, constraints.movetime)
         .then((move) => {
-          console.log(`[GameBot] Calculated move: ${move}`)
           sendMessage({
             type: 'SUBMIT_MOVE',
             gameId,
@@ -41,9 +38,7 @@ export function useGameBot(
           })
         })
         .catch((err) => {
-          if (err.message === 'Request cancelled by a newer move request') {
-            console.log(`[GameBot] Move request for game ${gameId} was superseded.`)
-          } else {
+          if (err.message !== 'Request cancelled by a newer move request') {
             console.error(`[GameBot] Error calculating move:`, err)
           }
         })
