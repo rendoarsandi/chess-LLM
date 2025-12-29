@@ -13,31 +13,45 @@ describe('Chess 960 Integration', () => {
 
   beforeEach(async () => {
     gameService = new GameService(db as unknown as AppDatabase, new GameManager())
-    
+
     // Clean up in correct order: child tables first
-    const { moves, ratingHistory, games, players, moveAnalyses, gameReviews, llmConfigurations, tournamentParticipants } = await import('../db/schema');
-    
-    await db.delete(moveAnalyses);
-    await db.delete(gameReviews);
-    await db.delete(moves);
-    await db.delete(ratingHistory);
-    await db.delete(llmConfigurations);
-    await db.delete(tournamentParticipants);
-    await db.delete(games);
-    await db.delete(players);
+    const {
+      moves,
+      ratingHistory,
+      games,
+      players,
+      moveAnalyses,
+      gameReviews,
+      llmConfigurations,
+      tournamentParticipants,
+      tournaments,
+    } = await import('../db/schema')
+
+    await db.delete(moveAnalyses)
+    await db.delete(gameReviews)
+    await db.delete(moves)
+    await db.delete(ratingHistory)
+    await db.delete(llmConfigurations)
+    await db.delete(tournamentParticipants)
+    await db.delete(games)
+    await db.delete(tournaments)
+    await db.delete(players)
 
     // Setup players
     await db.insert(players).values([
       { id: testWhiteId, name: 'White', type: 'human', rating: 1200, rating960: 1200 },
-      { id: testBlackId, name: 'Black', type: 'human', rating: 1200, rating960: 1200 }
+      { id: testBlackId, name: 'Black', type: 'human', rating: 1200, rating960: 1200 },
     ])
   })
 
   it('should create a Chess 960 game with correct initial FEN', async () => {
     // SP-ID 518 is standard
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 518 })
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, {
+      variant: 'chess960',
+      startPosId: 518,
+    })
     const game = await gameService.getGame(gameId)
-    
+
     expect(game?.variant).toBe('chess960')
     expect(game?.startPosId).toBe(518)
     expect(game?.fen.startsWith('rnbqkbnr/')).toBe(true)
@@ -45,15 +59,21 @@ describe('Chess 960 Integration', () => {
 
   it('should create a non-standard 960 game', async () => {
     // SP-ID 0 is bbqnnrkr
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 0 })
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, {
+      variant: 'chess960',
+      startPosId: 0,
+    })
     const game = await gameService.getGame(gameId)
-    
+
     expect(game?.fen.startsWith('bbqnnrkr/')).toBe(true)
   })
 
   it('should update 960 ratings specifically', async () => {
-    const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960', startPosId: 518 })
-    
+    const gameId = await gameService.createGame(testWhiteId, testBlackId, {
+      variant: 'chess960',
+      startPosId: 518,
+    })
+
     // Simulate white winning
     await gameService.finishGame(gameId, testWhiteId, 'checkmate')
 
@@ -73,7 +93,7 @@ describe('Chess 960 Integration', () => {
   it('should generate a random startPosId if none provided for chess960', async () => {
     const gameId = await gameService.createGame(testWhiteId, testBlackId, { variant: 'chess960' })
     const game = await gameService.getGame(gameId)
-    
+
     expect(game?.variant).toBe('chess960')
     expect(game?.startPosId).toBeGreaterThanOrEqual(0)
     expect(game?.startPosId).toBeLessThan(960)

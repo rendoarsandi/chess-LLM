@@ -22,7 +22,6 @@ export default defineConfig([
   },
   {
     files: ['**/*.test.ts', '**/*.test.tsx'],
-    rules: {
-    },
+    rules: {},
   },
 ])

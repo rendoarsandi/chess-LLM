@@ -37,20 +37,20 @@ export const adminRoutes = (tournamentService: TournamentService) => {
   admin.post('/tournaments', async (c) => {
     const body = await c.req.json()
     const { name, startTime, totalRounds, timeControlSettings, participantIds } = body
-    
+
     try {
       const tournament = await tournamentService.createTournament({
         name,
         startTime: new Date(startTime),
         totalRounds,
-        timeControlSettings
+        timeControlSettings,
       })
-      
+
       // Register participants
       for (const pid of participantIds) {
         await tournamentService.registerParticipant(tournament.id, pid)
       }
-      
+
       return c.json(tournament, 201)
     } catch (e) {
       return c.json({ error: (e as Error).message }, 400)
@@ -66,7 +66,10 @@ export const adminRoutes = (tournamentService: TournamentService) => {
       const sqlite = getSqliteClient()
       const stmt = sqlite.prepare(sql)
       let result
-      if (sql.trim().toUpperCase().startsWith('SELECT') || sql.trim().toUpperCase().startsWith('PRAGMA')) {
+      if (
+        sql.trim().toUpperCase().startsWith('SELECT') ||
+        sql.trim().toUpperCase().startsWith('PRAGMA')
+      ) {
         result = stmt.all()
       } else {
         result = stmt.run()

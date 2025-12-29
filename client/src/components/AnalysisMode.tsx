@@ -1,115 +1,128 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { getGame, getMoves, getReviewStatus, type Game, type Move, type GameReview, type MoveAnalysis } from '../api';
-import { AnalysisBoard } from './AnalysisBoard';
-import { MoveList } from './MoveList';
-import { PlaybackControls } from './PlaybackControls';
-import { useStockfish } from '../lib/stockfish/useStockfish';
-import { Button } from './ui/button';
-import { ChevronLeft, Share2, Download } from 'lucide-react';
-import { generate960Fen, safeNewChess } from '../lib/chess-utils';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useParams, useNavigate } from 'react-router'
+import {
+  getGame,
+  getMoves,
+  getReviewStatus,
+  type Game,
+  type Move,
+  type GameReview,
+  type MoveAnalysis,
+} from '../api'
+import { AnalysisBoard } from './AnalysisBoard'
+import { MoveList } from './MoveList'
+import { PlaybackControls } from './PlaybackControls'
+import { useStockfish } from '../lib/stockfish/useStockfish'
+import { Button } from './ui/button'
+import { ChevronLeft, Share2, Download } from 'lucide-react'
+import { generate960Fen, safeNewChess } from '../lib/chess-utils'
 
 export const AnalysisMode: React.FC = () => {
-  const { gameId } = useParams<{ gameId: string }>();
-  const navigate = useNavigate();
-  
-  const [game, setGame] = useState<Game | null>(null);
-  const [moves, setMoves] = useState<Move[]>([]);
-  const [review, setReview] = useState<(GameReview & { analyses?: MoveAnalysis[] }) | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [boardOrientation] = useState<'white' | 'black'>('white');
+  const { gameId } = useParams<{ gameId: string }>()
+  const navigate = useNavigate()
+
+  const [game, setGame] = useState<Game | null>(null)
+  const [moves, setMoves] = useState<Move[]>([])
+  const [review, setReview] = useState<(GameReview & { analyses?: MoveAnalysis[] }) | null>(null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const [boardOrientation] = useState<'white' | 'black'>('white')
 
   const fetchStatus = useCallback(async () => {
-    if (!gameId) return;
+    if (!gameId) return
     try {
-      const status = await getReviewStatus(gameId);
-      setReview(status);
+      const status = await getReviewStatus(gameId)
+      setReview(status)
     } catch {
       // Ignore not found
     }
-  }, [gameId]);
+  }, [gameId])
 
   useEffect(() => {
-    if (!gameId) return;
-    
+    if (!gameId) return
+
     const fetchData = async () => {
       try {
-        const [gameData, movesData] = await Promise.all([
-          getGame(gameId),
-          getMoves(gameId)
-        ]);
-        
-        setGame(gameData);
-        setMoves(movesData);
-        setActiveIndex(movesData.length - 1);
+        const [gameData, movesData] = await Promise.all([getGame(gameId), getMoves(gameId)])
+
+        setGame(gameData)
+        setMoves(movesData)
+        setActiveIndex(movesData.length - 1)
 
         // Initial check for review
         try {
-          console.log(`[AnalysisMode] Checking status for game: ${gameId}`);
-          const reviewData = await getReviewStatus(gameId);
-          console.log(`[AnalysisMode] Found existing review:`, reviewData);
-          setReview(reviewData);
+          console.log(`[AnalysisMode] Checking status for game: ${gameId}`)
+          const reviewData = await getReviewStatus(gameId)
+          console.log(`[AnalysisMode] Found existing review:`, reviewData)
+          setReview(reviewData)
         } catch (error) {
-          console.log(`[AnalysisMode] No review found:`, error);
+          console.log(`[AnalysisMode] No review found:`, error)
         }
       } catch (error) {
-        console.error('Failed to fetch analysis data:', error);
+        console.error('Failed to fetch analysis data:', error)
       }
-    };
-    
-    fetchData();
-  }, [gameId]);
+    }
+
+    fetchData()
+  }, [gameId])
 
   useEffect(() => {
-    if (!gameId || !review || review.status === 'completed' || review.status === 'failed') return;
+    if (!gameId || !review || review.status === 'completed' || review.status === 'failed') return
 
-    const interval = setInterval(fetchStatus, 2000);
-    return () => clearInterval(interval);
-  }, [gameId, review, fetchStatus]);
+    const interval = setInterval(fetchStatus, 2000)
+    return () => clearInterval(interval)
+  }, [gameId, review, fetchStatus])
 
   const currentDisplayFen = useMemo(() => {
-    let startFen: string | undefined = undefined;
+    let startFen: string | undefined = undefined
     if (game?.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
       try {
-        startFen = generate960Fen(game.startPosId);
+        startFen = generate960Fen(game.startPosId)
       } catch (e) {
-        console.error('[AnalysisMode] Failed to generate 960 FEN:', e);
+        console.error('[AnalysisMode] Failed to generate 960 FEN:', e)
       }
     }
 
-    const chess = safeNewChess(startFen);
-    if (moves.length === 0 || activeIndex === null) return chess.fen();
+    const chess = safeNewChess(startFen)
+    if (moves.length === 0 || activeIndex === null) return chess.fen()
     for (let i = 0; i <= activeIndex; i++) {
-      try { chess.move(moves[i].move); } catch { /* ignore */ }
+      try {
+        chess.move(moves[i].move)
+      } catch {
+        /* ignore */
+      }
     }
-    return chess.fen();
-  }, [moves, activeIndex, game]);
+    return chess.fen()
+  }, [moves, activeIndex, game])
 
   const lastMoveSquares = useMemo(() => {
-    if (activeIndex === null || activeIndex < 0 || moves.length === 0) return undefined;
+    if (activeIndex === null || activeIndex < 0 || moves.length === 0) return undefined
 
-    let startFen: string | undefined = undefined;
+    let startFen: string | undefined = undefined
     if (game?.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
       try {
-        startFen = generate960Fen(game.startPosId);
+        startFen = generate960Fen(game.startPosId)
       } catch (e) {
-        console.error('[AnalysisMode] Failed to generate 960 FEN:', e);
+        console.error('[AnalysisMode] Failed to generate 960 FEN:', e)
       }
     }
 
-    const chess = safeNewChess(startFen);
+    const chess = safeNewChess(startFen)
     try {
       for (let i = 0; i < activeIndex; i++) {
-        try { chess.move(moves[i].move); } catch { /* ignore */ }
+        try {
+          chess.move(moves[i].move)
+        } catch {
+          /* ignore */
+        }
       }
-      const move = chess.move(moves[activeIndex].move);
-      return { from: move.from, to: move.to };
+      const move = chess.move(moves[activeIndex].move)
+      return { from: move.from, to: move.to }
     } catch {
-      return undefined;
+      return undefined
     }
-  }, [moves, activeIndex, game]);
+  }, [moves, activeIndex, game])
 
-  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen);
+  const { evaluation, variations, isThinking } = useStockfish(currentDisplayFen)
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
@@ -120,7 +133,8 @@ export const AnalysisMode: React.FC = () => {
             BACK
           </Button>
           <h1 className="text-sm font-black uppercase tracking-widest italic">
-            Review Mode <span className="text-primary not-italic font-mono ml-2">#{gameId?.slice(0, 8)}</span>
+            Review Mode{' '}
+            <span className="text-primary not-italic font-mono ml-2">#{gameId?.slice(0, 8)}</span>
           </h1>
         </div>
         <div className="flex gap-2">
@@ -137,7 +151,7 @@ export const AnalysisMode: React.FC = () => {
         {/* Left: Board & Controls */}
         <div className="flex-[1.5] flex flex-col items-center gap-6 min-w-0">
           <div className="w-full max-w-[650px]">
-            <AnalysisBoard 
+            <AnalysisBoard
               fen={currentDisplayFen}
               orientation={boardOrientation}
               evaluation={evaluation}
@@ -149,10 +163,10 @@ export const AnalysisMode: React.FC = () => {
             />
           </div>
           <div className="w-full max-w-[600px] flex flex-col gap-4">
-            <PlaybackControls 
+            <PlaybackControls
               onFirst={() => setActiveIndex(0)}
-              onPrev={() => setActiveIndex(prev => Math.max(0, (prev ?? 0) - 1))}
-              onNext={() => setActiveIndex(prev => Math.min(moves.length - 1, (prev ?? 0) + 1))}
+              onPrev={() => setActiveIndex((prev) => Math.max(0, (prev ?? 0) - 1))}
+              onNext={() => setActiveIndex((prev) => Math.min(moves.length - 1, (prev ?? 0) + 1))}
               onLast={() => setActiveIndex(moves.length - 1)}
               prevDisabled={activeIndex === 0}
               nextDisabled={activeIndex === moves.length - 1}
@@ -170,9 +184,9 @@ export const AnalysisMode: React.FC = () => {
             onRetry={handleRetry}
           />
           */}
-          
+
           <div className="flex-1 min-h-0">
-            <MoveList 
+            <MoveList
               moves={moves}
               onMoveClick={setActiveIndex}
               selectedMoveIndex={activeIndex}
@@ -183,5 +197,5 @@ export const AnalysisMode: React.FC = () => {
         </div>
       </main>
     </div>
-  );
-};
+  )
+}

@@ -1,6 +1,6 @@
-import { Button } from './ui/button';
-import { Trophy, RotateCcw, Scale, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Button } from './ui/button'
+import { Trophy, RotateCcw, Scale, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface GameResultOverlayProps {
   winner: 'white' | 'black' | 'draw' | null
@@ -11,28 +11,36 @@ interface GameResultOverlayProps {
   blackPlayerName?: string
 }
 
-export function GameResultOverlay({ winner, reason, onNewGame, onClose, whitePlayerName, blackPlayerName }: GameResultOverlayProps) {
-  if (winner === null && !reason) return null;
+export function GameResultOverlay({
+  winner,
+  reason,
+  onNewGame,
+  onClose,
+  whitePlayerName,
+  blackPlayerName,
+}: GameResultOverlayProps) {
+  if (winner === null && !reason) return null
 
-  const resultText = winner === 'white' ? '1-0' : winner === 'black' ? '0-1' : '½-½';
-  const winnerName = winner === 'white' ? whitePlayerName : winner === 'black' ? blackPlayerName : null;
+  const resultText = winner === 'white' ? '1-0' : winner === 'black' ? '0-1' : '½-½'
+  const winnerName =
+    winner === 'white' ? whitePlayerName : winner === 'black' ? blackPlayerName : null
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-sm"
       >
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           className="bg-card border-2 border-primary/20 p-8 rounded-xl shadow-2xl max-w-sm w-full text-center space-y-6 relative"
         >
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="absolute right-4 top-4 h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={onClose}
           >
@@ -68,13 +76,15 @@ export function GameResultOverlay({ winner, reason, onNewGame, onClose, whitePla
 
           {winnerName && (
             <div className="p-3 bg-muted rounded-lg border border-border">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest block mb-1">Winner</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest block mb-1">
+                Winner
+              </span>
               <span className="text-lg font-bold">{winnerName}</span>
             </div>
           )}
 
           <div className="flex flex-col gap-2">
-            <Button 
+            <Button
               onClick={onNewGame}
               className="w-full h-12 font-black tracking-widest gap-2 text-md"
             >
@@ -85,5 +95,5 @@ export function GameResultOverlay({ winner, reason, onNewGame, onClose, whitePla
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  );
+  )
 }

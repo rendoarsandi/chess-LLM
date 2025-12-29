@@ -13,7 +13,7 @@ describe('PlayerService', () => {
   beforeEach(() => {
     const sqlite = new Database(':memory:')
     db = drizzle(sqlite, { schema })
-    
+
     sqlite.exec(`
       CREATE TABLE players (
         id TEXT PRIMARY KEY,
@@ -77,16 +77,18 @@ describe('PlayerService', () => {
   })
 
   it('should generate deterministic IDs', () => {
-    const id1 = (service as unknown as { generatePlayerId: (name: string) => string }).generatePlayerId('test')
-    const id2 = (service as unknown as { generatePlayerId: (name: string) => string }).generatePlayerId('test')
+    const id1 = (
+      service as unknown as { generatePlayerId: (name: string) => string }
+    ).generatePlayerId('test')
+    const id2 = (
+      service as unknown as { generatePlayerId: (name: string) => string }
+    ).generatePlayerId('test')
     expect(id1).toBe(id2)
     expect(id1.length).toBe(36)
   })
 
   it('should sync hardcoded configs', async () => {
-    const configs = [
-      { provider: 'gemini', modelId: 'gemini-1.5-pro', name: 'Gemini Pro' }
-    ]
+    const configs = [{ provider: 'gemini', modelId: 'gemini-1.5-pro', name: 'Gemini Pro' }]
     await service.syncHardcodedConfigs(configs)
 
     const playersInDb = await db.select().from(players)
@@ -101,7 +103,7 @@ describe('PlayerService', () => {
       name: 'Test Player',
       type: 'llm',
       rating: 1500,
-      peakRating: 1500
+      peakRating: 1500,
     })
 
     const profile = await service.getPlayerProfile(playerId)
@@ -113,14 +115,35 @@ describe('PlayerService', () => {
     await db.insert(players).values([
       { id: 'p1', name: 'P1', type: 'llm', rating: 1500, peakRating: 1500 },
       { id: 'p2', name: 'P2', type: 'llm', rating: 1500, peakRating: 1500 },
-      { id: 'p3', name: 'P3', type: 'llm', rating: 1500, peakRating: 1500 }
+      { id: 'p3', name: 'P3', type: 'llm', rating: 1500, peakRating: 1500 },
     ])
 
     await db.insert(games).values([
-      { id: 'g1', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'completed', winnerId: 'p1', fen: '...' },
-      { id: 'g2', whitePlayerId: 'p2', blackPlayerId: 'p1', status: 'completed', winnerId: 'p1', fen: '...' },
+      {
+        id: 'g1',
+        whitePlayerId: 'p1',
+        blackPlayerId: 'p2',
+        status: 'completed',
+        winnerId: 'p1',
+        fen: '...',
+      },
+      {
+        id: 'g2',
+        whitePlayerId: 'p2',
+        blackPlayerId: 'p1',
+        status: 'completed',
+        winnerId: 'p1',
+        fen: '...',
+      },
       { id: 'g3', whitePlayerId: 'p1', blackPlayerId: 'p2', status: 'draw', fen: '...' },
-      { id: 'g4', whitePlayerId: 'p1', blackPlayerId: 'p3', status: 'completed', winnerId: 'p3', fen: '...' }
+      {
+        id: 'g4',
+        whitePlayerId: 'p1',
+        blackPlayerId: 'p3',
+        status: 'completed',
+        winnerId: 'p3',
+        fen: '...',
+      },
     ])
 
     const h2h = await service.getHeadToHead(playerId)

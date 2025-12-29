@@ -11,21 +11,30 @@ import { AppDatabase } from '../db/types'
 
 export class GameService {
   constructor(
-    private db: AppDatabase, 
-    private gm: GameManager, 
+    private db: AppDatabase,
+    private gm: GameManager,
     private ts?: TournamentService,
-    private socketService?: SocketService
+    private socketService?: SocketService,
   ) {}
 
-  async createGame(whitePlayerId: string, blackPlayerId: string, metadata?: { tournamentId?: string, roundNumber?: number, variant?: string, startPosId?: number }) {
+  async createGame(
+    whitePlayerId: string,
+    blackPlayerId: string,
+    metadata?: {
+      tournamentId?: string
+      roundNumber?: number
+      variant?: string
+      startPosId?: number
+    },
+  ) {
     // Check for existing ongoing non-tournament game only if this is NOT a tournament game
     if (!metadata?.tournamentId) {
-      const ongoingNonTournamentGames = await this.db.select().from(games).where(
-        and(
-          sql`${games.status} IN ('ongoing', 'paused')`,
-          sql`${games.tournamentId} IS NULL`
+      const ongoingNonTournamentGames = await this.db
+        .select()
+        .from(games)
+        .where(
+          and(sql`${games.status} IN ('ongoing', 'paused')`, sql`${games.tournamentId} IS NULL`),
         )
-      )
       if (ongoingNonTournamentGames.length > 0) {
         throw new Error('A game is already in progress. Please complete or delete it first.')
       }
@@ -33,18 +42,18 @@ export class GameService {
 
     const id = randomUUID()
     const is960 = metadata?.variant === 'chess960' || metadata?.variant === '960'
-    const variant = (is960 ? 'chess960' : 'standard') as "standard" | "chess960"
-    
+    const variant = (is960 ? 'chess960' : 'standard') as 'standard' | 'chess960'
+
     let startPosId = metadata?.startPosId
     if (is960 && startPosId === undefined) {
       startPosId = Math.floor(Math.random() * 960)
     }
 
-    const initialState = this.gm.createNewGame(whitePlayerId, blackPlayerId, { 
-      variant: variant, 
-      startPosId: startPosId 
+    const initialState = this.gm.createNewGame(whitePlayerId, blackPlayerId, {
+      variant: variant,
+      startPosId: startPosId,
     })
-    
+
     await this.db.insert(games).values({
       id,
       whitePlayerId,
@@ -60,7 +69,7 @@ export class GameService {
     if (this.socketService) {
       this.socketService.broadcast(id, { type: 'GAME_STARTED', gameId: id })
     }
-    
+
     return id
   }
 
@@ -70,13 +79,15 @@ export class GameService {
   }
 
   async pauseGame(gameId: string) {
-    await this.db.update(games)
+    await this.db
+      .update(games)
       .set({ status: 'paused', updatedAt: new Date() })
       .where(eq(games.id, gameId))
   }
 
   async resumeGame(gameId: string) {
-    await this.db.update(games)
+    await this.db
+      .update(games)
       .set({ status: 'ongoing', updatedAt: new Date() })
       .where(eq(games.id, gameId))
   }
@@ -111,7 +122,7 @@ export class GameService {
 
   async getPlayerStats(playerId: string) {
     // 1. Get favorite openings
-    // We look for moves made by this player (or in games they participated in as White) 
+    // We look for moves made by this player (or in games they participated in as White)
     // where an opening was detected.
     const playerOpenings = await this.db
       .select({
@@ -126,7 +137,7 @@ export class GameService {
     let totalThinkingMs = 0
     let thinkingCount = 0
 
-    playerOpenings.forEach((m: { opening: string | null, thinkingMs: number | null }) => {
+    playerOpenings.forEach((m: { opening: string | null; thinkingMs: number | null }) => {
       if (m.opening) {
         openingCounts[m.opening] = (openingCounts[m.opening] || 0) + 1
       }
@@ -149,10 +160,14 @@ export class GameService {
     }
   }
 
-  async makeMove(gameId: string, move: string, thinking?: { opening?: string, candidates?: string, reasoning?: string, thinkingMs?: number }) {
+  async makeMove(
+    gameId: string,
+    move: string,
+    thinking?: { opening?: string; candidates?: string; reasoning?: string; thinkingMs?: number },
+  ) {
     const game = await this.getGame(gameId)
     if (!game) throw new Error('Game not found')
-    
+
     if (game.status === 'paused') {
       throw new Error('Game is currently paused')
     }
@@ -160,9 +175,9 @@ export class GameService {
       throw new Error(`Game is already finished (status: ${game.status})`)
     }
 
-    let startFen: string | undefined = undefined;
+    let startFen: string | undefined = undefined
     if (game.variant === 'chess960' && game.startPosId !== null && game.startPosId !== undefined) {
-      startFen = generate960Fen(game.startPosId);
+      startFen = generate960Fen(game.startPosId)
     }
 
     const chess = safeNewChess(startFen)
@@ -177,18 +192,20 @@ export class GameService {
 
     const nextFen = chess.fen()
     const isGameOver = chess.isGameOver()
-    
+
     // Determine winner based on the current state of the historied chess instance
-    let winner: 'white' | 'black' | 'draw' | null = null;
+    let winner: 'white' | 'black' | 'draw' | null = null
     if (isGameOver) {
       if (chess.isCheckmate()) {
-        winner = chess.turn() === 'w' ? 'black' : 'white';
+        winner = chess.turn() === 'w' ? 'black' : 'white'
       } else {
-        winner = 'draw';
+        winner = 'draw'
       }
     }
 
-    logger.info(`[GameService] Move applied: ${moveResult.san}. isGameOver: ${isGameOver}, winner: ${winner}`)
+    logger.info(
+      `[GameService] Move applied: ${moveResult.san}. isGameOver: ${isGameOver}, winner: ${winner}`,
+    )
 
     const fenParts = game.fen.split(' ')
     const playerColor = fenParts[1] === 'w' ? 'white' : 'black'
@@ -199,7 +216,7 @@ export class GameService {
       gameId,
       moveNumber,
       playerColor,
-      move: moveResult.san, 
+      move: moveResult.san,
       fen: nextFen,
       opening: thinking?.opening,
       candidates: thinking?.candidates,
@@ -232,19 +249,26 @@ export class GameService {
     // Update PGN
     const pgn = chess.pgn()
 
-    await this.db.update(games)
-      .set({ 
-        fen: nextFen, 
-        status: status, 
+    await this.db
+      .update(games)
+      .set({
+        fen: nextFen,
+        status: status,
         winnerId,
         gameOverReason,
         pgn,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(games.id, gameId))
 
     if (isGameOver) {
-      await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as 'completed' | 'draw', winnerId, gameId)
+      await this.updatePlayerRatings(
+        game.whitePlayerId,
+        game.blackPlayerId,
+        status as 'completed' | 'draw',
+        winnerId,
+        gameId,
+      )
     }
 
     const result = { fen: nextFen, status, winnerId, gameOverReason, san: moveResult.san, pgn }
@@ -261,32 +285,45 @@ export class GameService {
     if (!game || game.status !== 'ongoing') return
 
     const status = winnerId ? 'completed' : 'draw'
-    
-    await this.db.update(games)
-      .set({ 
-        status, 
+
+    await this.db
+      .update(games)
+      .set({
+        status,
         winnerId,
         gameOverReason: reason,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(games.id, gameId))
 
-    await this.updatePlayerRatings(game.whitePlayerId, game.blackPlayerId, status as 'completed' | 'draw', winnerId, gameId)
+    await this.updatePlayerRatings(
+      game.whitePlayerId,
+      game.blackPlayerId,
+      status as 'completed' | 'draw',
+      winnerId,
+      gameId,
+    )
 
     if (this.socketService) {
-      this.socketService.broadcast(gameId, { 
-        type: 'UPDATE', 
+      this.socketService.broadcast(gameId, {
+        type: 'UPDATE',
         fen: game.fen,
         status,
         winnerId,
         gameOverReason: reason,
         san: '',
-        pgn: game.pgn || ''
+        pgn: game.pgn || '',
       })
     }
   }
 
-  private async updatePlayerRatings(whiteId: string, blackId: string, status: 'completed' | 'draw', winnerId: string | null, gameId: string) {
+  private async updatePlayerRatings(
+    whiteId: string,
+    blackId: string,
+    status: 'completed' | 'draw',
+    winnerId: string | null,
+    gameId: string,
+  ) {
     const whitePlayer = (await this.db.select().from(players).where(eq(players.id, whiteId)))[0]
     const blackPlayer = (await this.db.select().from(players).where(eq(players.id, blackId)))[0]
     const game = (await this.db.select().from(games).where(eq(games.id, gameId)))[0]
@@ -311,30 +348,37 @@ export class GameService {
     const newWhiteRating = whiteRating + whiteChange
     const newBlackRating = blackRating + blackChange
 
-    const updatePlayer = async (id: string, player: typeof players.$inferSelect, newRating: number, score: number) => {
-      const updateData = is960 ? {
-        rating960: newRating,
-        peakRating960: Math.max(player.peakRating960, newRating),
-        wins960: player.wins960 + (score === 1 ? 1 : 0),
-        losses960: player.losses960 + (score === 0 ? 1 : 0),
-        draws960: player.draws960 + (score === 0.5 ? 1 : 0),
-      } : {
-        rating: newRating,
-        peakRating: Math.max(player.peakRating, newRating),
-        wins: player.wins + (score === 1 ? 1 : 0),
-        losses: player.losses + (score === 0 ? 1 : 0),
-        draws: player.draws + (score === 0.5 ? 1 : 0),
-      };
-      await this.db.update(players).set(updateData).where(eq(players.id, id));
-    };
+    const updatePlayer = async (
+      id: string,
+      player: typeof players.$inferSelect,
+      newRating: number,
+      score: number,
+    ) => {
+      const updateData = is960
+        ? {
+            rating960: newRating,
+            peakRating960: Math.max(player.peakRating960, newRating),
+            wins960: player.wins960 + (score === 1 ? 1 : 0),
+            losses960: player.losses960 + (score === 0 ? 1 : 0),
+            draws960: player.draws960 + (score === 0.5 ? 1 : 0),
+          }
+        : {
+            rating: newRating,
+            peakRating: Math.max(player.peakRating, newRating),
+            wins: player.wins + (score === 1 ? 1 : 0),
+            losses: player.losses + (score === 0 ? 1 : 0),
+            draws: player.draws + (score === 0.5 ? 1 : 0),
+          }
+      await this.db.update(players).set(updateData).where(eq(players.id, id))
+    }
 
-    await updatePlayer(whiteId, whitePlayer, newWhiteRating, whiteScore);
-    await updatePlayer(blackId, blackPlayer, newBlackRating, blackScore);
+    await updatePlayer(whiteId, whitePlayer, newWhiteRating, whiteScore)
+    await updatePlayer(blackId, blackPlayer, newBlackRating, blackScore)
 
     // Record history
     await this.db.insert(ratingHistory).values([
       { playerId: whiteId, rating: newWhiteRating, gameId },
-      { playerId: blackId, rating: newBlackRating, gameId }
+      { playerId: blackId, rating: newBlackRating, gameId },
     ])
 
     // Update tournament scores if applicable

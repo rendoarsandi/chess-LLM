@@ -1,46 +1,57 @@
-import React from 'react';
-import type { GameReview, MoveAnalysis, Player } from '@/api';
-import { Zap, Star, CheckCheck, Check, Info, AlertTriangle, XCircle, Search, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
+import React from 'react'
+import type { GameReview, MoveAnalysis, Player } from '@/api'
+import {
+  Zap,
+  Star,
+  CheckCheck,
+  Check,
+  Info,
+  AlertTriangle,
+  XCircle,
+  Search,
+  Loader2,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from './ui/button'
 
 interface GameReviewDashboardProps {
-  review: (GameReview & { analyses?: MoveAnalysis[] }) | null;
-  whitePlayer?: Player;
-  blackPlayer?: Player;
-  onRetry?: () => void;
+  review: (GameReview & { analyses?: MoveAnalysis[] }) | null
+  whitePlayer?: Player
+  blackPlayer?: Player
+  onRetry?: () => void
 }
 
 export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
   review,
   whitePlayer,
   blackPlayer,
-  onRetry
+  onRetry,
 }) => {
-  const isLocalWorkerActive = review?.workerId?.startsWith('worker-');
+  const isLocalWorkerActive = review?.workerId?.startsWith('worker-')
 
-  if (!review) return null;
+  if (!review) return null
 
-  const isCompleted = review.status === 'completed';
-  const isProcessing = review.status === 'processing';
-  const isFailed = review.status === 'failed';
-  const progress = review.progressTotal > 0 ? (review.progressCurrent / review.progressTotal) * 100 : 0;
+  const isCompleted = review.status === 'completed'
+  const isProcessing = review.status === 'processing'
+  const isFailed = review.status === 'failed'
+  const progress =
+    review.progressTotal > 0 ? (review.progressCurrent / review.progressTotal) * 100 : 0
 
   const getClassificationCounts = (playerColor: 'white' | 'black') => {
-    if (!review.analyses) return {};
-    const counts: Record<string, number> = {};
+    if (!review.analyses) return {}
+    const counts: Record<string, number> = {}
     review.analyses.forEach((analysis) => {
       if (analysis.playerColor === playerColor) {
-        counts[analysis.classification] = (counts[analysis.classification] || 0) + 1;
+        counts[analysis.classification] = (counts[analysis.classification] || 0) + 1
       }
-    });
-    return counts;
-  };
+    })
+    return counts
+  }
 
   const calculateAccuracy = (playerColor: 'white' | 'black') => {
-    if (!review.analyses) return 0;
-    let totalWeight = 0;
-    let count = 0;
+    if (!review.analyses) return 0
+    let totalWeight = 0
+    let count = 0
     review.analyses.forEach((analysis) => {
       if (analysis.playerColor === playerColor) {
         // Non-linear weights to punish blunders and mistakes more heavily
@@ -54,45 +65,48 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
           inaccuracy: 40,
           mistake: 15,
           blunder: 0,
-          miss: 10
-        };
-        totalWeight += weights[analysis.classification] ?? 70;
-        count++;
+          miss: 10,
+        }
+        totalWeight += weights[analysis.classification] ?? 70
+        count++
       }
-    });
+    })
     // In very short games, accuracy drops faster if you blunder early
-    return count > 0 ? Math.round(totalWeight / count) : 0;
-  };
+    return count > 0 ? Math.round(totalWeight / count) : 0
+  }
 
-  const ClassificationStat = ({ type, count }: { type: string, count: number }) => {
-    const iconMap: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
-      brilliant: { icon: Zap, color: "text-cyan-400", label: "!!" },
-      great: { icon: Star, color: "text-blue-400", label: "!" },
-      best: { icon: CheckCheck, color: "text-green-400", label: "★" },
-      excellent: { icon: Check, color: "text-green-500", label: "" },
-      good: { icon: Check, color: "text-slate-400", label: "" },
-      book: { icon: Info, color: "text-orange-400", label: "📖" },
-      inaccuracy: { icon: Info, color: "text-yellow-400", label: "?!" },
-      mistake: { icon: AlertTriangle, color: "text-orange-500", label: "?" },
-      blunder: { icon: XCircle, color: "text-red-500", label: "??" },
-      miss: { icon: Search, color: "text-purple-400", label: "X" },
-    };
-    const cfg = iconMap[type];
-    if (!cfg || !count) return null;
-    const Icon = cfg.icon;
+  const ClassificationStat = ({ type, count }: { type: string; count: number }) => {
+    const iconMap: Record<
+      string,
+      { icon: React.ComponentType<{ className?: string }>; color: string; label: string }
+    > = {
+      brilliant: { icon: Zap, color: 'text-cyan-400', label: '!!' },
+      great: { icon: Star, color: 'text-blue-400', label: '!' },
+      best: { icon: CheckCheck, color: 'text-green-400', label: '★' },
+      excellent: { icon: Check, color: 'text-green-500', label: '' },
+      good: { icon: Check, color: 'text-slate-400', label: '' },
+      book: { icon: Info, color: 'text-orange-400', label: '📖' },
+      inaccuracy: { icon: Info, color: 'text-yellow-400', label: '?!' },
+      mistake: { icon: AlertTriangle, color: 'text-orange-500', label: '?' },
+      blunder: { icon: XCircle, color: 'text-red-500', label: '??' },
+      miss: { icon: Search, color: 'text-purple-400', label: 'X' },
+    }
+    const cfg = iconMap[type]
+    if (!cfg || !count) return null
+    const Icon = cfg.icon
 
     return (
       <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter py-1 border-b border-border/50 last:border-0">
         <div className="flex items-center gap-2">
-          <div className={cn("p-1 rounded bg-muted/50", cfg.color)}>
+          <div className={cn('p-1 rounded bg-muted/50', cfg.color)}>
             <Icon className="w-3 h-3" />
           </div>
           <span className="text-muted-foreground">{type}</span>
         </div>
         <span className="text-foreground">{count}</span>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -117,8 +131,13 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
       {isProcessing && (
         <div className="px-4 py-1 bg-primary/5 border-b border-border flex flex-col gap-1">
           <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground">
-            <div className={cn("w-1.5 h-1.5 rounded-full", isLocalWorkerActive ? "bg-primary animate-pulse" : "bg-muted")} />
-            {isLocalWorkerActive ? "Your browser is analyzing" : "Remote worker active"}
+            <div
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                isLocalWorkerActive ? 'bg-primary animate-pulse' : 'bg-muted',
+              )}
+            />
+            {isLocalWorkerActive ? 'Your browser is analyzing' : 'Remote worker active'}
           </div>
           <div className="text-[6px] font-mono text-muted-foreground opacity-50">
             Worker ID: {review.workerId}
@@ -133,12 +152,16 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
               <XCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-bold uppercase tracking-widest text-red-500">Analysis Failed</p>
-              <p className="text-xs text-muted-foreground">The worker encountered an error while analyzing this game.</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-red-500">
+                Analysis Failed
+              </p>
+              <p className="text-xs text-muted-foreground">
+                The worker encountered an error while analyzing this game.
+              </p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="font-black text-[10px] tracking-widest uppercase h-8"
               onClick={onRetry}
             >
@@ -147,14 +170,16 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
           </div>
         )}
 
-        {(!isCompleted && !isProcessing && !isFailed) && (
+        {!isCompleted && !isProcessing && !isFailed && (
           <div className="py-8 text-center space-y-4">
             <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
             <div className="space-y-1">
               <p className="text-sm font-bold uppercase tracking-widest">In Queue</p>
-              <p className="text-xs text-muted-foreground">Waiting for an available worker to start analysis...</p>
+              <p className="text-xs text-muted-foreground">
+                Waiting for an available worker to start analysis...
+              </p>
             </div>
           </div>
         )}
@@ -167,9 +192,9 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden border border-border">
-                <div 
-                  className="h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_10px_rgba(var(--primary),0.5)]" 
-                  style={{ width: `${progress}%` }} 
+                <div
+                  className="h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
@@ -184,9 +209,15 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
             {/* White Player Stats */}
             <div className="space-y-4">
               <div className="text-center space-y-1">
-                <div className="text-2xl font-black text-primary leading-none">{calculateAccuracy('white')}%</div>
-                <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accuracy</div>
-                <div className="text-[10px] font-bold truncate mt-2">{whitePlayer?.name || 'White'}</div>
+                <div className="text-2xl font-black text-primary leading-none">
+                  {calculateAccuracy('white')}%
+                </div>
+                <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">
+                  Accuracy
+                </div>
+                <div className="text-[10px] font-bold truncate mt-2">
+                  {whitePlayer?.name || 'White'}
+                </div>
               </div>
               <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
                 {Object.entries(getClassificationCounts('white')).map(([type, count]) => (
@@ -198,9 +229,15 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
             {/* Black Player Stats */}
             <div className="space-y-4">
               <div className="text-center space-y-1">
-                <div className="text-2xl font-black text-foreground leading-none">{calculateAccuracy('black')}%</div>
-                <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accuracy</div>
-                <div className="text-[10px] font-bold truncate mt-2">{blackPlayer?.name || 'Black'}</div>
+                <div className="text-2xl font-black text-foreground leading-none">
+                  {calculateAccuracy('black')}%
+                </div>
+                <div className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">
+                  Accuracy
+                </div>
+                <div className="text-[10px] font-bold truncate mt-2">
+                  {blackPlayer?.name || 'Black'}
+                </div>
               </div>
               <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
                 {Object.entries(getClassificationCounts('black')).map(([type, count]) => (
@@ -218,5 +255,5 @@ export const GameReviewDashboard: React.FC<GameReviewDashboardProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}

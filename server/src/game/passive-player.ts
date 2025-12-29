@@ -1,4 +1,4 @@
-import { Player } from './player.interface';
+import { Player } from './player.interface'
 
 /**
  * A player that never makes a move on the server.
@@ -6,6 +6,6 @@ import { Player } from './player.interface';
  */
 export class PassivePlayer implements Player {
   async makeMove(): Promise<string | null> {
-    return null;
+    return null
   }
 }

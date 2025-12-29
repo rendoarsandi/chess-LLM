@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test'
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -30,12 +30,12 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
           executablePath: '/data/data/com.termux/files/usr/bin/chromium-browser',
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
-        }
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        },
       },
     },
   ],
@@ -53,6 +53,6 @@ export default defineConfig({
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       timeout: 120000,
-    }
+    },
   ],
-});
+})

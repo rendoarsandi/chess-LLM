@@ -23,7 +23,7 @@ describe('GameLoopService', () => {
   beforeEach(() => {
     const sqlite = new Database(':memory:')
     db = drizzle(sqlite, { schema })
-    
+
     sqlite.exec(`
       CREATE TABLE players (
         id TEXT PRIMARY KEY,
@@ -80,28 +80,33 @@ describe('GameLoopService', () => {
 
     gameManager = new GameManager()
     gameService = new GameService(db, gameManager)
-    
+
     player = {
       makeMove: vi.fn(),
       getLastThinking: vi.fn(() => null),
     }
-    
+
     alarmService = new AlarmService()
     vi.spyOn(alarmService, 'setAlarm')
-    
+
     loopService = new GameLoopService(db, gameService, player, undefined, alarmService)
   })
 
   it('should advance an ongoing game if it is an LLM turn', async () => {
     vi.mocked(player.makeMove).mockResolvedValue('e4')
-    const moveSpy = vi.spyOn(gameService, 'makeMove').mockResolvedValue({ 
-      fen: '...', status: 'ongoing', winnerId: null, gameOverReason: null, san: 'e4', pgn: '...' 
+    const moveSpy = vi.spyOn(gameService, 'makeMove').mockResolvedValue({
+      fen: '...',
+      status: 'ongoing',
+      winnerId: null,
+      gameOverReason: null,
+      san: 'e4',
+      pgn: '...',
     })
 
     // Setup players
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     // Setup game
@@ -112,18 +117,26 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     await loopService.runIteration()
-    
+
     // With Alarms, it should have called setAlarm, but not makeMove yet
-    expect(alarmService.setAlarm).toHaveBeenCalledWith('game:game1', expect.any(Number), expect.any(Function))
-    
+    expect(alarmService.setAlarm).toHaveBeenCalledWith(
+      'game:game1',
+      expect.any(Number),
+      expect.any(Function),
+    )
+
     // Now manually trigger the alarm
     await alarmService.executeAlarm('game:game1')
 
-    expect(moveSpy).toHaveBeenCalledWith('game1', 'e4', expect.objectContaining({ thinkingMs: expect.any(Number) }))
+    expect(moveSpy).toHaveBeenCalledWith(
+      'game1',
+      'e4',
+      expect.objectContaining({ thinkingMs: expect.any(Number) }),
+    )
   })
 
   it('should log a warning if player fails to provide a move', async () => {
@@ -132,7 +145,7 @@ describe('GameLoopService', () => {
 
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     await db.insert(games).values({
@@ -142,12 +155,12 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     await loopService.runIteration()
     await alarmService.executeAlarm('game:game_fail')
-    
+
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Player failed to provide a move'))
     warnSpy.mockRestore()
   })
@@ -159,7 +172,7 @@ describe('GameLoopService', () => {
 
     await db.insert(players).values([
       { id: 'p1', name: 'Bot1', type: 'llm', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     await db.insert(games).values({
@@ -169,13 +182,16 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     await loopService.runIteration()
     await alarmService.executeAlarm('game:game_err')
-    
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Error applying move'), expect.any(Error))
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Error applying move'),
+      expect.any(Error),
+    )
     errorSpy.mockRestore()
   })
 
@@ -183,7 +199,7 @@ describe('GameLoopService', () => {
     // Setup players
     await db.insert(players).values([
       { id: 'p1', name: 'Human', type: 'human', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     // Setup game (White to move, White is human)
@@ -194,30 +210,30 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     const moveSpy = vi.spyOn(gameService, 'makeMove')
 
     await loopService.runIteration()
-    
+
     expect(moveSpy).not.toHaveBeenCalled()
   })
 
   it('should start the interval and run iterations', async () => {
     vi.useFakeTimers()
     const runSpy = vi.spyOn(loopService, 'runIteration').mockResolvedValue()
-    
+
     loopService.start(1000)
     // First call is immediate
     expect(runSpy).toHaveBeenCalledTimes(1)
-    
+
     await vi.advanceTimersByTimeAsync(1000)
     expect(runSpy).toHaveBeenCalledTimes(2)
-    
+
     await vi.advanceTimersByTimeAsync(1000)
     expect(runSpy).toHaveBeenCalledTimes(3)
-    
+
     vi.useRealTimers()
   })
 
@@ -231,7 +247,7 @@ describe('GameLoopService', () => {
 
     await db.insert(players).values([
       { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     await db.insert(games).values({
@@ -241,20 +257,23 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
 
     // First call: should broadcast
     await loopService.runIteration()
     await alarmService.executeAlarm('game:game_stockfish')
 
-    expect(broadcastSpy).toHaveBeenCalledWith('game_stockfish', expect.objectContaining({
-      type: 'REQUEST_MOVE',
-      gameId: 'game_stockfish',
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      constraints: { depth: 6, skillLevel: 12, movetime: 500 }
-    }))
-    
+    expect(broadcastSpy).toHaveBeenCalledWith(
+      'game_stockfish',
+      expect.objectContaining({
+        type: 'REQUEST_MOVE',
+        gameId: 'game_stockfish',
+        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        constraints: { depth: 6, skillLevel: 12, movetime: 500 },
+      }),
+    )
+
     broadcastSpy.mockClear()
 
     // Second call immediately: should NOT broadcast (throttled)
@@ -265,12 +284,12 @@ describe('GameLoopService', () => {
     // Fast-forward time (11 seconds)
     vi.useFakeTimers()
     vi.setSystemTime(Date.now() + 11000)
-    
+
     // Third call after delay: should broadcast again
     await loopService.runIteration()
     await alarmService.executeAlarm('game:game_stockfish')
     expect(broadcastSpy).toHaveBeenCalled()
-    
+
     vi.useRealTimers()
   })
 
@@ -283,7 +302,7 @@ describe('GameLoopService', () => {
 
     await db.insert(players).values([
       { id: STOCKFISH_LOW_ID, name: 'Stockfish Low', type: 'llm', createdAt: new Date() },
-      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() }
+      { id: 'p2', name: 'Bot2', type: 'llm', createdAt: new Date() },
     ])
 
     // Create a game with updatedAt in the past (e.g. 70 seconds ago)
@@ -296,7 +315,7 @@ describe('GameLoopService', () => {
       status: 'ongoing',
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       createdAt: oldDate,
-      updatedAt: oldDate
+      updatedAt: oldDate,
     })
 
     await loopService.runIteration()

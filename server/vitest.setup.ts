@@ -10,7 +10,7 @@ beforeAll(async () => {
   vi.spyOn(console, 'info').mockImplementation(() => {})
   vi.spyOn(console, 'warn').mockImplementation(() => {})
   vi.spyOn(console, 'debug').mockImplementation(() => {})
-  
+
   // Note: We are NOT silencing console.error globally anymore.
   // This ensures you can still see the root cause of real failures.
 })

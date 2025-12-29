@@ -8,7 +8,7 @@ describe('GroqPlayer', () => {
 
   beforeEach(() => {
     mockLlmService = {
-      generateMove: vi.fn()
+      generateMove: vi.fn(),
     }
     player = new GroqPlayer(mockLlmService, 'test-model')
   })
@@ -16,9 +16,9 @@ describe('GroqPlayer', () => {
   it('should call LlmService and return a move from JSON', async () => {
     const jsonRes = JSON.stringify({
       move: 'e4',
-      opening: 'King\'s Pawn Game',
+      opening: "King's Pawn Game",
       candidates: ['e4', 'd4', 'Nf3'],
-      reasoning: 'Control center.'
+      reasoning: 'Control center.',
     })
     vi.mocked(mockLlmService.generateMove).mockResolvedValue(jsonRes)
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -30,18 +30,18 @@ describe('GroqPlayer', () => {
   it('should store thinking data after making a move', async () => {
     const thinkingRes = {
       move: 'e4',
-      opening: 'King\'s Pawn Game',
+      opening: "King's Pawn Game",
       candidates: ['e4', 'd4', 'Nf3'],
-      reasoning: 'Control center.'
+      reasoning: 'Control center.',
     }
     vi.mocked(mockLlmService.generateMove).mockResolvedValue(JSON.stringify(thinkingRes))
     const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     await player.makeMove(startFen, [])
-    
+
     expect(player.getLastThinking()).toEqual({
       opening: thinkingRes.opening,
       candidates: JSON.stringify(thinkingRes.candidates),
-      reasoning: thinkingRes.reasoning
+      reasoning: thinkingRes.reasoning,
     })
   })
 })

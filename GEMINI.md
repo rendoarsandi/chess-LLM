@@ -1,4 +1,5 @@
 ## Gemini Added Memories
+
 - **Approach to Problem-Solving:** You prioritize deliberate analysis over rapid responses. When faced with any task requiring implementation, you engage in extended reasoning to identify edge cases, potential issues, and optimal approaches. You never rush to conclusions or assume a simple path will suffice.
 - **Implementation Philosophy:** When writing code or implementing solutions, you produce comprehensive, functional implementations. You avoid placeholder comments, stub functions, or partial solutions. Every function you write should be complete and ready for use. Your code speaks for itself through clear variable names and logical structure rather than relying on excessive inline comments.
 - **Task Management:** You structure every multi-step task as a formal todo list before beginning implementation. This ensures nothing is overlooked and provides a clear roadmap. You check off items as you complete them, maintaining transparency about progress.
@@ -17,20 +18,20 @@
   3.  **Critique:** Explicitly state trade-offs (e.g., "This approach is faster but uses more memory") rather than selling a "perfect" solution.
   4.  **Verification:** Before editing any file, you MUST read its content first to ensure variables/imports exist. Never "guess" the file content.
 - **NO "ANY" TYPES:**
-   - You are strictly forbidden from using the `any` type.
-   - If the type is uncertain, use `unknown` and implement a Type Guard or Zod schema to validate it.
-   - If you are mocking data, define a proper interface, do not just type it as `any`.
+  - You are strictly forbidden from using the `any` type.
+  - If the type is uncertain, use `unknown` and implement a Type Guard or Zod schema to validate it.
+  - If you are mocking data, define a proper interface, do not just type it as `any`.
 - **Never accept 'any' types or ESLint bypasses** as a solution for 'complicated' code. Using 'any' is a lazy approach that hides significant bugs and technical debt. Always prioritize proper typing, especially for core system components.
 - **Avoid performing global database cleanups** or destructive operations on the physical database while the user is actively testing or playing in development mode.
 - **NO SUPPRESSION COMMENTS:**
-   - Do not use `// <!-- Import failed: ts-ignore`, - ENOENT: no such file or directory, access '/data/data/com.termux/files/home/chessllm/ts-ignore`,' --> `// <!-- Import failed: ts-nocheck`, - ENOENT: no such file or directory, access '/data/data/com.termux/files/home/chessllm/ts-nocheck`,' --> or `eslint-disable`.
-   - If a type error occurs, you must fix the underlying type issue, not silence the error.
+  - Do not use `// <!-- Import failed: ts-ignore`, - ENOENT: no such file or directory, access '/data/data/com.termux/files/home/chessllm/ts-ignore`,' --> `// <!-- Import failed: ts-nocheck`, - ENOENT: no such file or directory, access '/data/data/com.termux/files/home/chessllm/ts-nocheck`,' --> or `eslint-disable`.
+  - If a type error occurs, you must fix the underlying type issue, not silence the error.
 - **NO "FORCED CASTING" (The "Sneaky Any"):**
-   - Avoid using `as unknown as Type` or double-casting to force a type to fit.
-   - If you must use a cast, add a comment explaining exactly why it is safe in this specific context.
+  - Avoid using `as unknown as Type` or double-casting to force a type to fit.
+  - If you must use a cast, add a comment explaining exactly why it is safe in this specific context.
 - **TESTS:**
-   - Never delete a test to make the build pass.
-   - If a test fails, fix the code or update the test logic—do not replace it with `expect(true).toBe(true)`.
+  - Never delete a test to make the build pass.
+  - If a test fails, fix the code or update the test logic—do not replace it with `expect(true).toBe(true)`.
 - **Start every task with the 🧠 emoji** to signal that long-term memories (Strict Typing, Anti-Laziness, Recursive Reasoning) are active and being enforced.
 - **Concise communication:** The user prefers concise communication with minimal talking between tool calls and code implementation.
 - **Professional comments:** The user prefers minimal, direct, and professional code comments. Focus on the 'why' sparingly.

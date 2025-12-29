@@ -1,11 +1,24 @@
 import { WSContext } from 'hono/ws'
 
-export type SocketMessage = 
-  | { type: 'UPDATE'; fen: string; status: 'ongoing' | 'completed' | 'draw' | 'paused'; winnerId: string | null; gameOverReason: string | null; san: string; pgn: string }
+export type SocketMessage =
+  | {
+      type: 'UPDATE'
+      fen: string
+      status: 'ongoing' | 'completed' | 'draw' | 'paused'
+      winnerId: string | null
+      gameOverReason: string | null
+      san: string
+      pgn: string
+    }
   | { type: 'STATUS'; status: 'thinking' | 'idle' }
   | { type: 'SPECTATORS'; count: number }
   | { type: 'GAME_STARTED'; gameId: string }
-  | { type: 'REQUEST_MOVE'; gameId: string; fen: string; constraints: { depth: number; movetime?: number } }
+  | {
+      type: 'REQUEST_MOVE'
+      gameId: string
+      fen: string
+      constraints: { depth: number; movetime?: number }
+    }
 
 export class SocketService {
   private rooms: Map<string, Set<WSContext>> = new Map()

@@ -7,26 +7,31 @@ export interface LlmService {
 }
 
 interface LlmResponse {
-  opening?: string;
-  candidates?: string[];
-  reasoning?: string;
-  move: string;
+  opening?: string
+  candidates?: string[]
+  reasoning?: string
+  move: string
 }
 
 export abstract class BaseLlmPlayer implements Player {
-  protected lastThinking: { opening?: string, candidates?: string, reasoning?: string } | null = null
+  protected lastThinking: { opening?: string; candidates?: string; reasoning?: string } | null =
+    null
 
   constructor(
     protected llmService: LlmService,
     protected modelName: string,
-    protected timeoutMs: number = 30000
+    protected timeoutMs: number = 30000,
   ) {}
 
   getLastThinking() {
     return this.lastThinking
   }
 
-  async makeMove(fen: string, history: string[] = [], variant: string = 'standard'): Promise<string | null> {
+  async makeMove(
+    fen: string,
+    history: string[] = [],
+    variant: string = 'standard',
+  ): Promise<string | null> {
     const chess = safeNewChess(fen)
     const legalMoves = chess.moves()
     let currentPrompt = this.constructPrompt(fen, history, legalMoves, variant)
@@ -41,15 +46,15 @@ export abstract class BaseLlmPlayer implements Player {
         })
 
         const responsePromise = this.llmService.generateMove(this.modelName, currentPrompt)
-        
+
         const responseText = await Promise.race([
-          responsePromise.then(res => {
+          responsePromise.then((res) => {
             if (timeoutId) clearTimeout(timeoutId)
             return res
           }),
-          timeoutPromise
+          timeoutPromise,
         ])
-        
+
         if (!responseText) {
           attempts++
           continue
@@ -63,10 +68,13 @@ export abstract class BaseLlmPlayer implements Player {
           const cleanJson = jsonMatch ? jsonMatch[0] : responseText
           parsed = JSON.parse(cleanJson)
         } catch {
-          const sanitizedResponse = responseText.length > 500 
-            ? responseText.substring(0, 500) + '... [TRUNCATED]' 
-            : responseText
-          logger.warn(`[${this.constructor.name}] Failed to parse JSON response: ${sanitizedResponse}`)
+          const sanitizedResponse =
+            responseText.length > 500
+              ? responseText.substring(0, 500) + '... [TRUNCATED]'
+              : responseText
+          logger.warn(
+            `[${this.constructor.name}] Failed to parse JSON response: ${sanitizedResponse}`,
+          )
           currentPrompt = `Your previous response was not valid JSON. 
 Please provide your response in the EXACT JSON format requested:
 {
@@ -88,7 +96,7 @@ Please provide your response in the EXACT JSON format requested:
             this.lastThinking = {
               opening: parsed.opening,
               candidates: JSON.stringify(parsed.candidates),
-              reasoning: parsed.reasoning
+              reasoning: parsed.reasoning,
             }
             return move
           }
@@ -102,28 +110,39 @@ Return your response in the EXACT JSON format requested.`
           attempts++
         }
       } catch (e) {
-        logger.error(`[${this.constructor.name}] Error generating move (attempt ${attempts + 1}):`, e)
+        logger.error(
+          `[${this.constructor.name}] Error generating move (attempt ${attempts + 1}):`,
+          e,
+        )
         attempts++
       }
     }
 
-    logger.error(`[${this.constructor.name}] Failed to generate a valid move after ${maxRetries + 1} attempts.`)
+    logger.error(
+      `[${this.constructor.name}] Failed to generate a valid move after ${maxRetries + 1} attempts.`,
+    )
     return null
   }
 
-  protected constructPrompt(fen: string, history: string[], legalMoves: string[], variant: string): string {
+  protected constructPrompt(
+    fen: string,
+    history: string[],
+    legalMoves: string[],
+    variant: string,
+  ): string {
     const chess = safeNewChess(fen)
     const turn = chess.turn() === 'w' ? 'White' : 'Black'
     const asciiBoard = chess.ascii()
-    
-    const historyText = history.length > 0 
-      ? `Move history (PGN): ${history.join(' ')}` 
-      : 'No moves have been made yet.'
-    
-    const is960 = variant === 'chess960' || variant === '960';
-    const variantNotice = is960 
-      ? "\nNOTE: This is a Chess 960 (Fischer Random) game. The starting position is randomized. Standard opening theory may not apply. Focus on the current board state and piece coordination."
-      : "";
+
+    const historyText =
+      history.length > 0
+        ? `Move history (PGN): ${history.join(' ')}`
+        : 'No moves have been made yet.'
+
+    const is960 = variant === 'chess960' || variant === '960'
+    const variantNotice = is960
+      ? '\nNOTE: This is a Chess 960 (Fischer Random) game. The starting position is randomized. Standard opening theory may not apply. Focus on the current board state and piece coordination.'
+      : ''
 
     return `You are a professional chess player.${variantNotice}
 You are playing as ${turn}.

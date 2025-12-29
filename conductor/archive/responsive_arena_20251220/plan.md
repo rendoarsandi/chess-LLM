@@ -3,6 +3,7 @@
 This plan outlines the steps to refactor the ChessLLM frontend for a superior mobile experience, focusing on a collapsible sidebar, a responsive arena layout, and compact UI elements.
 
 ## Phase 1: Navigation & Sidebar Refactoring
+
 Goal: Implement a collapsible sidebar that defaults to a slim view on mobile.
 
 - [x] Task: Add `isSidebarCollapsed` state to `App.tsx` and implement toggle logic. 8b7193e
@@ -11,6 +12,7 @@ Goal: Implement a collapsible sidebar that defaults to a slim view on mobile.
 - [ ] Task: Conductor - User Manual Verification 'Navigation & Sidebar Refactoring' (Protocol in workflow.md)
 
 ## Phase 2: Responsive Advantage Bar & Board
+
 Goal: Ensure the board and advantage bar adapt to mobile screen constraints.
 
 - [x] Task: Modify `AdvantageBar.tsx` to support a `horizontal` orientation prop. dc13f92
@@ -20,6 +22,7 @@ Goal: Ensure the board and advantage bar adapt to mobile screen constraints.
 - [ ] Task: Conductor - User Manual Verification 'Responsive Advantage Bar & Board' (Protocol in workflow.md)
 
 ## Phase 3: Arena Layout Stacking & Collapsible Sections
+
 Goal: Implement the single-column stack and collapsible component containers for mobile.
 
 - [x] Task: Refactor the main grid in `App.tsx` to use a single column on mobile and the 4-column layout on `lg` screens. 20073c5
@@ -29,6 +32,7 @@ Goal: Implement the single-column stack and collapsible component containers for
 - [ ] Task: Conductor - User Manual Verification 'Arena Layout Stacking & Collapsible Sections' (Protocol in workflow.md)
 
 ## Phase 4: Global View Refinement & Final Polish
+
 Goal: Ensure all other views (Leaderboard, Profiles, History) are mobile-optimized.
 
 - [x] Task: Audit and fix responsiveness issues in `Leaderboard.tsx` (table overflow). b4d4dc1

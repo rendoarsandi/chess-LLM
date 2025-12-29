@@ -12,7 +12,12 @@ class TestLlmPlayer extends BaseLlmPlayer {
   }
 
   // Expose protected method for testing
-  public testConstructPrompt(fen: string, history: string[], legalMoves: string[], variant: string = 'standard'): string {
+  public testConstructPrompt(
+    fen: string,
+    history: string[],
+    legalMoves: string[],
+    variant: string = 'standard',
+  ): string {
     return this.constructPrompt(fen, history, legalMoves, variant)
   }
 }
@@ -43,45 +48,53 @@ describe('BaseLlmPlayer', () => {
   it('should handle successful JSON response', async () => {
     const response = {
       move: 'e4',
-      opening: 'King\'s Pawn',
+      opening: "King's Pawn",
       candidates: ['e4', 'd4'],
-      reasoning: 'Control center'
+      reasoning: 'Control center',
     }
     mockService.generateMove.mockResolvedValue(JSON.stringify(response))
-    
+
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(fen)
-    
+
     expect(move).toBe('e4')
     expect(player.getLastThinking()).toEqual({
       opening: response.opening,
       candidates: JSON.stringify(response.candidates),
-      reasoning: response.reasoning
+      reasoning: response.reasoning,
     })
   })
 
   it('should retry on invalid JSON', async () => {
     mockService.generateMove
       .mockResolvedValueOnce('Invalid JSON')
-      .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'test', candidates: [], reasoning: 'test' }))
-    
+      .mockResolvedValueOnce(
+        JSON.stringify({ move: 'e4', opening: 'test', candidates: [], reasoning: 'test' }),
+      )
+
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(fen)
-    
+
     expect(move).toBe('e4')
     expect(mockService.generateMove).toHaveBeenCalledTimes(2)
     // Second call should have feedback in prompt
-    expect(mockService.generateMove.mock.calls[1][1]).toContain('Your previous response was not valid JSON')
+    expect(mockService.generateMove.mock.calls[1][1]).toContain(
+      'Your previous response was not valid JSON',
+    )
   })
 
   it('should retry on illegal move', async () => {
     mockService.generateMove
-      .mockResolvedValueOnce(JSON.stringify({ move: 'e5', opening: 'illegal', candidates: [], reasoning: 'test' }))
-      .mockResolvedValueOnce(JSON.stringify({ move: 'e4', opening: 'legal', candidates: [], reasoning: 'test' }))
-    
+      .mockResolvedValueOnce(
+        JSON.stringify({ move: 'e5', opening: 'illegal', candidates: [], reasoning: 'test' }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({ move: 'e4', opening: 'legal', candidates: [], reasoning: 'test' }),
+      )
+
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await player.makeMove(fen)
-    
+
     expect(move).toBe('e4')
     expect(mockService.generateMove).toHaveBeenCalledTimes(2)
     // Second call should have feedback about illegal move
@@ -90,11 +103,13 @@ describe('BaseLlmPlayer', () => {
 
   it('should handle timeout', async () => {
     const slowPlayer = new TestLlmPlayer(mockService, 'test', 1)
-    mockService.generateMove.mockReturnValue(new Promise(resolve => setTimeout(() => resolve('e4'), 50)))
-    
+    mockService.generateMove.mockReturnValue(
+      new Promise((resolve) => setTimeout(() => resolve('e4'), 50)),
+    )
+
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     const move = await slowPlayer.makeMove(fen)
-    
+
     expect(move).toBeNull()
   })
 })

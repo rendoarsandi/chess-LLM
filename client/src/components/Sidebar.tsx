@@ -1,47 +1,57 @@
-import { LayoutDashboard, Trophy, UserCircle, ChevronLeft, ChevronRight, Settings, BarChart3, History } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "./ui/button"
-import { NavLink, useLocation } from "react-router"
-import { useEffect, useState } from "react"
-import { getTournaments } from "@/api"
+import {
+  LayoutDashboard,
+  Trophy,
+  UserCircle,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+  BarChart3,
+  History,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from './ui/button'
+import { NavLink, useLocation } from 'react-router'
+import { useEffect, useState } from 'react'
+import { getTournaments } from '@/api'
 
-export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings';
+export type View = 'arena' | 'leaderboard' | 'profiles' | 'history' | 'settings'
 
 interface NavItem {
-  id: string;
-  icon: React.ElementType;
-  label: string;
-  path: string;
-  indicator?: boolean;
+  id: string
+  icon: React.ElementType
+  label: string
+  path: string
+  indicator?: boolean
 }
 
 interface NavContentProps {
-  isCollapsed: boolean;
-  navItems: NavItem[];
-  onItemClick?: () => void;
+  isCollapsed: boolean
+  navItems: NavItem[]
+  onItemClick?: () => void
 }
 
 function NavContent({ isCollapsed, navItems, onItemClick }: NavContentProps) {
-  const location = useLocation();
-  
+  const location = useLocation()
+
   return (
     <>
       <div className="flex flex-col w-full gap-2 px-3 flex-1">
         {navItems.map((item) => {
-          const isActive = location.pathname + location.search === item.path || 
-                          (item.path === '/arena' && location.pathname === '/arena' && !location.search);
-          
+          const isActive =
+            location.pathname + location.search === item.path ||
+            (item.path === '/arena' && location.pathname === '/arena' && !location.search)
+
           return (
-            <NavLink 
+            <NavLink
               key={item.id}
               to={item.path}
               onClick={onItemClick}
               className={cn(
-                "flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full",
-                isActive 
-                  ? "bg-primary/10 text-primary border border-primary/20" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isCollapsed ? "justify-center" : "justify-start"
+                'flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative w-full',
+                isActive
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                isCollapsed ? 'justify-center' : 'justify-start',
               )}
             >
               <item.icon className="h-5 w-5 shrink-0" />
@@ -66,20 +76,20 @@ function NavContent({ isCollapsed, navItems, onItemClick }: NavContentProps) {
                 </>
               )}
             </NavLink>
-          );
+          )
         })}
       </div>
 
       <div className="w-full px-3 mt-auto mb-2">
-        <div className={cn(
-          "flex items-center gap-4 p-3 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20",
-          isCollapsed ? "justify-center" : "justify-start"
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-4 p-3 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20',
+            isCollapsed ? 'justify-center' : 'justify-start',
+          )}
+        >
           <Settings className="h-5 w-5 shrink-0 animate-spin-slow" />
           {!isCollapsed && (
-            <span className="font-bold text-[10px] tracking-widest uppercase">
-              DEV MODE
-            </span>
+            <span className="font-bold text-[10px] tracking-widest uppercase">DEV MODE</span>
           )}
         </div>
       </div>
@@ -88,23 +98,29 @@ function NavContent({ isCollapsed, navItems, onItemClick }: NavContentProps) {
 }
 
 interface SidebarProps {
-  isCollapsed: boolean;
-  setIsCollapsed: (collapsed: boolean) => void;
-  className?: string;
-  onItemClick?: () => void;
-  mobile?: boolean;
+  isCollapsed: boolean
+  setIsCollapsed: (collapsed: boolean) => void
+  className?: string
+  onItemClick?: () => void
+  mobile?: boolean
 }
 
-export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, mobile }: SidebarProps) {
+export function Sidebar({
+  isCollapsed,
+  setIsCollapsed,
+  className,
+  onItemClick,
+  mobile,
+}: SidebarProps) {
   const [hasLiveTournament, setHasLiveTournament] = useState(false)
 
   useEffect(() => {
     const checkLive = async () => {
       try {
         const ts = await getTournaments()
-        setHasLiveTournament(ts.some(t => t.status === 'active'))
+        setHasLiveTournament(ts.some((t) => t.status === 'active'))
       } catch (e) {
-        console.error("Failed to fetch tournaments for sidebar", e)
+        console.error('Failed to fetch tournaments for sidebar', e)
       }
     }
     checkLive()
@@ -114,26 +130,43 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
 
   const navItems: NavItem[] = [
     { id: 'arena', icon: LayoutDashboard, label: 'ARENA', path: '/arena' },
-    { id: 'tournaments', icon: Trophy, label: 'TOURNAMENTS', path: '/tournaments', indicator: hasLiveTournament },
+    {
+      id: 'tournaments',
+      icon: Trophy,
+      label: 'TOURNAMENTS',
+      path: '/tournaments',
+      indicator: hasLiveTournament,
+    },
     { id: 'history', icon: History, label: 'HISTORY', path: '/history' },
     { id: 'leaderboard', icon: BarChart3, label: 'LEADERBOARD', path: '/leaderboard' },
     { id: 'profiles', icon: UserCircle, label: 'PROFILES', path: '/profiles' },
     { id: 'settings', icon: Settings, label: 'SETTINGS', path: '/admin/settings' },
-    { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' }
-  ];
+    { id: 'admin-tournaments', icon: Trophy, label: 'ADMIN TOURNEYS', path: '/admin/tournaments' },
+  ]
 
   return (
-    <nav className={cn(
-      "flex flex-col border-r border-border bg-card/50 backdrop-blur-sm items-center py-8 pb-4 gap-8 shrink-0 transition-all duration-300 relative",
-      mobile ? "w-full border-none bg-transparent py-4" : (isCollapsed ? "w-16" : "w-64"),
-      className
-    )}>
+    <nav
+      className={cn(
+        'flex flex-col border-r border-border bg-card/50 backdrop-blur-sm items-center py-8 pb-4 gap-8 shrink-0 transition-all duration-300 relative',
+        mobile ? 'w-full border-none bg-transparent py-4' : isCollapsed ? 'w-16' : 'w-64',
+        className,
+      )}
+    >
       {/* Logo */}
-      <div className={cn(
-        "bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transition-all duration-300",
-        isCollapsed && !mobile ? "w-10 h-10" : "w-12 h-12"
-      )}>
-        <span className={cn("text-primary-foreground font-black italic", isCollapsed && !mobile ? "text-lg" : "text-xl")}>C</span>
+      <div
+        className={cn(
+          'bg-primary rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 transition-all duration-300',
+          isCollapsed && !mobile ? 'w-10 h-10' : 'w-12 h-12',
+        )}
+      >
+        <span
+          className={cn(
+            'text-primary-foreground font-black italic',
+            isCollapsed && !mobile ? 'text-lg' : 'text-xl',
+          )}
+        >
+          C
+        </span>
       </div>
 
       {/* Toggle Button - Hidden on Mobile */}
@@ -148,10 +181,10 @@ export function Sidebar({ isCollapsed, setIsCollapsed, className, onItemClick, m
           {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </Button>
       )}
-      
-      <NavContent 
-        isCollapsed={isCollapsed && !mobile} 
-        navItems={navItems} 
+
+      <NavContent
+        isCollapsed={isCollapsed && !mobile}
+        navItems={navItems}
         onItemClick={onItemClick}
       />
     </nav>

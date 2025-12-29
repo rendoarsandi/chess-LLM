@@ -12,19 +12,19 @@ export class GroqService implements LlmService {
     const response = await fetch(this.apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: modelName,
         messages: [
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
-        temperature: 0.1
-      })
+        temperature: 0.1,
+      }),
     })
 
     if (!response.ok) {

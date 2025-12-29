@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react"
-import { getPlayerProfile, type Player } from "@/api"
-import { PlayerProfileHeader } from "./PlayerProfile/PlayerProfileHeader"
-import { StatCards } from "./PlayerProfile/StatCards"
-import { EloHistoryChart } from "./PlayerProfile/EloHistoryChart"
-import { HeadToHeadTable } from "./PlayerProfile/HeadToHeadTable"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, Settings } from "lucide-react"
-import { authClient } from "@/lib/auth-client"
-import { useNavigate } from "react-router"
-import { Skeleton } from "@/components/ui/skeleton"
-import { motion } from "framer-motion"
+import { useState, useEffect } from 'react'
+import { getPlayerProfile, type Player } from '@/api'
+import { PlayerProfileHeader } from './PlayerProfile/PlayerProfileHeader'
+import { StatCards } from './PlayerProfile/StatCards'
+import { EloHistoryChart } from './PlayerProfile/EloHistoryChart'
+import { HeadToHeadTable } from './PlayerProfile/HeadToHeadTable'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, Settings } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
+import { useNavigate } from 'react-router'
+import { Skeleton } from '@/components/ui/skeleton'
+import { motion } from 'framer-motion'
 
 interface PlayerProfileProps {
   playerId: string
@@ -54,9 +54,9 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
   useEffect(() => {
     getPlayerProfile(playerId)
       .then(setPlayer)
-      .catch(err => {
-        console.error("Failed to fetch player profile", err)
-        setError("Failed to load model profile data. Please try again later.")
+      .catch((err) => {
+        console.error('Failed to fetch player profile', err)
+        setError('Failed to load model profile data. Please try again later.')
       })
       .finally(() => setLoading(false))
 
@@ -73,16 +73,25 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
 
   if (error || !player) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-xl border border-dashed border-border space-y-6 text-center px-4"
       >
         <div className="space-y-2">
-          <p className="text-muted-foreground italic font-medium">{error || "Model profile not found."}</p>
-          <p className="text-xs text-muted-foreground/60 max-w-sm">There might be a connection issue or the model ID is invalid.</p>
+          <p className="text-muted-foreground italic font-medium">
+            {error || 'Model profile not found.'}
+          </p>
+          <p className="text-xs text-muted-foreground/60 max-w-sm">
+            There might be a connection issue or the model ID is invalid.
+          </p>
         </div>
-        <Button onClick={onBack} variant="outline" size="sm" className="h-9 text-[10px] font-black tracking-widest border-primary/20 hover:bg-primary/5 hover:text-primary transition-all">
+        <Button
+          onClick={onBack}
+          variant="outline"
+          size="sm"
+          className="h-9 text-[10px] font-black tracking-widest border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
+        >
           <ChevronLeft className="h-3.5 w-3.5 mr-1.5" />
           RETURN TO LIST
         </Button>
@@ -91,17 +100,17 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       className="space-y-8 pb-20"
     >
       <div className="flex items-center justify-between">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onBack} 
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
           className="h-8 text-[10px] font-black tracking-widest -ml-2 hover:bg-primary/10 hover:text-primary transition-all"
         >
           <ChevronLeft className="h-3 w-3 mr-1" />
@@ -109,9 +118,9 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
         </Button>
 
         {session && player.type === 'llm' && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigate('/admin/settings')}
             className="h-8 text-[10px] font-black tracking-widest gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
           >
@@ -122,7 +131,7 @@ export function PlayerProfile({ playerId, onBack }: PlayerProfileProps) {
       </div>
 
       <PlayerProfileHeader player={player} />
-      
+
       <StatCards player={player} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

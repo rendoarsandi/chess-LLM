@@ -16,20 +16,23 @@ export class PlayerService {
    * Generates a deterministic UUID v5-like ID from a string
    */
   private generatePlayerId(seed: string): string {
-    return crypto.createHash('sha256').update(seed).digest('hex').substring(0, 36);
+    return crypto.createHash('sha256').update(seed).digest('hex').substring(0, 36)
   }
 
   async initializeActivePlayers(gameManager: GameManager) {
-    const activeConfigs = await this.db.select().from(llmConfigurations).where(eq(llmConfigurations.isActive, true))
-    
+    const activeConfigs = await this.db
+      .select()
+      .from(llmConfigurations)
+      .where(eq(llmConfigurations.isActive, true))
+
     for (const config of activeConfigs) {
-        if (!config.playerId) continue;
-        
-        const player = this.createPlayerInstance(config)
-        if (player) {
-            gameManager.setPlayer(config.playerId, player)
-            console.log(`[PlayerService] Initialized player: ${config.modelId} (${config.playerId})`)
-        }
+      if (!config.playerId) continue
+
+      const player = this.createPlayerInstance(config)
+      if (player) {
+        gameManager.setPlayer(config.playerId, player)
+        console.log(`[PlayerService] Initialized player: ${config.modelId} (${config.playerId})`)
+      }
     }
 
     // Always ensure Stockfish exist (these are currently handled in index.ts but should move here)
@@ -37,67 +40,77 @@ export class PlayerService {
   }
 
   private createPlayerInstance(config: typeof llmConfigurations.$inferSelect) {
-    let apiKey = config.apiKey || (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
-    
+    let apiKey =
+      config.apiKey ||
+      (config.provider ? process.env[`${config.provider.toUpperCase()}_API_KEY`] : undefined)
+
     // Attempt to decrypt if it looks like our encrypted format (iv:tag:encrypted)
     if (apiKey && apiKey.includes(':')) {
-        try {
-            apiKey = decrypt(apiKey)
-        } catch (e) {
-            console.error(`[PlayerService] Failed to decrypt API key for ${config.modelId}:`, e)
-            // If it failed but has colons, it's likely a malformed or corrupted encrypted key
-            return null
-        }
+      try {
+        apiKey = decrypt(apiKey)
+      } catch (e) {
+        console.error(`[PlayerService] Failed to decrypt API key for ${config.modelId}:`, e)
+        // If it failed but has colons, it's likely a malformed or corrupted encrypted key
+        return null
+      }
     }
 
     if (!apiKey && config.provider !== 'stockfish') {
-        console.warn(`[PlayerService] No API key for ${config.modelId}, skipping instantiation`)
-        return null
+      console.warn(`[PlayerService] No API key for ${config.modelId}, skipping instantiation`)
+      return null
     }
 
     switch (config.provider?.toLowerCase()) {
-        case 'gemini':
-            return new GeminiPlayer(new GeminiService(apiKey!), config.modelId!)
-        case 'groq':
-            return new GroqPlayer(new GroqService(apiKey!), config.modelId!)
-        default:
-            return null
+      case 'gemini':
+        return new GeminiPlayer(new GeminiService(apiKey!), config.modelId!)
+      case 'groq':
+        return new GroqPlayer(new GroqService(apiKey!), config.modelId!)
+      default:
+        return null
     }
   }
 
-  async syncHardcodedConfigs(hardcoded: { provider: string, modelId: string, name?: string, rating?: number }[]) {
+  async syncHardcodedConfigs(
+    hardcoded: { provider: string; modelId: string; name?: string; rating?: number }[],
+  ) {
     const existingConfigs = await this.db.select().from(llmConfigurations)
-    
+
     for (const hc of hardcoded) {
-        const existing = existingConfigs.find((c) => c.modelId === hc.modelId && c.provider === hc.provider)
-        const playerId = this.generatePlayerId(`${hc.provider}-${hc.modelId}`)
+      const existing = existingConfigs.find(
+        (c) => c.modelId === hc.modelId && c.provider === hc.provider,
+      )
+      const playerId = this.generatePlayerId(`${hc.provider}-${hc.modelId}`)
 
-        // 1. Ensure entry in players table first (satisfy FK)
-        await this.db.insert(players).values({
-            id: playerId,
-            name: hc.name || hc.modelId,
-            type: 'llm',
-            rating: hc.rating || 1500,
-            peakRating: hc.rating || 1500,
-            provider: hc.provider,
-            version: hc.modelId
-        }).onConflictDoNothing()
+      // 1. Ensure entry in players table first (satisfy FK)
+      await this.db
+        .insert(players)
+        .values({
+          id: playerId,
+          name: hc.name || hc.modelId,
+          type: 'llm',
+          rating: hc.rating || 1500,
+          peakRating: hc.rating || 1500,
+          provider: hc.provider,
+          version: hc.modelId,
+        })
+        .onConflictDoNothing()
 
-        // 2. Then sync llm_configurations
-        if (!existing) {
-            console.log(`[PlayerService] Registering new hardcoded model: ${hc.modelId}`)
-            await this.db.insert(llmConfigurations).values({
-                provider: hc.provider,
-                modelId: hc.modelId,
-                isActive: true,
-                isHardcoded: true,
-                playerId: playerId
-            })
-        } else if (!existing.playerId || existing.playerId !== playerId) {
-            await this.db.update(llmConfigurations)
-                .set({ playerId: playerId })
-                .where(eq(llmConfigurations.id, existing.id))
-        }
+      // 2. Then sync llm_configurations
+      if (!existing) {
+        console.log(`[PlayerService] Registering new hardcoded model: ${hc.modelId}`)
+        await this.db.insert(llmConfigurations).values({
+          provider: hc.provider,
+          modelId: hc.modelId,
+          isActive: true,
+          isHardcoded: true,
+          playerId: playerId,
+        })
+      } else if (!existing.playerId || existing.playerId !== playerId) {
+        await this.db
+          .update(llmConfigurations)
+          .set({ playerId: playerId })
+          .where(eq(llmConfigurations.id, existing.id))
+      }
     }
   }
 
@@ -114,11 +127,10 @@ export class PlayerService {
       if (!isNaN(days)) {
         const cutoff = new Date()
         cutoff.setDate(cutoff.getDate() - days)
-        query = this.db.select().from(ratingHistory)
-          .where(and(
-            eq(ratingHistory.playerId, playerId),
-            gte(ratingHistory.createdAt, cutoff)
-          ))
+        query = this.db
+          .select()
+          .from(ratingHistory)
+          .where(and(eq(ratingHistory.playerId, playerId), gte(ratingHistory.createdAt, cutoff)))
       }
     }
 
@@ -127,23 +139,27 @@ export class PlayerService {
 
   async getHeadToHead(playerId: string) {
     // Get all completed/draw games involving this player
-    const playerGames = await this.db.select({
-      id: games.id,
-      whitePlayerId: games.whitePlayerId,
-      blackPlayerId: games.blackPlayerId,
-      status: games.status,
-      winnerId: games.winnerId,
-    })
-    .from(games)
-    .where(
-      and(
-        or(eq(games.whitePlayerId, playerId), eq(games.blackPlayerId, playerId)),
-        or(eq(games.status, 'completed'), eq(games.status, 'draw'))
+    const playerGames = await this.db
+      .select({
+        id: games.id,
+        whitePlayerId: games.whitePlayerId,
+        blackPlayerId: games.blackPlayerId,
+        status: games.status,
+        winnerId: games.winnerId,
+      })
+      .from(games)
+      .where(
+        and(
+          or(eq(games.whitePlayerId, playerId), eq(games.blackPlayerId, playerId)),
+          or(eq(games.status, 'completed'), eq(games.status, 'draw')),
+        ),
       )
-    )
 
     // Aggregate records by opponent
-    const records: Record<string, { opponentId: string, opponentName?: string, wins: number, losses: number, draws: number }> = {}
+    const records: Record<
+      string,
+      { opponentId: string; opponentName?: string; wins: number; losses: number; draws: number }
+    > = {}
 
     for (const game of playerGames) {
       const isWhite = game.whitePlayerId === playerId
@@ -165,7 +181,10 @@ export class PlayerService {
     // Add opponent names
     const headToHead = Object.values(records)
     for (const record of headToHead) {
-      const opponent = await this.db.select({ name: players.name }).from(players).where(eq(players.id, record.opponentId))
+      const opponent = await this.db
+        .select({ name: players.name })
+        .from(players)
+        .where(eq(players.id, record.opponentId))
       if (opponent[0]) {
         record.opponentName = opponent[0].name
       }

@@ -29,8 +29,8 @@ export function generatePairings(players: Player[], history: Matchup[]): Matchup
   }
 
   const hasPlayed = (p1: string, p2: string) => {
-    return history.some(m => 
-      (m.white === p1 && m.black === p2) || (m.white === p2 && m.black === p1)
+    return history.some(
+      (m) => (m.white === p1 && m.black === p2) || (m.white === p2 && m.black === p1),
     )
   }
 

@@ -16,7 +16,7 @@ describe('GameService', () => {
   beforeEach(() => {
     const sqlite = new Database(':memory:')
     db = drizzle(sqlite, { schema })
-    
+
     // Create tables manually for the test
     sqlite.exec(`
       CREATE TABLE players (
@@ -87,24 +87,32 @@ describe('GameService', () => {
 
   it('should create a game and save it to DB', async () => {
     // Need players first due to FK
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
 
     const gameId = await service.createGame('p1', 'p2')
-    
+
     const game = await db.select().from(games).where(eq(games.id, gameId))
     expect(game[0].whitePlayerId).toBe('p1')
     expect(game[0].status).toBe('ongoing')
   })
 
   it('should make a move and update DB', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     const result = await service.makeMove(gameId, 'e4')
     expect(result.fen).toContain(' b ')
-    
+
     const dbMoves = await db.select().from(moves).where(eq(moves.gameId, gameId))
     expect(dbMoves).toHaveLength(1)
     expect(dbMoves[0].move).toBe('e4')
@@ -112,18 +120,22 @@ describe('GameService', () => {
   })
 
   it('should make a move with thinking data and update DB', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     const thinking = {
-      opening: 'King\'s Pawn Game',
+      opening: "King's Pawn Game",
       candidates: JSON.stringify(['e4', 'd4', 'Nf3']),
-      reasoning: 'Control the center.'
+      reasoning: 'Control the center.',
     }
 
     await service.makeMove(gameId, 'e4', thinking)
-    
+
     const dbMoves = await db.select().from(moves).where(eq(moves.gameId, gameId))
     expect(dbMoves).toHaveLength(1)
     expect(dbMoves[0].move).toBe('e4')
@@ -133,16 +145,24 @@ describe('GameService', () => {
   })
 
   it('should throw error for invalid move', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     await expect(service.makeMove(gameId, 'e5')).rejects.toThrow('Invalid move')
   })
 
   it('should handle game over', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     // Fool's mate sequence
@@ -160,8 +180,12 @@ describe('GameService', () => {
   })
 
   it('should update player ratings and stats on game completion', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     // Fool's mate (p2 wins)
@@ -192,8 +216,12 @@ describe('GameService', () => {
   })
 
   it('should maintain the same moveNumber for White and Black moves in a turn', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
     const gameId = await service.createGame('p1', 'p2')
 
     await service.makeMove(gameId, 'e4') // White move 1
@@ -202,21 +230,25 @@ describe('GameService', () => {
 
     const dbMoves = await db.select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
     expect(dbMoves).toHaveLength(3)
-    
+
     expect(dbMoves[0].move).toBe('e4')
     expect(dbMoves[0].moveNumber).toBe(1)
-    
+
     expect(dbMoves[1].move).toBe('e5')
     expect(dbMoves[1].moveNumber).toBe(1)
-    
+
     expect(dbMoves[2].move).toBe('Nf3')
     expect(dbMoves[2].moveNumber).toBe(2)
   })
 
   it('should calculate player stats correctly', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
-    
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', rating: 1200, createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', rating: 1200, createdAt: new Date() })
+
     // Game 1: p1 white, Ruy Lopez
     const g1 = await service.createGame('p1', 'p2')
     await service.makeMove(g1, 'e4', { opening: 'Ruy Lopez' })
@@ -225,12 +257,12 @@ describe('GameService', () => {
     await service.makeMove(g1, 'Nc6')
     await service.makeMove(g1, 'Bb5') // Ruy Lopez
     await db.update(games).set({ status: 'completed' }).where(eq(games.id, g1))
-    
+
     // Game 2: p1 white, Ruy Lopez again
     const g2 = await service.createGame('p1', 'p2')
     await service.makeMove(g2, 'e4', { opening: 'Ruy Lopez' })
     await db.update(games).set({ status: 'completed' }).where(eq(games.id, g2))
-    
+
     // Game 3: p1 white, Sicilian
     const g3 = await service.createGame('p1', 'p2')
     await service.makeMove(g3, 'e4', { opening: 'Sicilian Defense' })
@@ -245,11 +277,17 @@ describe('GameService', () => {
   })
 
   it('should not allow creating a new game if one is already ongoing', async () => {
-    await db.insert(players).values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
-    await db.insert(players).values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p1', name: 'White', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: 'p2', name: 'Black', type: 'human', createdAt: new Date() })
 
     await service.createGame('p1', 'p2')
-    
-    await expect(service.createGame('p1', 'p2')).rejects.toThrow('A game is already in progress. Please complete or delete it first.')
+
+    await expect(service.createGame('p1', 'p2')).rejects.toThrow(
+      'A game is already in progress. Please complete or delete it first.',
+    )
   })
 })

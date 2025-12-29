@@ -23,7 +23,11 @@ export const gameRoutes = (gameService: GameService) => {
 
   router.get('/:id/moves', async (c) => {
     const gameId = c.req.param('id')
-    const results = await getDb().select().from(moves).where(eq(moves.gameId, gameId)).orderBy(moves.id)
+    const results = await getDb()
+      .select()
+      .from(moves)
+      .where(eq(moves.gameId, gameId))
+      .orderBy(moves.id)
     return c.json(results)
   })
 
@@ -52,7 +56,7 @@ export const gameRoutes = (gameService: GameService) => {
   router.post('/', authenticatedMiddleware, async (c) => {
     const body = await c.req.json()
     const { whitePlayerId, blackPlayerId, ...options } = body
-    
+
     try {
       const gameId = await gameService.createGame(whitePlayerId, blackPlayerId, options)
       return c.json({ id: gameId }, 201)

@@ -1,12 +1,15 @@
 # Product Guide - ChessLLM
 
 ## Initial Concept
+
 A platform for AI vs. AI chess matches, leveraging `chess.js` and `react-chessboard`. The system features a background game loop that persists state using a local-first architecture (SQLite), enabling games to progress independently of the user's browser session.
 
 ## Target Audience
+
 Developers and AI researchers interested in benchmarking and evaluating Large Language Models (LLMs) through competitive chess. The platform provides a dynamic leaderboard based on ELO ratings.
 
 ## Key Features (Prototype Phase)
+
 - **Interactive Game Arena:** A real-time dashboard to monitor ongoing games and browse game history.
 - **Real-time Position Evaluation:** Integrated Stockfish WASM engine provides instant advantage analysis and forced mate detection.
 - **Client-Side Bot Architecture:** Mimics cloud-scale "Durable Object" patterns by offloading Stockfish move generation to the client browser via WebSockets, reducing server load.
@@ -19,15 +22,20 @@ Developers and AI researchers interested in benchmarking and evaluating Large La
 - **Administrative Dashboard:** Secure management interface to dynamically configure LLM providers, Model IDs, and API keys without code changes.
 - **Dynamic Model Activation:** Real-time control over which models are eligible for the automated arena and matchmaking.
 - **Swiss System Tournaments:** Automated "Tilted Tuesday" style championships with pairing logic, scoring, and Buchholz tie-breaks.
+- **Dedicated Chess 960 Arena:** A parallel arena for Fischer Random chess with separate ELO ratings and "True Random" starting positions (SP-ID 0-959), providing a unique challenge for LLM strategic adaptability.
 - **Distributed Game Review:** Post-game analysis powered by connected clients. Uses Multi-PV Stockfish to classify moves (Brilliant, Blunder, etc.) and provides a detailed quality breakdown.
 
 ## Future Roadmap
+
 - **OpenRouter Integration:** Expanding beyond the current prototype to support a vast array of models via OpenRouter.
 - **Multi-LLM Integration:** Pluggable architecture to support various LLM APIs as chess players.
+
 ## Architecture & Durability
+
 The application uses a "Local First" pattern with a Node.js/Hono backend and SQLite. This ensures that the core game engine and bot logic run reliably as background processes, while the React frontend provides a responsive interface for observation and analysis.
 
 ## User Experience & Design
+
 - **Minimalist Aesthetic:** High-contrast, focused design centered on the board and metrics.
 - **Mobile-First Responsiveness:** Optimized for small screens with a single-column layout, responsive Sidebar drawer via Shadcn Sheet, and adaptive game board metrics.
 - **Real-time Synchronization:** Frontend polling ensures the UI reflects the background loop's progress.

@@ -7,6 +7,7 @@ A high-performance monorepo for benchmarking and evaluating Large Language Model
 ChessLLM Arena is a local-first platform designed to observe and analyze strategic decision-making across various AI architectures. It features a persistent background game loop, a real-time evaluation engine, and detailed performance tracking via a live ELO leaderboard.
 
 ### Key Features
+
 - **Background Game Loop:** Matches progress automatically in the background using a Node.js/Hono service.
 - **Multi-Model Support:** Integrated support for Google Gemini (3.0/2.5 Flash), Groq (Kimi, GPT-OSS, Qwen), and Stockfish (WASM).
 - **Advanced Arena UI:** Real-time position evaluation, advantage bar, and move-by-move AI thinking history.
@@ -17,11 +18,13 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
 ## 🛠️ Tech Stack
 
 ### Core
+
 - **Monorepo:** npm Workspaces
 - **Language:** TypeScript
 - **State Management:** Local SQLite (Better SQLite3) + Drizzle ORM
 
 ### Client (React)
+
 - **Framework:** React 19
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS 4 + Shadcn UI
@@ -29,6 +32,7 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
 - **Routing:** React Router 7
 
 ### Server (Node.js)
+
 - **Framework:** Hono
 - **Runtime:** Node.js
 - **Testing:** Vitest + Drizzle Integration
@@ -36,11 +40,13 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
 ## 📦 Getting Started
 
 ### Prerequisites
+
 - Node.js (v20+)
 - Gemini API Key (Required for Gemini models)
 - Groq API Key (Optional)
 
 ### Installation
+
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/rendoarsandi/chess-LLM.git
@@ -63,18 +69,23 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
     ```
 
 ### Execution
+
 Run both frontend and backend in development mode:
+
 ```bash
 npm run dev
 ```
 
 ## 📂 Project Structure
+
 - `client/`: React frontend with arena and analytics dashboards.
 - `server/`: Hono backend managing the game loop and AI players.
 - `conductor/`: System-wide specifications and development tracks.
 
 ## 🧪 Verification
+
 Execute the full verification suite (Lint, Typecheck, Test):
+
 ```bash
 # Linting
 npm run lint --workspaces
@@ -88,4 +99,5 @@ npm test --workspace=server
 ```
 
 ## 📝 License
+
 ISC License

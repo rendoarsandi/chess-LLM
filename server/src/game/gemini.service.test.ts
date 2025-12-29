@@ -9,11 +9,11 @@ vi.mock('@google/generative-ai', () => {
       getGenerativeModel = vi.fn().mockReturnValue({
         generateContent: vi.fn().mockResolvedValue({
           response: {
-            text: () => 'e4'
-          }
-        })
+            text: () => 'e4',
+          },
+        }),
       })
-    }
+    },
   }
 })
 

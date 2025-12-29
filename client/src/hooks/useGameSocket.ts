@@ -9,15 +9,27 @@ export interface GameUpdate {
   pgn: string
 }
 
-export type SocketMessage = 
-  | { type: 'UPDATE'; fen: string; status: 'ongoing' | 'completed' | 'draw' | 'paused'; winnerId: string | null; gameOverReason: string | null; san: string; pgn: string }
+export type SocketMessage =
+  | {
+      type: 'UPDATE'
+      fen: string
+      status: 'ongoing' | 'completed' | 'draw' | 'paused'
+      winnerId: string | null
+      gameOverReason: string | null
+      san: string
+      pgn: string
+    }
   | { type: 'STATUS'; status: 'thinking' | 'idle' }
   | { type: 'SPECTATORS'; count: number }
   | { type: 'GAME_STARTED'; gameId: string }
-  | { type: 'REQUEST_MOVE'; gameId: string; fen: string; constraints: { depth: number; skillLevel?: number; movetime?: number } }
+  | {
+      type: 'REQUEST_MOVE'
+      gameId: string
+      fen: string
+      constraints: { depth: number; skillLevel?: number; movetime?: number }
+    }
 
-export type ClientMessage = 
-  | { type: 'SUBMIT_MOVE'; gameId: string; move: string }
+export type ClientMessage = { type: 'SUBMIT_MOVE'; gameId: string; move: string }
 
 export function useGameSocket(gameId: string | undefined) {
   const [lastUpdate, setLastUpdate] = useState<GameUpdate | null>(null)
@@ -73,7 +85,7 @@ export function useGameSocket(gameId: string | undefined) {
               winnerId: message.winnerId,
               gameOverReason: message.gameOverReason,
               san: message.san,
-              pgn: message.pgn
+              pgn: message.pgn,
             })
             setThinkingStatus('idle')
             break
@@ -92,7 +104,9 @@ export function useGameSocket(gameId: string | undefined) {
     socket.onclose = (event) => {
       setIsConnected(false)
       socketRef.current = null
-      console.log(`[WebSocket] Disconnected from game ${gameId}. Code: ${event.code}, Reason: ${event.reason}`)
+      console.log(
+        `[WebSocket] Disconnected from game ${gameId}. Code: ${event.code}, Reason: ${event.reason}`,
+      )
       // Reconnect after 3 seconds
       setTimeout(() => {
         if (connectRef.current) connectRef.current()
@@ -100,9 +114,9 @@ export function useGameSocket(gameId: string | undefined) {
     }
 
     socket.onerror = () => {
-      // WebSocket error events are generic and don't contain much info, 
+      // WebSocket error events are generic and don't contain much info,
       // but we can at least log that it occurred.
-      console.error('[WebSocket] Error occurred on connection to:', wsUrl);
+      console.error('[WebSocket] Error occurred on connection to:', wsUrl)
       // Don't close manually here, as onclose will be triggered anyway if it's fatal
     }
   }, [gameId])
@@ -126,6 +140,6 @@ export function useGameSocket(gameId: string | undefined) {
     spectatorCount,
     isConnected,
     sendMessage,
-    lastMessage
+    lastMessage,
   }
 }

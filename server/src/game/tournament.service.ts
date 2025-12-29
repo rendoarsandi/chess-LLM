@@ -6,7 +6,12 @@ import { AppDatabase } from '../db/types'
 export class TournamentService {
   constructor(private db: AppDatabase) {}
 
-  async createTournament(data: { name: string, startTime: Date, totalRounds: number, timeControlSettings?: string }) {
+  async createTournament(data: {
+    name: string
+    startTime: Date
+    totalRounds: number
+    timeControlSettings?: string
+  }) {
     const id = randomUUID()
     await this.db.insert(tournaments).values({
       id,
@@ -30,7 +35,8 @@ export class TournamentService {
   }
 
   async startTournament(tournamentId: string) {
-    await this.db.update(tournaments)
+    await this.db
+      .update(tournaments)
       .set({ status: 'active', currentRound: 1 })
       .where(eq(tournaments.id, tournamentId))
   }
@@ -41,16 +47,22 @@ export class TournamentService {
   }
 
   async getParticipants(tournamentId: string) {
-    return await this.db.select().from(tournamentParticipants).where(eq(tournamentParticipants.tournamentId, tournamentId))
+    return await this.db
+      .select()
+      .from(tournamentParticipants)
+      .where(eq(tournamentParticipants.tournamentId, tournamentId))
   }
 
   async updateParticipantScore(tournamentId: string, playerId: string, points: number) {
     // points is 10 for Win, 5 for Draw, 0 for Loss
-    await this.db.update(tournamentParticipants)
+    await this.db
+      .update(tournamentParticipants)
       .set({ score: sql`${tournamentParticipants.score} + ${points}` })
-      .where(and(
-        eq(tournamentParticipants.tournamentId, tournamentId),
-        eq(tournamentParticipants.playerId, playerId)
-      ))
+      .where(
+        and(
+          eq(tournamentParticipants.tournamentId, tournamentId),
+          eq(tournamentParticipants.playerId, playerId),
+        ),
+      )
   }
 }

@@ -1,7 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import app from './index'
 import { db } from './db'
-import { gameReviews, moveAnalyses, players, games, moves, ratingHistory, llmConfigurations, tournamentParticipants, tournaments } from './db/schema'
+import {
+  gameReviews,
+  moveAnalyses,
+  players,
+  games,
+  moves,
+  ratingHistory,
+  llmConfigurations,
+  tournamentParticipants,
+  tournaments,
+} from './db/schema'
 import { eq } from 'drizzle-orm'
 import { auth } from './lib/auth'
 
@@ -14,7 +24,7 @@ describe('Game Review API Endpoints', () => {
   beforeEach(async () => {
     process.env.WORKER_TOKEN = testWorkerToken
     process.env.ADMIN_EMAIL = testAdminEmail
-    
+
     // Explicit cleanup for in-memory DB shared state
     await db.delete(moveAnalyses)
     await db.delete(gameReviews)
@@ -36,7 +46,7 @@ describe('Game Review API Endpoints', () => {
           emailVerified: true,
           createdAt: new Date(),
           updatedAt: new Date(),
-          banned: false
+          banned: false,
         },
         session: {
           id: 'session-id',
@@ -46,22 +56,25 @@ describe('Game Review API Endpoints', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           userAgent: '',
-          ipAddress: ''
-        }
+          ipAddress: '',
+        },
       }
     })
   })
 
   const setupGame = async (gameId: string) => {
-    await db.insert(players).values([
-      { id: testPlayerId, name: 'P1', type: 'human' },
-      { id: `p2-${gameId}`, name: 'P2', type: 'human' }
-    ]).onConflictDoNothing()
+    await db
+      .insert(players)
+      .values([
+        { id: testPlayerId, name: 'P1', type: 'human' },
+        { id: `p2-${gameId}`, name: 'P2', type: 'human' },
+      ])
+      .onConflictDoNothing()
     await db.insert(games).values({
       id: gameId,
       whitePlayerId: testPlayerId,
       blackPlayerId: `p2-${gameId}`,
-      status: 'completed'
+      status: 'completed',
     })
   }
 
@@ -70,7 +83,7 @@ describe('Game Review API Endpoints', () => {
     await setupGame(gameId)
 
     const res = await app.request(`/api/reviews/${gameId}`, {
-      method: 'POST'
+      method: 'POST',
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -79,7 +92,7 @@ describe('Game Review API Endpoints', () => {
 
     // Request again, should return existing
     const res2 = await app.request(`/api/reviews/${gameId}`, {
-      method: 'POST'
+      method: 'POST',
     })
     const data2 = await res2.json()
     expect(data2.id).toBe(data.id)
@@ -89,10 +102,10 @@ describe('Game Review API Endpoints', () => {
     const res = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -109,10 +122,10 @@ describe('Game Review API Endpoints', () => {
     const res = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -129,20 +142,20 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/heartbeat', {
       method: 'POST',
       body: JSON.stringify({ reviewId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -158,20 +171,20 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/progress', {
       method: 'POST',
       body: JSON.stringify({ reviewId, current: 10, total: 40 }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -192,25 +205,37 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     const { id: reviewId } = await claimRes.json()
 
     const results = [
-      { moveNumber: 1, playerColor: 'white', classification: 'best', evaluation: 0.5, bestLine: 'e4 e5' },
-      { moveNumber: 2, playerColor: 'black', classification: 'excellent', evaluation: 0.4, bestLine: 'd4 d5' }
+      {
+        moveNumber: 1,
+        playerColor: 'white',
+        classification: 'best',
+        evaluation: 0.5,
+        bestLine: 'e4 e5',
+      },
+      {
+        moveNumber: 2,
+        playerColor: 'black',
+        classification: 'excellent',
+        evaluation: 0.4,
+        bestLine: 'd4 d5',
+      },
     ]
 
     const res = await app.request('/api/reviews/worker/submit', {
       method: 'POST',
       body: JSON.stringify({ reviewId, results }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -219,7 +244,7 @@ describe('Game Review API Endpoints', () => {
     // Verify in DB
     const review = await db.select().from(gameReviews).where(eq(gameReviews.id, reviewId)).limit(1)
     expect(review[0].status).toBe('completed')
-    
+
     const analyses = await db.select().from(moveAnalyses).where(eq(moveAnalyses.reviewId, reviewId))
     expect(analyses.length).toBe(2)
   })
@@ -233,23 +258,23 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     const { id: reviewId } = await claimRes.json()
 
     const res = await app.request('/api/reviews/worker/failure', {
       method: 'POST',
       body: JSON.stringify({ reviewId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     expect(res.status).toBe(200)
-    
+
     // Verify in DB
     const review = await db.select().from(gameReviews).where(eq(gameReviews.id, reviewId)).limit(1)
     expect(review[0].status).toBe('failed')
@@ -261,7 +286,7 @@ describe('Game Review API Endpoints', () => {
 
     // Request a review
     await app.request(`/api/reviews/${gameId}`, { method: 'POST' })
-    
+
     // Check initial status
     let res = await app.request(`/api/reviews/${gameId}`)
     let data = await res.json()
@@ -271,23 +296,31 @@ describe('Game Review API Endpoints', () => {
     const claimRes = await app.request('/api/reviews/worker/claim', {
       method: 'POST',
       body: JSON.stringify({ workerId: testWorkerId }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
     const { id: reviewId } = await claimRes.json()
 
     await app.request('/api/reviews/worker/submit', {
       method: 'POST',
-      body: JSON.stringify({ 
-        reviewId, 
-        results: [{ moveNumber: 1, playerColor: 'white', classification: 'best', evaluation: 0.5, bestLine: 'e4' }] 
+      body: JSON.stringify({
+        reviewId,
+        results: [
+          {
+            moveNumber: 1,
+            playerColor: 'white',
+            classification: 'best',
+            evaluation: 0.5,
+            bestLine: 'e4',
+          },
+        ],
       }),
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${testWorkerToken}`
-      }
+        Authorization: `Bearer ${testWorkerToken}`,
+      },
     })
 
     // Check final status

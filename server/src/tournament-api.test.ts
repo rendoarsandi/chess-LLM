@@ -4,7 +4,7 @@ import app from './index'
 describe('Tournament API', () => {
   it('should create a tournament via POST /api/admin/tournaments', async () => {
     // We need to mock the DB or just ensure the route exists
-    // Given the complexity of mocking the whole app DB in index.ts, 
+    // Given the complexity of mocking the whole app DB in index.ts,
     // we'll rely on the fact that if it's implemented it should at least return 201 or 401 if unauthorized
     const res = await app.request('/api/admin/tournaments', {
       method: 'POST',
@@ -12,11 +12,11 @@ describe('Tournament API', () => {
         name: 'Test Tournament',
         startTime: new Date().toISOString(),
         totalRounds: 3,
-        participantIds: []
+        participantIds: [],
       }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     })
-    
+
     // It should be 201 (success) or 400 (bad request) as auth is bypassed for dev
     expect([201, 400]).toContain(res.status)
   })

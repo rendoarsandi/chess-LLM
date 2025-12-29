@@ -33,7 +33,7 @@ class Logger {
 
   error(message: string, ...args: unknown[]) {
     if (this.shouldLog('error')) {
-      const cleanArgs = args.map(arg => {
+      const cleanArgs = args.map((arg) => {
         if (arg instanceof Error) {
           return this.level === 'debug' ? arg.stack : arg.message
         }

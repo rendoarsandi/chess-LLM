@@ -1,8 +1,8 @@
 interface ProtectedRouteProps {
-    children: React.ReactNode
+  children: React.ReactNode
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    // Development Bypass: Always render children
-    return <>{children}</>;
+  // Development Bypass: Always render children
+  return <>{children}</>
 }

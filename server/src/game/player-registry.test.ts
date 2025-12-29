@@ -7,15 +7,15 @@ import { AppDatabase } from '../db/types'
 import * as schema from '../db/schema'
 
 describe('PlayerService - Registry & Sync', () => {
-    let db: AppDatabase
-    let gameManager: GameManager
-    let playerService: PlayerService
+  let db: AppDatabase
+  let gameManager: GameManager
+  let playerService: PlayerService
 
-    beforeEach(() => {
-        const sqlite = new Database(':memory:')
-        db = drizzle(sqlite, { schema })
-        
-        // Initialize schema
+  beforeEach(() => {
+    const sqlite = new Database(':memory:')
+    db = drizzle(sqlite, { schema })
+
+    // Initialize schema
     sqlite.exec(`
       CREATE TABLE players (
         id TEXT PRIMARY KEY,
@@ -51,121 +51,88 @@ describe('PlayerService - Registry & Sync', () => {
             );
         `)
 
-        gameManager = new GameManager()
-        playerService = new PlayerService(db)
+    gameManager = new GameManager()
+    playerService = new PlayerService(db)
+  })
+
+  it('should sync hardcoded configurations', async () => {
+    const hardcoded = [
+      { provider: 'gemini', modelId: 'gemini-test', name: 'Test Gemini', rating: 2000 },
+    ]
+
+    await playerService.syncHardcodedConfigs(hardcoded)
+
+    const configs = await db.select().from(schema.llmConfigurations)
+    expect(configs).toHaveLength(1)
+    expect(configs[0].modelId).toBe('gemini-test')
+    expect(configs[0].isHardcoded).toBe(true)
+    expect(configs[0].playerId).toBeDefined()
+
+    const players = await db.select().from(schema.players)
+    expect(players).toHaveLength(1)
+    expect(players[0].name).toBe('Test Gemini')
+    expect(players[0].id).toBe(configs[0].playerId)
+  })
+
+  it('should initialize active players in GameManager', async () => {
+    // First sync to create entries
+
+    await playerService.syncHardcodedConfigs([{ provider: 'gemini', modelId: 'gemini-pro' }])
+
+    // Mock process.env for API key
+
+    process.env.GEMINI_API_KEY = 'test-key'
+
+    await playerService.initializeActivePlayers(gameManager)
+
+    const configs = await db.select().from(schema.llmConfigurations)
+
+    const playerId = configs[0].playerId
+
+    expect(gameManager.getPlayer(playerId!)).toBeDefined()
+  })
+
+  it('should correctly handle a new dynamic model being added', async () => {
+    const dynamicModelId = 'new-gemini-model'
+
+    const dynamicPlayerId = 'dynamic-uuid-123'
+
+    // 1. Simulate admin adding model via API
+
+    await db.insert(schema.players).values({
+      id: dynamicPlayerId,
+
+      name: 'Dynamic Gemini',
+
+      type: 'llm',
+
+      rating: 1500,
+
+      peakRating: 1500,
+
+      createdAt: new Date(),
     })
 
-    it('should sync hardcoded configurations', async () => {
-        const hardcoded = [
-            { provider: 'gemini', modelId: 'gemini-test', name: 'Test Gemini', rating: 2000 }
-        ]
+    await db.insert(schema.llmConfigurations).values({
+      provider: 'gemini',
 
-        await playerService.syncHardcodedConfigs(hardcoded)
+      modelId: dynamicModelId,
 
-        const configs = await db.select().from(schema.llmConfigurations)
-        expect(configs).toHaveLength(1)
-        expect(configs[0].modelId).toBe('gemini-test')
-        expect(configs[0].isHardcoded).toBe(true)
-        expect(configs[0].playerId).toBeDefined()
+      isActive: true,
 
-        const players = await db.select().from(schema.players)
-        expect(players).toHaveLength(1)
-        expect(players[0].name).toBe('Test Gemini')
-        expect(players[0].id).toBe(configs[0].playerId)
+      isHardcoded: false,
+
+      playerId: dynamicPlayerId,
+
+      apiKey: 'dynamic-key',
     })
 
-        it('should initialize active players in GameManager', async () => {
+    // 2. Initialize
 
-            // First sync to create entries
+    await playerService.initializeActivePlayers(gameManager)
 
-            await playerService.syncHardcodedConfigs([
+    // 3. Verify it's in GameManager
 
-                { provider: 'gemini', modelId: 'gemini-pro' }
-
-            ])
-
-    
-
-            // Mock process.env for API key
-
-            process.env.GEMINI_API_KEY = 'test-key'
-
-    
-
-            await playerService.initializeActivePlayers(gameManager)
-
-    
-
-            const configs = await db.select().from(schema.llmConfigurations)
-
-            const playerId = configs[0].playerId
-
-            
-
-            expect(gameManager.getPlayer(playerId!)).toBeDefined()
-
-        })
-
-    
-
-        it('should correctly handle a new dynamic model being added', async () => {
-
-            const dynamicModelId = 'new-gemini-model'
-
-            const dynamicPlayerId = 'dynamic-uuid-123'
-
-            
-
-            // 1. Simulate admin adding model via API
-
-            await db.insert(schema.players).values({
-
-                id: dynamicPlayerId,
-
-                name: 'Dynamic Gemini',
-
-                type: 'llm',
-
-                rating: 1500,
-
-                peakRating: 1500,
-
-                createdAt: new Date()
-
-            })
-
-    
-
-            await db.insert(schema.llmConfigurations).values({
-
-                provider: 'gemini',
-
-                modelId: dynamicModelId,
-
-                isActive: true,
-
-                isHardcoded: false,
-
-                playerId: dynamicPlayerId,
-
-                apiKey: 'dynamic-key'
-
-            })
-
-    
-
-            // 2. Initialize
-
-            await playerService.initializeActivePlayers(gameManager)
-
-    
-
-            // 3. Verify it's in GameManager
-
-            expect(gameManager.getPlayer(dynamicPlayerId)).toBeDefined()
-
-        })
-
-    })
-
-    
+    expect(gameManager.getPlayer(dynamicPlayerId)).toBeDefined()
+  })
+})

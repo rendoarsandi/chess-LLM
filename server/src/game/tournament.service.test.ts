@@ -13,7 +13,7 @@ describe('TournamentService', () => {
   beforeEach(() => {
     const sqlite = new Database(':memory:')
     db = drizzle(sqlite, { schema })
-    
+
     // Create tables
     sqlite.exec(`
       CREATE TABLE players (
@@ -64,7 +64,7 @@ describe('TournamentService', () => {
       name: 'Tilted Tuesday Mock',
       startTime: new Date(),
       totalRounds: 5,
-      timeControlSettings: '3+2'
+      timeControlSettings: '3+2',
     }
 
     const { id } = await tournamentService.createTournament(data)
@@ -79,11 +79,13 @@ describe('TournamentService', () => {
     const { id: tId } = await tournamentService.createTournament({
       name: 'Tournament',
       startTime: new Date(),
-      totalRounds: 3
+      totalRounds: 3,
     })
 
     const pId = 'p-1'
-    await db.insert(players).values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
 
     await tournamentService.registerParticipant(tId, pId)
 
@@ -96,7 +98,7 @@ describe('TournamentService', () => {
     const { id } = await tournamentService.createTournament({
       name: 'Tournament',
       startTime: new Date(),
-      totalRounds: 3
+      totalRounds: 3,
     })
 
     await tournamentService.startTournament(id)
@@ -110,11 +112,13 @@ describe('TournamentService', () => {
     const { id: tId } = await tournamentService.createTournament({
       name: 'Tournament',
       startTime: new Date(),
-      totalRounds: 3
+      totalRounds: 3,
     })
 
     const pId = 'p-1'
-    await db.insert(players).values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
+    await db
+      .insert(players)
+      .values({ id: pId, name: 'Player 1', type: 'human', createdAt: new Date() })
     await tournamentService.registerParticipant(tId, pId)
 
     await tournamentService.updateParticipantScore(tId, pId, 10) // Win

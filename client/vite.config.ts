@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from "path"
+import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -21,8 +21,8 @@ export default defineConfig({
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on('error', (err) => {
-            console.error('[Vite Proxy] API Error:', err);
-          });
+            console.error('[Vite Proxy] API Error:', err)
+          })
         },
       },
       '/ws': {
@@ -31,18 +31,18 @@ export default defineConfig({
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on('error', (err) => {
-            console.error('[Vite Proxy] WS Error:', err);
-          });
+            console.error('[Vite Proxy] WS Error:', err)
+          })
           proxy.on('proxyReqWs', () => {
-            console.log('[Vite Proxy] Forwarding WS upgrade request');
-          });
+            console.log('[Vite Proxy] Forwarding WS upgrade request')
+          })
         },
-      }
-    }
+      },
+    },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   build: {
@@ -56,13 +56,13 @@ export default defineConfig({
             '@radix-ui/react-select',
             '@radix-ui/react-tabs',
             'framer-motion',
-            'lucide-react'
+            'lucide-react',
           ],
           'vendor-chess': ['chess.js', 'react-chessboard'],
           'vendor-charts': ['recharts'],
-        }
-      }
-    }
+        },
+      },
+    },
   },
   // @ts-expect-error - vitest configuration is not officially supported in vite config type
   test: {
@@ -71,7 +71,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      '@': path.resolve(__dirname, 'src'),
     },
     setupFiles: './vitest.setup.ts',
     pool: 'threads',

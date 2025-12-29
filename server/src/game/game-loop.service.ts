@@ -8,44 +8,52 @@ import { AppDatabase } from '../db/types'
 import { AlarmService } from './alarm.service'
 
 export class GameLoopService {
-    private interval: NodeJS.Timeout | null = null
-    private lastRequestTime: Map<string, number> = new Map()
+  private interval: NodeJS.Timeout | null = null
+  private lastRequestTime: Map<string, number> = new Map()
 
-    constructor(
-        private db: AppDatabase,
-        private gameService: GameService,
-        private defaultPlayer: { makeMove: (fen: string, history: string[], variant?: string) => (string | null | Promise<string | null>), getLastThinking?: () => { opening?: string, candidates?: string, reasoning?: string } | null },
-        private socketService?: SocketService,
-        private alarmService: AlarmService = new AlarmService()
-    ) {}
+  constructor(
+    private db: AppDatabase,
+    private gameService: GameService,
+    private defaultPlayer: {
+      makeMove: (
+        fen: string,
+        history: string[],
+        variant?: string,
+      ) => string | null | Promise<string | null>
+      getLastThinking?: () => { opening?: string; candidates?: string; reasoning?: string } | null
+    },
+    private socketService?: SocketService,
+    private alarmService: AlarmService = new AlarmService(),
+  ) {}
 
   async advanceGame(gameId: string) {
     const whitePlayerTable = alias(players, 'whitePlayer')
     const blackPlayerTable = alias(players, 'blackPlayer')
 
-    const gameResults = await this.db.select({
-      id: games.id,
-      fen: games.fen,
-      variant: games.variant,
-      status: games.status,
-      whitePlayerId: games.whitePlayerId,
-      blackPlayerId: games.blackPlayerId,
-      whitePlayerType: whitePlayerTable.type,
-      blackPlayerType: blackPlayerTable.type,
-      updatedAt: games.updatedAt,
-    })
-    .from(games)
-    .where(eq(games.id, gameId))
-    .leftJoin(whitePlayerTable, eq(games.whitePlayerId, whitePlayerTable.id))
-    .leftJoin(blackPlayerTable, eq(games.blackPlayerId, blackPlayerTable.id))
+    const gameResults = await this.db
+      .select({
+        id: games.id,
+        fen: games.fen,
+        variant: games.variant,
+        status: games.status,
+        whitePlayerId: games.whitePlayerId,
+        blackPlayerId: games.blackPlayerId,
+        whitePlayerType: whitePlayerTable.type,
+        blackPlayerType: blackPlayerTable.type,
+        updatedAt: games.updatedAt,
+      })
+      .from(games)
+      .where(eq(games.id, gameId))
+      .leftJoin(whitePlayerTable, eq(games.whitePlayerId, whitePlayerTable.id))
+      .leftJoin(blackPlayerTable, eq(games.blackPlayerId, blackPlayerTable.id))
 
-    if (gameResults.length === 0) return;
-    const game = gameResults[0];
+    if (gameResults.length === 0) return
+    const game = gameResults[0]
 
     if (game.status !== 'ongoing') {
-      this.alarmService.cancelAlarm(`game:${game.id}`);
-      this.lastRequestTime.delete(game.id);
-      return;
+      this.alarmService.cancelAlarm(`game:${game.id}`)
+      this.lastRequestTime.delete(game.id)
+      return
     }
 
     const turn = game.fen.split(' ')[1]
@@ -61,19 +69,19 @@ export class GameLoopService {
       STOCKFISH_LOW_ID,
       STOCKFISH_MED_ID,
       STOCKFISH_HIGH_ID,
-      STOCKFISH_VERY_HIGH_ID
-    ];
+      STOCKFISH_VERY_HIGH_ID,
+    ]
 
     // If it's a human player, we just wait (no auto-move)
     if (currentPlayerType === 'human') {
-      return;
+      return
     }
 
     // If it's a client-side Stockfish player, we emit REQUEST_MOVE and wait
     if (currentPlayerId && STOCKFISH_IDS.includes(currentPlayerId)) {
       const now = Date.now()
       const lastRequest = this.lastRequestTime.get(game.id) || 0
-      
+
       // Check for timeout (60 seconds)
       const timeSinceLastUpdate = now - game.updatedAt.getTime()
       if (timeSinceLastUpdate > 60000) {
@@ -100,20 +108,22 @@ export class GameLoopService {
       // Throttle requests: only re-send every 2 seconds if we haven't received a move
       if (now - lastRequest > 2000) {
         if (this.socketService) {
-          logger.info(`[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} (Skill: ${constraints.skillLevel}, Depth: ${constraints.depth}) in game ${game.id}`)
-          this.socketService.broadcast(game.id, { 
-            type: 'REQUEST_MOVE', 
-            gameId: game.id, 
+          logger.info(
+            `[GameLoop] Requesting move from client for Stockfish player ${currentPlayerId} (Skill: ${constraints.skillLevel}, Depth: ${constraints.depth}) in game ${game.id}`,
+          )
+          this.socketService.broadcast(game.id, {
+            type: 'REQUEST_MOVE',
+            gameId: game.id,
             fen: game.fen,
-            constraints
+            constraints,
           })
           this.lastRequestTime.set(game.id, now)
         }
       }
-      
+
       // Re-poll in 1 second to check if we need to re-request or if game state changed
-      this.alarmService.setAlarm(`game:${game.id}`, 1000, () => this.advanceGame(game.id));
-      return;
+      this.alarmService.setAlarm(`game:${game.id}`, 1000, () => this.advanceGame(game.id))
+      return
     }
 
     // Clear last request time if we are not in a Stockfish turn anymore
@@ -125,22 +135,23 @@ export class GameLoopService {
     }
 
     // Fetch move history
-    const gameMoves = await this.db.select()
+    const gameMoves = await this.db
+      .select()
       .from(moves)
       .where(eq(moves.gameId, game.id))
       .orderBy(moves.moveNumber)
-    
+
     const history = gameMoves.map((m: { move: string }) => m.move)
 
     // Resolve player: registry first, then fallback to default
     const player = this.gameService.getPlayer(currentPlayerId!) || this.defaultPlayer
-    
+
     const startTime = Date.now()
     let move = null
     try {
-        move = await player.makeMove(game.fen, history, game.variant)
+      move = await player.makeMove(game.fen, history, game.variant)
     } catch (e) {
-        logger.error(`[GameLoop] Error calling makeMove for ${currentPlayerId}:`, e)
+      logger.error(`[GameLoop] Error calling makeMove for ${currentPlayerId}:`, e)
     }
     const thinkingMs = Date.now() - startTime
 
@@ -149,42 +160,43 @@ export class GameLoopService {
         const thinking = player.getLastThinking ? player.getLastThinking() : {}
         const result = await this.gameService.makeMove(game.id, move, { ...thinking, thinkingMs })
         logger.info(`[GameLoop] Made move ${result.san} in game ${game.id} (${thinkingMs}ms)`)
-        
+
         // Schedule next move check - reduced to 100ms for faster gameplay
-        this.alarmService.setAlarm(`game:${game.id}`, 100, () => this.advanceGame(game.id));
+        this.alarmService.setAlarm(`game:${game.id}`, 100, () => this.advanceGame(game.id))
       } catch (e) {
         logger.error(`[GameLoop] Error applying move "${move}" in game ${game.id}:`, e)
         // Retry later
-        this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id));
+        this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id))
       }
     } else {
       logger.warn(`[GameLoop] Player failed to provide a move for game ${game.id}`)
       // Retry later
-      this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id));
+      this.alarmService.setAlarm(`game:${game.id}`, 5000, () => this.advanceGame(game.id))
     }
   }
 
   async runIteration() {
-    const ongoingGames = await this.db.select({ id: games.id })
+    const ongoingGames = await this.db
+      .select({ id: games.id })
       .from(games)
       .where(eq(games.status, 'ongoing'))
 
     for (const game of ongoingGames) {
       if (!this.alarmService.hasAlarm(`game:${game.id}`)) {
-        await this.advanceGame(game.id);
+        await this.advanceGame(game.id)
       }
     }
   }
 
-  private isRunning: boolean = false;
+  private isRunning: boolean = false
 
   start(intervalMs: number = 5000) {
-    if (this.isRunning) return;
-    this.isRunning = true;
+    if (this.isRunning) return
+    this.isRunning = true
     logger.info(`[GameLoop] Starting background monitor with interval ${intervalMs}ms`)
-    
+
     const loop = async () => {
-      if (!this.isRunning) return;
+      if (!this.isRunning) return
       try {
         await this.runIteration()
       } catch (e) {
@@ -193,11 +205,11 @@ export class GameLoopService {
         setTimeout(loop, intervalMs)
       }
     }
-    
+
     loop()
   }
 
   stop() {
-    this.isRunning = false;
+    this.isRunning = false
   }
 }

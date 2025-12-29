@@ -44,7 +44,6 @@ describe('AnalysisWorker', () => {
     mockWorker.simulateMessage(
       'info depth 1 seldepth 1 multipv 3 score cp 15 nodes 20 nps 20000 pv g1f3',
     )
-    // ... more depth ...
     mockWorker.simulateMessage(
       'info depth 10 seldepth 15 multipv 1 score cp 40 nodes 1000 nps 100000 pv e2e4 e7e5',
     )

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -131,23 +131,24 @@
   --last-move: rgba(155, 199, 0, 0.41);
 }
 
-
 @layer base {
-
   * {
-
     @apply border-border outline-ring/50;
-
   }
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/20;
     /* Prevent pull-to-refresh on mobile */
     overscroll-behavior-y: none;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 
@@ -162,32 +163,18 @@
   }
 }
 
-
-
 @layer utilities {
-
   .custom-scrollbar::-webkit-scrollbar {
-
     width: 6px;
 
     height: 6px;
-
   }
-
-
 
   .custom-scrollbar::-webkit-scrollbar-track {
-
     @apply bg-transparent;
-
   }
-
-
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-
     @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
-
   }
-
 }

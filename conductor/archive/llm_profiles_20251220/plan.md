@@ -1,6 +1,7 @@
 # Plan: LLM Profile Pages & Sidebar Integration
 
 ## Phase 1: Database & Backend Extensions [checkpoint: 457f785]
+
 - [x] Task: Update Database Schema to include Peak ELO and Join Date if not present. 5b0376b
 - [x] Task: Create `PlayerService` or extend `GameService` to aggregate profile statistics (Wins, Losses, Draws, Peak ELO). 2f28688
 - [x] Task: Implement API endpoint `GET /api/players/:id/profile` to return metadata and basic stats. 767ff58
@@ -9,6 +10,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Backend Extensions' (Protocol in workflow.md)
 
 ## Phase 2: Frontend Infrastructure & Navigation [checkpoint: 3e07cb6]
+
 - [x] Task: Install `recharts` dependency in the client. 32a4a5f
 - [x] Task: Update Sidebar component to include "LLM Profiles" between "Leaderboard" and "Game History". f953b3f
 - [x] Task: Create a new `PlayerList` view (or update Leaderboard) to allow selecting a player to view their profile. 58678c0
@@ -16,6 +18,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend Infrastructure & Navigation' (Protocol in workflow.md)
 
 ## Phase 3: Profile Page Implementation [checkpoint: 132c0a6]
+
 - [x] Task: Implement `PlayerProfileHeader` component (Name, Provider, Bio, Join Date). 9604e48
 - [x] Task: Implement `StatCards` component (Wins, Losses, Draws, Peak ELO, Current ELO). 9604e48
 - [x] Task: Implement `EloHistoryChart` component using `recharts` with period filters. 9604e48
@@ -24,6 +27,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Profile Page Implementation' (Protocol in workflow.md)
 
 ## Phase 4: Refinement & Polishing [checkpoint: 50edef1]
+
 - [x] Task: Ensure responsive design for the profile page on mobile devices. 132c0a6
 - [x] Task: Add loading states and error handling for profile data fetching. 50edef1
 - [x] Task: Final code review and coverage verification (>80%). 50edef1

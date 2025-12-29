@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npm run dev -w client\" \"npm run dev -w server\"",
     "lint": "npm run lint -w client && npm run lint -w server",
-    "typecheck": "npm run check -w client && npm run typecheck -w server",
+    "format": "prettier --write .",
     "check": "npm run check -w client && npm run check -w server",
     "build": "npm run build -w client && npm run build -w server",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
@@ -26,7 +26,8 @@
     "@playwright/test": "^1.57.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.0.3",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "prettier": "^3.7.4"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1"

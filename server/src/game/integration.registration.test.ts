@@ -1,6 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { getDb } from '../db'
-import { players, games, llmConfigurations, moves, ratingHistory, gameReviews, moveAnalyses, tournamentParticipants, tournaments } from '../db/schema'
+import {
+  players,
+  games,
+  llmConfigurations,
+  moves,
+  ratingHistory,
+  gameReviews,
+  moveAnalyses,
+  tournamentParticipants,
+  tournaments,
+} from '../db/schema'
 import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
 import { PlayerService } from './player.service'
@@ -8,7 +18,7 @@ import { GameManager } from './game-manager'
 
 function generatePlayerId(seed: string): string {
   // Matches PlayerService.ts implementation exactly
-  return crypto.createHash('sha256').update(seed).digest('hex').substring(0, 36);
+  return crypto.createHash('sha256').update(seed).digest('hex').substring(0, 36)
 }
 
 describe('System Player Registration Integration', () => {
@@ -33,16 +43,23 @@ describe('System Player Registration Integration', () => {
     const db = getDb()
     const playerService = new PlayerService(db)
     const gameManager = new GameManager()
-    
+
     // Run initialization
     await initializePlayers(playerService, gameManager)
 
     const allPlayers = await db.select().from(players)
-    console.log('[DEBUG] Registered players:', allPlayers.map(p => ({ id: p.id, name: p.name })))
+    console.log(
+      '[DEBUG] All registered players in DB:',
+      allPlayers.map((p) => ({ id: p.id, name: p.name })),
+    )
 
     const KIMI_ID = generatePlayerId('groq-moonshotai/kimi-k2-instruct-0905')
     const GPT_OSS_ID = generatePlayerId('groq-openai/gpt-oss-120b')
     const QWEN_ID = generatePlayerId('groq-qwen/qwen3-32b')
+
+    console.log('[DEBUG] Expected KIMI_ID:', KIMI_ID)
+    console.log('[DEBUG] Expected GPT_OSS_ID:', GPT_OSS_ID)
+    console.log('[DEBUG] Expected QWEN_ID:', QWEN_ID)
 
     const kimi = await db.select().from(players).where(eq(players.id, KIMI_ID))
     const gptOss = await db.select().from(players).where(eq(players.id, GPT_OSS_ID))

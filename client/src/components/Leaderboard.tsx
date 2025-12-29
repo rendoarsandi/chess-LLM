@@ -5,14 +5,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import type { Player } from "@/api"
-import { motion, AnimatePresence } from "framer-motion"
-import { Trophy, Medal, Award, BarChart3 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useSearchParams } from "react-router"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/table'
+import type { Player } from '@/api'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Trophy, Medal, Award, BarChart3 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useSearchParams } from 'react-router'
+import { Button } from '@/components/ui/button'
 
 interface LeaderboardProps {
   players: Player[]
@@ -21,8 +21,10 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const variant = (searchParams.get('variant') === 'chess960' ? 'chess960' : 'standard') as 'standard' | 'chess960';
+  const [searchParams, setSearchParams] = useSearchParams()
+  const variant = (searchParams.get('variant') === 'chess960' ? 'chess960' : 'standard') as
+    | 'standard'
+    | 'chess960'
 
   if (loading) {
     return (
@@ -30,7 +32,7 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
         <div className="p-8 space-y-4">
           <Skeleton className="h-8 w-1/3" />
           <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
@@ -62,10 +64,14 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
 
   const getRankIcon = (index: number) => {
     switch (index) {
-      case 0: return <Trophy className="w-4 h-4 text-yellow-500" />;
-      case 1: return <Medal className="w-4 h-4 text-slate-400" />;
-      case 2: return <Award className="w-4 h-4 text-amber-600" />;
-      default: return <span className="text-[10px] font-black text-muted-foreground/50">#{index + 1}</span>;
+      case 0:
+        return <Trophy className="w-4 h-4 text-yellow-500" />
+      case 1:
+        return <Medal className="w-4 h-4 text-slate-400" />
+      case 2:
+        return <Award className="w-4 h-4 text-amber-600" />
+      default:
+        return <span className="text-[10px] font-black text-muted-foreground/50">#{index + 1}</span>
     }
   }
 
@@ -73,17 +79,17 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
     <div className="space-y-4">
       <div className="flex justify-center sm:justify-start">
         <div className="flex gap-2 p-1 bg-muted rounded-md w-fit">
-          <Button 
-            variant={variant === 'standard' ? 'default' : 'ghost'} 
-            size="sm" 
+          <Button
+            variant={variant === 'standard' ? 'default' : 'ghost'}
+            size="sm"
             className="text-[10px] font-black px-4 h-8"
             onClick={() => setSearchParams({ variant: 'standard' })}
           >
             STANDARD
           </Button>
-          <Button 
-            variant={variant === 'chess960' ? 'default' : 'ghost'} 
-            size="sm" 
+          <Button
+            variant={variant === 'chess960' ? 'default' : 'ghost'}
+            size="sm"
             className="text-[10px] font-black px-4 h-8"
             onClick={() => setSearchParams({ variant: 'chess960' })}
           >
@@ -96,10 +102,18 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[60px] text-center text-[10px] font-black uppercase tracking-widest px-4">RANK</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest px-4">ARCHITECTURE</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-4">ELO RATING</TableHead>
-              <TableHead className="text-right hidden sm:table-cell text-[10px] font-black uppercase tracking-widest px-4">WIN/LOSS/DRAW</TableHead>
+              <TableHead className="w-[60px] text-center text-[10px] font-black uppercase tracking-widest px-4">
+                RANK
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest px-4">
+                ARCHITECTURE
+              </TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest px-4">
+                ELO RATING
+              </TableHead>
+              <TableHead className="text-right hidden sm:table-cell text-[10px] font-black uppercase tracking-widest px-4">
+                WIN/LOSS/DRAW
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,32 +130,41 @@ export function Leaderboard({ players, onSelectPlayer, loading }: LeaderboardPro
                   onClick={() => handlePlayerClick(player)}
                 >
                   <TableCell className="py-4 text-center px-4">
-                    <div className="flex items-center justify-center">
-                      {getRankIcon(index)}
-                    </div>
+                    <div className="flex items-center justify-center">{getRankIcon(index)}</div>
                   </TableCell>
                   <TableCell className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border shadow-sm group-hover:scale-110 transition-transform",
-                        index === 0 ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-600" : "bg-muted border-border"
-                      )}>
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border shadow-sm group-hover:scale-110 transition-transform',
+                          index === 0
+                            ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600'
+                            : 'bg-muted border-border',
+                        )}
+                      >
                         {player.name[0]}
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-black text-sm md:text-base tracking-tight">{player.name}</span>
+                        <span className="font-black text-sm md:text-base tracking-tight">
+                          {player.name}
+                        </span>
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest opacity-70">
                             {player.type}
                           </span>
                           {player.provider && (
-                            <span className={cn(
-                              "text-[8px] px-1 py-0.5 rounded border leading-none font-black uppercase tracking-widest",
-                              player.provider === 'gemini' ? "text-primary bg-primary/5 border-primary/20" :
-                              player.provider === 'groq' ? "text-orange-500 bg-orange-500/5 border-orange-500/20" :
-                              player.provider === 'system' ? "text-blue-500 bg-blue-500/5 border-blue-500/20" :
-                              "text-muted-foreground bg-muted border-border"
-                            )}>
+                            <span
+                              className={cn(
+                                'text-[8px] px-1 py-0.5 rounded border leading-none font-black uppercase tracking-widest',
+                                player.provider === 'gemini'
+                                  ? 'text-primary bg-primary/5 border-primary/20'
+                                  : player.provider === 'groq'
+                                    ? 'text-orange-500 bg-orange-500/5 border-orange-500/20'
+                                    : player.provider === 'system'
+                                      ? 'text-blue-500 bg-blue-500/5 border-blue-500/20'
+                                      : 'text-muted-foreground bg-muted border-border',
+                              )}
+                            >
                               {player.provider}
                             </span>
                           )}

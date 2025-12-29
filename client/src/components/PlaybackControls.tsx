@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button"
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
 
 interface PlaybackControlsProps {
   onFirst: () => void
@@ -10,13 +10,13 @@ interface PlaybackControlsProps {
   nextDisabled?: boolean
 }
 
-export function PlaybackControls({ 
-  onFirst, 
-  onPrev, 
-  onNext, 
-  onLast, 
-  prevDisabled, 
-  nextDisabled 
+export function PlaybackControls({
+  onFirst,
+  onPrev,
+  onNext,
+  onLast,
+  prevDisabled,
+  nextDisabled,
 }: PlaybackControlsProps) {
   return (
     <div className="flex items-center justify-center gap-2 p-2 bg-muted/30 rounded-lg border border-border">

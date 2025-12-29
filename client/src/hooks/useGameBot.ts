@@ -6,7 +6,7 @@ export function useGameBot(
   gameId: string | undefined,
   lastMessage: SocketMessage | null,
   sendMessage: (message: ClientMessage) => void,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) {
   const playerServiceRef = useRef<StockfishPlayerService | null>(null)
 
@@ -27,28 +27,26 @@ export function useGameBot(
 
     if (lastMessage.type === 'REQUEST_MOVE' && lastMessage.gameId === gameId) {
       const { fen, constraints } = lastMessage
-      
+
       console.log(`[GameBot] Received REQUEST_MOVE for game ${gameId}, FEN: ${fen}`)
-      
-      playerServiceRef.current.calculateMove(
-        fen, 
-        constraints.depth, 
-        constraints.skillLevel, 
-        constraints.movetime
-      ).then((move) => {
-        console.log(`[GameBot] Calculated move: ${move}`)
-        sendMessage({
-          type: 'SUBMIT_MOVE',
-          gameId,
-          move
+
+      playerServiceRef.current
+        .calculateMove(fen, constraints.depth, constraints.skillLevel, constraints.movetime)
+        .then((move) => {
+          console.log(`[GameBot] Calculated move: ${move}`)
+          sendMessage({
+            type: 'SUBMIT_MOVE',
+            gameId,
+            move,
+          })
         })
-      }).catch((err) => {
-        if (err.message === 'Request cancelled by a newer move request') {
-          console.log(`[GameBot] Move request for game ${gameId} was superseded.`);
-        } else {
-          console.error(`[GameBot] Error calculating move:`, err)
-        }
-      })
+        .catch((err) => {
+          if (err.message === 'Request cancelled by a newer move request') {
+            console.log(`[GameBot] Move request for game ${gameId} was superseded.`)
+          } else {
+            console.error(`[GameBot] Error calculating move:`, err)
+          }
+        })
     }
   }, [gameId, lastMessage, enabled, sendMessage])
 }

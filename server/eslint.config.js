@@ -7,10 +7,7 @@ export default defineConfig([
   globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,
@@ -18,7 +15,6 @@ export default defineConfig([
   },
   {
     files: ['**/*.test.ts', '**/*.test.tsx'],
-    rules: {
-    },
+    rules: {},
   },
 ])

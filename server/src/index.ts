@@ -35,16 +35,16 @@ import { reviewRoutes } from './routes/reviews'
 type Env = {
   Variables: {
     user: {
-      id: string;
-      email: string;
-      name: string;
-    };
+      id: string
+      email: string
+      name: string
+    }
     session: {
-      id: string;
-      userId: string;
-      token: string;
-      expiresAt: Date;
-    };
+      id: string
+      userId: string
+      token: string
+      expiresAt: Date
+    }
   }
 }
 
@@ -80,9 +80,9 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Background loops
-const defaultLlmPlayer = { 
-    makeMove: async () => null, 
-    getLastThinking: () => null 
+const defaultLlmPlayer = {
+  makeMove: async () => null,
+  getLastThinking: () => null,
 }
 const gameLoopService = new GameLoopService(getDb(), gameService, defaultLlmPlayer, socketService)
 const tournamentLoopService = new TournamentLoopService(getDb(), tournamentService, gameService)
@@ -121,11 +121,14 @@ app.get(
             const game = await gameService.getGame(msgGameId)
             if (!game || game.status !== 'ongoing') return
 
-            gameService.makeMove(msgGameId, move).then(() => {
-              gameLoopService.advanceGame(msgGameId);
-            }).catch(err => {
-              logger.error(`[WebSocket] Failed move: ${err.message}`)
-            })
+            gameService
+              .makeMove(msgGameId, move)
+              .then(() => {
+                gameLoopService.advanceGame(msgGameId)
+              })
+              .catch((err) => {
+                logger.error(`[WebSocket] Failed move: ${err.message}`)
+              })
           }
         } catch (e) {
           logger.error('[WebSocket] Error:', e)
@@ -135,7 +138,7 @@ app.get(
         if (gameId) socketService.leaveRoom(gameId, ws)
       },
     }
-  })
+  }),
 )
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3001

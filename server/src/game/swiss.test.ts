@@ -16,7 +16,7 @@ describe('Swiss Pairing Logic', () => {
   it('should generate Round 1 pairings (everyone at 0)', () => {
     const pairings = generatePairings(players, [])
     expect(pairings).toHaveLength(4)
-    const pairedIds = pairings.flatMap(p => [p.white, p.black])
+    const pairedIds = pairings.flatMap((p) => [p.white, p.black])
     expect(new Set(pairedIds).size).toBe(8)
   })
 
@@ -38,11 +38,12 @@ describe('Swiss Pairing Logic', () => {
       { white: 'p4', black: 'p8' },
     ]
     const pairings = generatePairings(playersWithScores, history)
-    
+
     // Top 4 (score 10) should be paired together
-    const topPairings = pairings.filter(p => 
-      playersWithScores.find(pl => pl.id === p.white)!.score === 10 &&
-      playersWithScores.find(pl => pl.id === p.black)!.score === 10
+    const topPairings = pairings.filter(
+      (p) =>
+        playersWithScores.find((pl) => pl.id === p.white)!.score === 10 &&
+        playersWithScores.find((pl) => pl.id === p.black)!.score === 10,
     )
     expect(topPairings).toHaveLength(2)
   })
@@ -59,9 +60,9 @@ describe('Swiss Pairing Logic', () => {
       { white: 'p3', black: 'p4' },
     ]
     const pairings = generatePairings(playersWithScores, history)
-    
+
     // p1 cannot play p2 again, so must play p3 or p4
-    pairings.forEach(p => {
+    pairings.forEach((p) => {
       if (p.white === 'p1') expect(p.black).not.toBe('p2')
       if (p.black === 'p1') expect(p.white).not.toBe('p2')
     })
@@ -71,7 +72,7 @@ describe('Swiss Pairing Logic', () => {
     const oddPlayers = players.slice(0, 7)
     const pairings = generatePairings(oddPlayers, [])
     expect(pairings).toHaveLength(4)
-    const byePairing = pairings.find(p => p.black === 'BYE' || p.white === 'BYE')
+    const byePairing = pairings.find((p) => p.black === 'BYE' || p.white === 'BYE')
     expect(byePairing).toBeDefined()
   })
 

@@ -20,15 +20,15 @@ describe('GroqService', () => {
       choices: [
         {
           message: {
-            content: 'e4'
-          }
-        }
-      ]
+            content: 'e4',
+          },
+        },
+      ],
     }
 
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
-      json: async () => mockResponse
+      json: async () => mockResponse,
     } as Response)
 
     const prompt = 'Play chess. Current state: FEN...'
@@ -40,29 +40,31 @@ describe('GroqService', () => {
       expect.objectContaining({
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer test-api-key',
-          'Content-Type': 'application/json'
+          Authorization: 'Bearer test-api-key',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           model: 'llama-3.1-70b-versatile',
           messages: [
             {
               role: 'user',
-              content: prompt
-            }
+              content: prompt,
+            },
           ],
-          temperature: 0.1
-        })
-      })
+          temperature: 0.1,
+        }),
+      }),
     )
   })
 
   it('should throw an error if the API request fails', async () => {
     vi.mocked(global.fetch).mockResolvedValue({
       ok: false,
-      statusText: 'Unauthorized'
+      statusText: 'Unauthorized',
     } as Response)
 
-    await expect(groqService.generateMove('model', 'prompt')).rejects.toThrow('Groq API error: Unauthorized')
+    await expect(groqService.generateMove('model', 'prompt')).rejects.toThrow(
+      'Groq API error: Unauthorized',
+    )
   })
 })

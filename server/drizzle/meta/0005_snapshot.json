@@ -105,12 +105,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -203,12 +199,8 @@
           "name": "game_reviews_game_id_games_id_fk",
           "tableFrom": "game_reviews",
           "tableTo": "games",
-          "columnsFrom": [
-            "game_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -330,12 +322,8 @@
           "name": "games_white_player_id_players_id_fk",
           "tableFrom": "games",
           "tableTo": "players",
-          "columnsFrom": [
-            "white_player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["white_player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -343,12 +331,8 @@
           "name": "games_black_player_id_players_id_fk",
           "tableFrom": "games",
           "tableTo": "players",
-          "columnsFrom": [
-            "black_player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["black_player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -356,12 +340,8 @@
           "name": "games_winner_id_players_id_fk",
           "tableFrom": "games",
           "tableTo": "players",
-          "columnsFrom": [
-            "winner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["winner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -369,12 +349,8 @@
           "name": "games_tournament_id_tournaments_id_fk",
           "tableFrom": "games",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -460,12 +436,8 @@
           "name": "llm_configurations_player_id_players_id_fk",
           "tableFrom": "llm_configurations",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -538,9 +510,7 @@
       "indexes": {
         "review_idx": {
           "name": "review_idx",
-          "columns": [
-            "review_id"
-          ],
+          "columns": ["review_id"],
           "isUnique": false
         }
       },
@@ -549,12 +519,8 @@
           "name": "move_analyses_review_id_game_reviews_id_fk",
           "tableFrom": "move_analyses",
           "tableTo": "game_reviews",
-          "columnsFrom": [
-            "review_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["review_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -648,9 +614,7 @@
       "indexes": {
         "game_idx": {
           "name": "game_idx",
-          "columns": [
-            "game_id"
-          ],
+          "columns": ["game_id"],
           "isUnique": false
         }
       },
@@ -659,12 +623,8 @@
           "name": "moves_game_id_games_id_fk",
           "tableFrom": "moves",
           "tableTo": "games",
-          "columnsFrom": [
-            "game_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -832,9 +792,7 @@
       "indexes": {
         "player_rating_idx": {
           "name": "player_rating_idx",
-          "columns": [
-            "player_id"
-          ],
+          "columns": ["player_id"],
           "isUnique": false
         }
       },
@@ -843,12 +801,8 @@
           "name": "rating_history_player_id_players_id_fk",
           "tableFrom": "rating_history",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -856,12 +810,8 @@
           "name": "rating_history_game_id_games_id_fk",
           "tableFrom": "rating_history",
           "tableTo": "games",
-          "columnsFrom": [
-            "game_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["game_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -933,9 +883,7 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -944,12 +892,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1003,10 +947,7 @@
       "indexes": {
         "tournament_participants_pk": {
           "name": "tournament_participants_pk",
-          "columns": [
-            "tournament_id",
-            "player_id"
-          ],
+          "columns": ["tournament_id", "player_id"],
           "isUnique": false
         }
       },
@@ -1015,12 +956,8 @@
           "name": "tournament_participants_tournament_id_tournaments_id_fk",
           "tableFrom": "tournament_participants",
           "tableTo": "tournaments",
-          "columnsFrom": [
-            "tournament_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tournament_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1028,12 +965,8 @@
           "name": "tournament_participants_player_id_players_id_fk",
           "tableFrom": "tournament_participants",
           "tableTo": "players",
-          "columnsFrom": [
-            "player_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["player_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1188,9 +1121,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },

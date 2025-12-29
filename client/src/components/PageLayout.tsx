@@ -1,24 +1,37 @@
-import React, { useState } from "react"
-import { Sidebar } from "@/components/Sidebar"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import React, { useState } from 'react'
+import { Sidebar } from '@/components/Sidebar'
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Menu } from 'lucide-react'
 
 interface PageLayoutProps {
-  children: React.ReactNode;
-  title?: string;
-  customHeader?: (props: { 
-    isMobileMenuOpen: boolean; 
-    setIsMobileMenuOpen: (open: boolean) => void;
-    isSidebarCollapsed: boolean;
-    setIsSidebarCollapsed: (collapsed: boolean) => void;
-  }) => React.ReactNode;
-  isSidebarCollapsed: boolean;
-  setIsSidebarCollapsed: (collapsed: boolean) => void;
+  children: React.ReactNode
+  title?: string
+  customHeader?: (props: {
+    isMobileMenuOpen: boolean
+    setIsMobileMenuOpen: (open: boolean) => void
+    isSidebarCollapsed: boolean
+    setIsSidebarCollapsed: (collapsed: boolean) => void
+  }) => React.ReactNode
+  isSidebarCollapsed: boolean
+  setIsSidebarCollapsed: (collapsed: boolean) => void
 }
 
-export function PageLayout({ children, title, customHeader, isSidebarCollapsed, setIsSidebarCollapsed }: PageLayoutProps) {
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+export function PageLayout({
+  children,
+  title,
+  customHeader,
+  isSidebarCollapsed,
+  setIsSidebarCollapsed,
+}: PageLayoutProps) {
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
@@ -32,7 +45,7 @@ export function PageLayout({ children, title, customHeader, isSidebarCollapsed, 
             isMobileMenuOpen: isMobileNavOpen,
             setIsMobileMenuOpen: setIsMobileNavOpen,
             isSidebarCollapsed,
-            setIsSidebarCollapsed
+            setIsSidebarCollapsed,
           })
         ) : (
           <header className="h-16 border-b border-border px-4 md:px-8 flex items-center gap-4 bg-background/50 backdrop-blur-md shrink-0">
@@ -47,11 +60,11 @@ export function PageLayout({ children, title, customHeader, isSidebarCollapsed, 
                   <SheetTitle>Navigation</SheetTitle>
                   <SheetDescription>Main navigation menu for mobile devices.</SheetDescription>
                 </SheetHeader>
-                <Sidebar 
-                  isCollapsed={false} 
-                  setIsCollapsed={() => {}} 
-                  mobile 
-                  onItemClick={() => setIsMobileNavOpen(false)} 
+                <Sidebar
+                  isCollapsed={false}
+                  setIsCollapsed={() => {}}
+                  mobile
+                  onItemClick={() => setIsMobileNavOpen(false)}
                 />
               </SheetContent>
             </Sheet>
@@ -61,5 +74,5 @@ export function PageLayout({ children, title, customHeader, isSidebarCollapsed, 
         {children}
       </div>
     </div>
-  );
+  )
 }

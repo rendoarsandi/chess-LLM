@@ -1,16 +1,16 @@
-import { render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 /**
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import App from "./App"
-import * as api from "./api"
-import { MemoryRouter } from "react-router"
-import type { Player, Game, Move } from "./api"
+import App from './App'
+import * as api from './api'
+import { MemoryRouter } from 'react-router'
+import type { Player, Game, Move } from './api'
 
 // Mock the API module
-vi.mock("./api", () => ({
+vi.mock('./api', () => ({
   getGames: vi.fn(),
   getGame: vi.fn(),
   createGame: vi.fn(),
@@ -26,24 +26,24 @@ vi.mock("./api", () => ({
 }))
 
 // Mock hooks to avoid WebSocket and async logic issues
-vi.mock("./hooks/useGameSocket", () => ({
+vi.mock('./hooks/useGameSocket', () => ({
   useGameSocket: vi.fn(() => ({
     lastUpdate: null,
     thinkingStatus: 'idle',
     spectatorCount: 0,
     lastMessage: null,
-    sendMessage: vi.fn()
-  }))
+    sendMessage: vi.fn(),
+  })),
 }))
 
-vi.mock("./hooks/useGameBot", () => ({
-  useGameBot: vi.fn()
+vi.mock('./hooks/useGameBot', () => ({
+  useGameBot: vi.fn(),
 }))
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -53,23 +53,43 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-});
+})
 
-describe("App Integration", () => {
-    const mockPlayers: Player[] = [
-      {
-        id: '1', name: 'Gemini 1.5 Pro', type: 'llm', rating: 1500, rating960: 1500,
-        wins: 10, losses: 5, draws: 2, 
-        wins960: 5, losses960: 2, draws960: 1,
-        peakRating: 1550, peakRating960: 1550, createdAt: new Date().toISOString()
-      },
-      {
-        id: '2', name: 'Groq Llama 3', type: 'llm', rating: 1450, rating960: 1450,
-        wins: 8, losses: 7, draws: 3, 
-        wins960: 4, losses960: 3, draws960: 2,
-        peakRating: 1480, peakRating960: 1480, createdAt: new Date().toISOString()
-      },
-    ];
+describe('App Integration', () => {
+  const mockPlayers: Player[] = [
+    {
+      id: '1',
+      name: 'Gemini 1.5 Pro',
+      type: 'llm',
+      rating: 1500,
+      rating960: 1500,
+      wins: 10,
+      losses: 5,
+      draws: 2,
+      wins960: 5,
+      losses960: 2,
+      draws960: 1,
+      peakRating: 1550,
+      peakRating960: 1550,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Groq Llama 3',
+      type: 'llm',
+      rating: 1450,
+      rating960: 1450,
+      wins: 8,
+      losses: 7,
+      draws: 3,
+      wins960: 4,
+      losses960: 3,
+      draws960: 2,
+      peakRating: 1480,
+      peakRating960: 1480,
+      createdAt: new Date().toISOString(),
+    },
+  ]
   const mockGame: Game = {
     id: 'game-123',
     whitePlayerId: '1',
@@ -89,7 +109,7 @@ describe("App Integration", () => {
     playerColor: 'white',
     move: 'e4',
     fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   beforeEach(() => {
@@ -102,11 +122,11 @@ describe("App Integration", () => {
     vi.mocked(api.getTournaments).mockResolvedValue([])
   })
 
-  it("renders the sidebar and arena content", async () => {
+  it('renders the sidebar and arena content', async () => {
     render(
-      <MemoryRouter initialEntries={["/"]}>
+      <MemoryRouter initialEntries={['/']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     await waitFor(() => {
@@ -115,13 +135,13 @@ describe("App Integration", () => {
     })
   })
 
-  it("can select and view a game", async () => {
+  it('can select and view a game', async () => {
     vi.mocked(api.getMoves).mockResolvedValue([mockMove])
 
     render(
-      <MemoryRouter initialEntries={["/arena/game-123"]}>
+      <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     await waitFor(() => {
@@ -131,19 +151,19 @@ describe("App Integration", () => {
     })
   })
 
-  it("can select and view a Chess 960 game", async () => {
+  it('can select and view a Chess 960 game', async () => {
     const mockGame960: Game = {
       ...mockGame,
       variant: 'chess960',
       startPosId: 518,
-      fen: 'qrbnkrbn/pppppppp/8/8/8/8/PPPPPPPP/QRBNKRBN w KQkq - 0 1'
+      fen: 'qrbnkrbn/pppppppp/8/8/8/8/PPPPPPPP/QRBNKRBN w KQkq - 0 1',
     }
     vi.mocked(api.getGame).mockResolvedValue(mockGame960)
 
     render(
-      <MemoryRouter initialEntries={["/arena/game-123"]}>
+      <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     await waitFor(() => {
@@ -151,26 +171,26 @@ describe("App Integration", () => {
     })
   })
 
-  it("shows an error when an illegal move is detected", async () => {
+  it('shows an error when an illegal move is detected', async () => {
     const invalidMoves: Move[] = [
       {
         ...mockMove,
         move: 'e5', // Illegal for white's first move from standard start
-      }
+      },
     ]
-    
+
     vi.mocked(api.getMoves).mockResolvedValue(invalidMoves)
     vi.mocked(api.getGame).mockResolvedValue({
       ...mockGame,
       status: 'completed',
       winnerId: '2',
-      gameOverReason: 'illegal move detected'
+      gameOverReason: 'illegal move detected',
     })
 
     render(
-      <MemoryRouter initialEntries={["/arena/game-123"]}>
+      <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     await waitFor(() => {
@@ -180,12 +200,12 @@ describe("App Integration", () => {
     })
   })
 
-  it("allows navigating to the leaderboard", async () => {
+  it('allows navigating to the leaderboard', async () => {
     const user = userEvent.setup()
     render(
-      <MemoryRouter initialEntries={["/arena"]}>
+      <MemoryRouter initialEntries={['/arena']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     // Find the LEADERBOARD link in the sidebar
@@ -194,15 +214,15 @@ describe("App Integration", () => {
 
     // Wait for the "Model Rankings" heading to appear
     const heading = await screen.findByText(/Model Rankings/i)
-    
+
     expect(heading).toBeInTheDocument()
   })
 
-  it("renders the leaderboard when accessed directly", async () => {
+  it('renders the leaderboard when accessed directly', async () => {
     render(
-      <MemoryRouter initialEntries={["/leaderboard"]}>
+      <MemoryRouter initialEntries={['/leaderboard']}>
         <App />
-      </MemoryRouter>
+      </MemoryRouter>,
     )
 
     const heading = await screen.findByText(/Model Rankings/i)
