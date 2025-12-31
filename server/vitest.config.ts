@@ -8,11 +8,7 @@ export default defineConfig({
     environment: 'node',
     // Prevent database interference by running tests strictly sequentially
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    fileParallelism: false,
     // Prevent long-running tests from hanging the suite
     testTimeout: 10000,
   },

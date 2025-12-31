@@ -3,7 +3,6 @@ import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { players } from '../db/schema'
 import { eq } from 'drizzle-orm'
-import { AppDatabase } from '../db/types'
 import { db } from '../db'
 
 describe('Chess 960 Integration', () => {
@@ -12,7 +11,7 @@ describe('Chess 960 Integration', () => {
   const testBlackId = 'test-black'
 
   beforeEach(async () => {
-    gameService = new GameService(db as unknown as AppDatabase, new GameManager())
+    gameService = new GameService(db, new GameManager())
 
     // Clean up in correct order: child tables first
     const {
