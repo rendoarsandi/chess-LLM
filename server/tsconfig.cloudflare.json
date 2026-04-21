@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["@cloudflare/workers-types", "node"],
+    "noEmit": true,
+    "rootDir": "./src"
+  },
+  "include": ["src/cloudflare/**/*.ts", "src/db/d1.ts"],
+  "exclude": ["node_modules"]
+}

@@ -5,6 +5,8 @@ import { GeminiService } from './gemini.service'
 import { GeminiPlayer } from './gemini-player'
 import { GroqService } from './groq.service'
 import { GroqPlayer } from './groq-player'
+import { OpenRouterService } from './openrouter.service'
+import { OpenRouterPlayer } from './openrouter-player'
 import crypto from 'crypto'
 import { AppDatabase } from '../db/types'
 import { decrypt } from '../lib/crypto'
@@ -65,6 +67,8 @@ export class PlayerService {
         return new GeminiPlayer(new GeminiService(apiKey!), config.modelId!)
       case 'groq':
         return new GroqPlayer(new GroqService(apiKey!), config.modelId!)
+      case 'openrouter':
+        return new OpenRouterPlayer(new OpenRouterService(apiKey!), config.modelId!)
       default:
         return null
     }

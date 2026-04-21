@@ -18,6 +18,8 @@ import { PlayerService } from './game/player.service'
 import { GameLoopService } from './game/game-loop.service'
 import { TournamentService } from './game/tournament.service'
 import { TournamentLoopService } from './game/tournament-loop.service'
+import { MatchmakingService } from './game/matchmaking.service'
+import { MatchmakingLoopService } from './game/matchmaking-loop.service'
 import { auth } from './lib/auth'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { SocketService } from './game/socket.service'
@@ -31,6 +33,7 @@ import { gameRoutes } from './routes/games'
 import { playerRoutes } from './routes/players'
 import { tournamentRoutes } from './routes/tournaments'
 import { reviewRoutes } from './routes/reviews'
+import { matchmakingRoutes } from './routes/matchmaking'
 
 type Env = {
   Variables: {
@@ -60,6 +63,7 @@ const playerService = new PlayerService(getDb())
 const tournamentService = new TournamentService(getDb())
 const gameService = new GameService(getDb(), gameManager, tournamentService, socketService)
 const gameReviewService = new GameReviewService(getDb())
+const matchmakingService = new MatchmakingService(getDb(), gameService)
 
 // BetterAuth integration
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
@@ -67,11 +71,12 @@ app.on(['POST', 'GET'], '/api/auth/*', (c) => {
 })
 
 // Attach routes
-app.route('/api/admin', adminRoutes(tournamentService))
+app.route('/api/admin', adminRoutes(tournamentService, matchmakingService))
 app.route('/api/games', gameRoutes(gameService))
 app.route('/api/players', playerRoutes(playerService, gameService))
 app.route('/api/tournaments', tournamentRoutes(tournamentService))
 app.route('/api/reviews', reviewRoutes(gameService, gameReviewService))
+app.route('/api/matchmaking', matchmakingRoutes(matchmakingService))
 
 // Player Initialization
 export let initPromise: Promise<void> | undefined
@@ -86,10 +91,14 @@ const defaultLlmPlayer = {
 }
 const gameLoopService = new GameLoopService(getDb(), gameService, defaultLlmPlayer, socketService)
 const tournamentLoopService = new TournamentLoopService(getDb(), tournamentService, gameService)
+const matchmakingLoopService = new MatchmakingLoopService(matchmakingService)
 
 if (process.env.NODE_ENV !== 'test') {
   gameLoopService.start(5000)
   tournamentLoopService.start(10000)
+  if (matchmakingService.isEnabled()) {
+    matchmakingLoopService.start()
+  }
 }
 
 import { desc } from 'drizzle-orm'

@@ -11,9 +11,13 @@
     "lint": "npm run lint -w client && npm run lint -w server",
     "format": "prettier --write .",
     "check": "npm run check -w client && npm run check -w server",
+    "check:cloudflare": "npm run typecheck:cloudflare -w server",
     "build": "npm run build -w client && npm run build -w server",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:push": "drizzle-kit push --config drizzle.config.ts",
+    "cf:dev": "npx wrangler dev",
+    "cf:deploy": "npx wrangler deploy",
+    "cf:d1:apply": "npx wrangler d1 migrations apply chessllm-arena",
     "test:e2e": "playwright test"
   },
   "keywords": [],

@@ -1,5 +1,13 @@
 import { LlmService } from './base-llm-player'
 
+type GroqChatCompletion = {
+  choices: Array<{
+    message: {
+      content: string
+    }
+  }>
+}
+
 export class GroqService implements LlmService {
   private apiKey: string
   private apiUrl = 'https://api.groq.com/openai/v1/chat/completions'
@@ -31,7 +39,7 @@ export class GroqService implements LlmService {
       throw new Error(`Groq API error: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as GroqChatCompletion
     return data.choices[0].message.content.trim()
   }
 }

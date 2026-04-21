@@ -10,6 +10,8 @@ import type {
   TournamentParticipant,
   GameReview,
   MoveAnalysis,
+  MatchmakingStatus,
+  MatchmakingRunResult,
 } from './types'
 
 const API_URL = '/api'
@@ -26,6 +28,8 @@ export type {
   TournamentParticipant,
   GameReview,
   MoveAnalysis,
+  MatchmakingStatus,
+  MatchmakingRunResult,
 }
 
 export async function getGames(): Promise<Game[]> {
@@ -232,6 +236,32 @@ export async function deleteAdminModel(id: number): Promise<{ success: boolean }
     throw new Error(error.error || 'Failed to delete admin model')
   }
   return res.json()
+}
+
+export async function getMatchmakingStatus(
+  variant: 'standard' | 'chess960' = 'standard',
+): Promise<MatchmakingStatus> {
+  const res = await fetch(`${API_URL}/matchmaking/status?variant=${variant}`)
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.error || 'Failed to fetch matchmaking status')
+  }
+  return res.json()
+}
+
+export async function runMatchmaking(
+  variant: 'standard' | 'chess960' = 'standard',
+): Promise<MatchmakingRunResult> {
+  const res = await fetch(`${API_URL}/admin/matchmaking/run`, {
+    method: 'POST',
+    body: JSON.stringify({ variant }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok && !('created' in data)) {
+    throw new Error(data.error || 'Failed to run matchmaking')
+  }
+  return data
 }
 
 // Tournament API

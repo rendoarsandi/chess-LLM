@@ -3,8 +3,12 @@ import { adminMiddleware } from '../middleware/admin'
 import { llmConfigService } from '../db/llm_config'
 import { TournamentService } from '../game/tournament.service'
 import { getSqliteClient } from '../db'
+import { MatchmakingService } from '../game/matchmaking.service'
 
-export const adminRoutes = (tournamentService: TournamentService) => {
+export const adminRoutes = (
+  tournamentService: TournamentService,
+  matchmakingService?: MatchmakingService,
+) => {
   const admin = new Hono()
   admin.use('*', adminMiddleware)
 
@@ -55,6 +59,23 @@ export const adminRoutes = (tournamentService: TournamentService) => {
     } catch (e) {
       return c.json({ error: (e as Error).message }, 400)
     }
+  })
+
+  admin.post('/matchmaking/run', async (c) => {
+    if (!matchmakingService) return c.json({ error: 'Matchmaking is not configured' }, 503)
+
+    const body = (await c.req.json().catch(() => ({}))) as {
+      variant?: string
+      force?: boolean
+    }
+    const variant = body.variant === 'chess960' ? 'chess960' : 'standard'
+    const result = await matchmakingService.createNextMatch({
+      variant,
+      force: body.force === true,
+    })
+
+    if (result.created) return c.json(result, 201)
+    return c.json(result, 409)
   })
 
   // DB Execution endpoints for Dev Console

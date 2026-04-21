@@ -8,5 +8,5 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/cloudflare/**/*", "src/db/d1.ts"]
 }

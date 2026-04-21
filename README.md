@@ -9,7 +9,8 @@ ChessLLM Arena is designed to observe and compare strategic decision-making acro
 ### Key Features
 
 - **Background Game Loop:** Matches progress automatically in the background using a Node.js/Hono service.
-- **Multi-Model Support:** Integrated support for Google Gemini (3.0/2.5 Flash), Groq (Kimi, GPT-OSS, Qwen), and Stockfish (WASM).
+- **Arena Matchmaking:** Optional scheduler can pick the next model-vs-model ladder game from active server-side LLM configurations.
+- **Multi-Model Support:** Integrated support for Google Gemini, Groq, OpenRouter-routed models, and Stockfish (WASM).
 - **Advanced Arena UI:** Real-time position evaluation, advantage bar, and move-by-move AI thinking history.
 - **Robust Routing:** Persistent state and navigation using React Router 7.
 - **Detailed Analytics:** Model-specific profiles with ELO history charts and head-to-head records.
@@ -37,14 +38,23 @@ ChessLLM Arena is designed to observe and compare strategic decision-making acro
 - **Runtime:** Node.js
 - **Testing:** Vitest + Drizzle Integration
 
+### Cloudflare Target
+
+- **Frontend:** Cloudflare Pages
+- **API:** Cloudflare Workers + Hono
+- **Database:** Cloudflare D1 using the checked-in Drizzle SQLite migrations
+- **Live Rooms:** Durable Objects for game-room WebSocket hibernation
+- **Scheduling:** Durable Object alarms for arena matchmaking
+
 ## 📦 Getting Started
 
 ### Prerequisites
 
 - Node.js v20+ for normal desktop/server environments
 - Node.js v22+ recommended on Android/Termux so the built-in SQLite fallback is available
-- Gemini API Key (Required for Gemini models)
-- Groq API Key (Optional)
+- Gemini API key for Gemini models
+- Groq API key for Groq models
+- OpenRouter API key for OpenRouter models
 
 ### Installation
 
@@ -59,12 +69,17 @@ ChessLLM Arena is designed to observe and compare strategic decision-making acro
     ```
 3.  **Environment Setup:**
     Configure `.env` in the project root:
-    ```env
+    `env
     GEMINI_API_KEY=your_key
     GROQ_API_KEY=your_key
+    OPENROUTER_API_KEY=your_key
+    OPENROUTER_HTTP_REFERER=http://localhost:5173
+    OPENROUTER_APP_TITLE=ChessLLM Arena
+    MATCHMAKING_ENABLED=false
+    MATCHMAKING_INTERVAL_MS=60000
     PORT=3001
-    ```
-The backend applies the checked-in Drizzle migrations automatically on startup. You can still run `npm run db:push` from the repo root when intentionally pushing schema changes during development.
+    `
+    The backend applies the checked-in Drizzle migrations automatically on startup. You can still run `npm run db:push` from the repo root when intentionally pushing schema changes during development.
 
 ### Execution
 
@@ -73,6 +88,20 @@ Run both frontend and backend in development mode:
 ```bash
 npm run dev
 ```
+
+### Cloudflare Deployment
+
+`wrangler.toml` is checked in with D1 and Durable Object bindings. Replace the placeholder D1 database id, then apply migrations and deploy from a platform supported by Wrangler:
+
+```bash
+npx wrangler d1 create chessllm-arena
+npx wrangler d1 migrations apply chessllm-arena
+npx wrangler secret put ADMIN_API_TOKEN
+npx wrangler secret put OPENROUTER_API_KEY
+npx wrangler deploy
+```
+
+Wrangler depends on `workerd`, which does not publish an Android/Termux binary. Run the Cloudflare commands from Linux/macOS/Windows or CI. The local Node server remains the development runtime on Termux.
 
 ## 📂 Project Structure
 

@@ -8,13 +8,17 @@ import {
   ShieldCheck,
   ShieldAlert,
   Loader2,
+  Swords,
 } from 'lucide-react'
 import {
   getAdminModels,
   createAdminModel,
   updateAdminModel,
   deleteAdminModel,
+  getMatchmakingStatus,
+  runMatchmaking,
   type LLMConfig,
+  type MatchmakingStatus,
 } from '../api'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -38,6 +42,8 @@ export function AdminSettings() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [matchmakingStatus, setMatchmakingStatus] = useState<MatchmakingStatus | null>(null)
+  const [isRunningMatchmaking, setIsRunningMatchmaking] = useState(false)
 
   const [newModel, setNewModel] = useState<Partial<LLMConfig>>({
     provider: 'gemini',
@@ -59,8 +65,18 @@ export function AdminSettings() {
     }
   }
 
+  const fetchMatchmakingStatus = async () => {
+    try {
+      const data = await getMatchmakingStatus()
+      setMatchmakingStatus(data)
+    } catch (error) {
+      console.error('Failed to fetch matchmaking status', error)
+    }
+  }
+
   useEffect(() => {
     fetchConfigs()
+    fetchMatchmakingStatus()
   }, [])
 
   const handleToggleActive = async (config: LLMConfig) => {
@@ -110,6 +126,23 @@ export function AdminSettings() {
     }
   }
 
+  const handleRunMatchmaking = async () => {
+    setIsRunningMatchmaking(true)
+    try {
+      const result = await runMatchmaking(matchmakingStatus?.variant || 'standard')
+      if (result.created) {
+        toast.success(`Match created: ${result.pair.white.name} vs ${result.pair.black.name}`)
+      } else {
+        toast.message(result.reason)
+      }
+      fetchMatchmakingStatus()
+    } catch {
+      toast.error('Failed to run matchmaking')
+    } finally {
+      setIsRunningMatchmaking(false)
+    }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -153,7 +186,7 @@ export function AdminSettings() {
                     <SelectContent>
                       <SelectItem value="gemini">Gemini (Google)</SelectItem>
                       <SelectItem value="groq">Groq</SelectItem>
-                      <SelectItem value="openai">OpenAI (Future)</SelectItem>
+                      <SelectItem value="openrouter">OpenRouter</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -307,6 +340,61 @@ export function AdminSettings() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xl">
+          <div className="flex flex-col gap-4 border-b border-border p-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <Swords className="h-5 w-5 text-emerald-500" />
+              <div>
+                <h3 className="font-black uppercase tracking-tight">Arena Matchmaking</h3>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {matchmakingStatus?.enabled
+                    ? `Auto scheduler every ${Math.round(matchmakingStatus.intervalMs / 1000)}s`
+                    : 'Manual run is available; auto scheduler is disabled'}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleRunMatchmaking}
+              disabled={isRunningMatchmaking || !matchmakingStatus?.nextPair}
+              className="font-black uppercase tracking-widest gap-2"
+            >
+              {isRunningMatchmaking ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Swords className="h-4 w-4" />
+              )}
+              Run Matchmaker
+            </Button>
+          </div>
+
+          <div className="grid gap-4 p-4 md:grid-cols-3">
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Eligible Models
+              </div>
+              <div className="mt-2 text-2xl font-black">
+                {matchmakingStatus?.eligiblePlayers.length || 0}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Ongoing Arena Games
+              </div>
+              <div className="mt-2 text-2xl font-black">{matchmakingStatus?.ongoingGames || 0}</div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Next Pair
+              </div>
+              <div className="mt-2 text-sm font-bold">
+                {matchmakingStatus?.nextPair
+                  ? `${matchmakingStatus.nextPair.white.name} vs ${matchmakingStatus.nextPair.black.name}`
+                  : 'No pairing available'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,28 @@
+name = "chessllm-arena"
+main = "server/src/cloudflare/worker.ts"
+compatibility_date = "2026-04-21"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+MATCHMAKING_ENABLED = "false"
+MATCHMAKING_INTERVAL_MS = "60000"
+MATCHMAKING_VARIANT = "standard"
+OPENROUTER_APP_TITLE = "ChessLLM Arena"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chessllm-arena"
+database_id = "replace-with-your-d1-database-id"
+migrations_dir = "server/drizzle"
+
+[[durable_objects.bindings]]
+name = "GAME_ROOM"
+class_name = "GameRoom"
+
+[[durable_objects.bindings]]
+name = "ARENA_SCHEDULER"
+class_name = "ArenaScheduler"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GameRoom", "ArenaScheduler"]

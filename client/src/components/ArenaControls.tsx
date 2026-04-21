@@ -60,6 +60,22 @@ export function ArenaControls({
           ))}
       </optgroup>
       <optgroup
+        label="OpenRouter"
+        className="text-emerald-500 font-bold uppercase text-[10px] tracking-widest bg-background"
+      >
+        {players
+          .filter((p) => p.provider === 'openrouter')
+          .map((p) => (
+            <option
+              key={p.id}
+              value={p.id}
+              className="text-sm font-medium normal-case bg-background"
+            >
+              {p.name}
+            </option>
+          ))}
+      </optgroup>
+      <optgroup
         label="System Engines"
         className="text-blue-500 font-bold uppercase text-[10px] tracking-widest bg-background"
       >
@@ -75,14 +91,14 @@ export function ArenaControls({
             </option>
           ))}
       </optgroup>
-      {players.filter((p) => !['gemini', 'groq', 'system'].includes(p.provider || '')).length >
-        0 && (
+      {players.filter((p) => !['gemini', 'groq', 'openrouter', 'system'].includes(p.provider || ''))
+        .length > 0 && (
         <optgroup
           label="Other"
           className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest bg-background"
         >
           {players
-            .filter((p) => !['gemini', 'groq', 'system'].includes(p.provider || ''))
+            .filter((p) => !['gemini', 'groq', 'openrouter', 'system'].includes(p.provider || ''))
             .map((p) => (
               <option
                 key={p.id}

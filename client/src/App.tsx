@@ -182,6 +182,12 @@ function App() {
                       description: "Models hosted on Groq's LPU™ platform.",
                     },
                     {
+                      label: 'OpenRouter',
+                      color: 'text-emerald-500',
+                      provider: 'openrouter',
+                      description: 'Models routed through OpenRouter.',
+                    },
+                    {
                       label: 'System Engines',
                       color: 'text-blue-500',
                       provider: 'system',

@@ -87,6 +87,37 @@ export interface LLMConfig {
   updatedAt: string
 }
 
+export interface MatchmakingPlayer {
+  id: string
+  name: string
+  provider: string | null
+  modelId: string | null
+  rating: number
+  rating960: number
+}
+
+export interface MatchmakingPair {
+  white: MatchmakingPlayer
+  black: MatchmakingPlayer
+  variant: 'standard' | 'chess960'
+  gamesPlayed: number
+  ratingGap: number
+  reason: string
+}
+
+export interface MatchmakingStatus {
+  enabled: boolean
+  intervalMs: number
+  variant: 'standard' | 'chess960'
+  ongoingGames: number
+  eligiblePlayers: MatchmakingPlayer[]
+  nextPair: MatchmakingPair | null
+}
+
+export type MatchmakingRunResult =
+  | { created: true; gameId: string; pair: MatchmakingPair }
+  | { created: false; reason: string; status: MatchmakingStatus }
+
 export interface Tournament {
   id: string
   name: string

@@ -9,6 +9,7 @@
     "db:push": "drizzle-kit push",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "typecheck:cloudflare": "tsc --noEmit -p tsconfig.cloudflare.json",
     "check": "npm run lint && npm run typecheck",
     "build": "tsc"
   },
@@ -17,6 +18,7 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260421.1",
     "@eslint/js": "^9.39.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.3",
@@ -33,6 +35,7 @@
     "@google/generative-ai": "^0.24.1",
     "@hono/node-server": "^1.19.7",
     "@hono/node-ws": "^1.2.0",
+    "@openrouter/sdk": "^0.12.17",
     "better-auth": "^1.4.7",
     "chess.js": "^1.4.0",
     "dotenv": "^17.2.3",
