@@ -1,5 +1,5 @@
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
+import { AppSQLiteDatabase } from './driver'
 
-export type AppDatabase = BetterSQLite3Database<typeof schema>
-export type GenericDatabase = BetterSQLite3Database<Record<string, unknown>>
+export type AppDatabase = AppSQLiteDatabase<typeof schema>
+export type GenericDatabase = AppSQLiteDatabase<Record<string, unknown>>

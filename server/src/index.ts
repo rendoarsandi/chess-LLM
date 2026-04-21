@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Load .env from project root (two levels up from server/src/)
-dotenv.config({ path: path.resolve(__dirname, '../../.env') })
+// Load .env from project root (two levels up from server/src/).
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), quiet: true })
 
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'

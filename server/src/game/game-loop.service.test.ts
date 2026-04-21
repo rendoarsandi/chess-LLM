@@ -1,16 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GameLoopService } from './game-loop.service'
 import { GameService } from './game.service'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
 import { games, players } from '../db/schema'
 import { logger } from './logger'
 import { AlarmService } from './alarm.service'
 import { AppDatabase } from '../db/types'
-import * as schema from '../db/schema'
 import { SocketService } from './socket.service'
 import { Player } from './player.interface'
 import { GameManager } from './game-manager'
+import { createInMemoryDb } from '../db/test-utils'
 
 describe('GameLoopService', () => {
   let loopService: GameLoopService
@@ -21,8 +19,8 @@ describe('GameLoopService', () => {
   let gameManager: GameManager
 
   beforeEach(() => {
-    const sqlite = new Database(':memory:')
-    db = drizzle(sqlite, { schema })
+    const { sqlite, db: testDb } = createInMemoryDb()
+    db = testDb
 
     sqlite.exec(`
       CREATE TABLE players (

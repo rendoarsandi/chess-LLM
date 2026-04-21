@@ -1,8 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Hono backend for ChessLLM Arena games, ratings, tournaments, and review jobs.",
   "scripts": {
     "test": "vitest run",
     "dev": "tsx watch src/index.ts",
@@ -35,11 +34,13 @@
     "@hono/node-server": "^1.19.7",
     "@hono/node-ws": "^1.2.0",
     "better-auth": "^1.4.7",
-    "better-sqlite3": "^12.5.0",
     "chess.js": "^1.4.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.1",
     "stockfish": "^17.1.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.5.0"
   }
 }

@@ -1,10 +1,12 @@
 {
   "name": "chessllm",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "LLM chess arena for benchmarking model play, ratings, tournaments, and game review.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test -w client && npm run test -w server",
+    "test:client": "npm run test -w client",
+    "test:server": "npm run test -w server",
     "dev": "concurrently \"npm run dev -w client\" \"npm run dev -w server\"",
     "lint": "npm run lint -w client && npm run lint -w server",
     "format": "prettier --write .",
@@ -26,6 +28,7 @@
     "@playwright/test": "^1.57.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.0.3",
+    "buffer": "^6.0.3",
     "concurrently": "^9.2.1",
     "prettier": "^3.7.4"
   },

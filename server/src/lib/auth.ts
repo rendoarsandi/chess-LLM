@@ -1,12 +1,8 @@
 import { betterAuth } from 'better-auth'
-import { getSqliteClient } from '../db'
-import { Database as SQLiteDatabase } from 'better-sqlite3'
+import { getNativeSqliteClient } from '../db'
 
 export const auth = betterAuth({
-  database: {
-    db: getSqliteClient() as SQLiteDatabase,
-    type: 'sqlite',
-  },
+  database: getNativeSqliteClient(),
   emailAndPassword: {
     enabled: true,
   },

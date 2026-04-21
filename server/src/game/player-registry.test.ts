@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PlayerService } from './player.service'
 import { GameManager } from './game-manager'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
 import { AppDatabase } from '../db/types'
 import * as schema from '../db/schema'
+import { createInMemoryDb } from '../db/test-utils'
 
 describe('PlayerService - Registry & Sync', () => {
   let db: AppDatabase
@@ -12,8 +11,8 @@ describe('PlayerService - Registry & Sync', () => {
   let playerService: PlayerService
 
   beforeEach(() => {
-    const sqlite = new Database(':memory:')
-    db = drizzle(sqlite, { schema })
+    const { sqlite, db: testDb } = createInMemoryDb()
+    db = testDb
 
     // Initialize schema
     sqlite.exec(`

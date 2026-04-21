@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { EloHistoryChart } from './EloHistoryChart'
 
 // Mock api
@@ -15,24 +15,29 @@ vi.mock('@/api', () => ({
   ),
 }))
 
-// Mock ResizeObserver for ResponsiveContainer
-vi.stubGlobal(
-  'ResizeObserver',
-  vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  })),
-)
+class ResizeObserverMock {
+  observe = vi.fn()
+  unobserve = vi.fn()
+  disconnect = vi.fn()
+}
+
+vi.stubGlobal('ResizeObserver', ResizeObserverMock)
 
 describe('EloHistoryChart', () => {
-  it('renders rating progression title', () => {
+  async function renderChart() {
     render(<EloHistoryChart playerId="p1" />)
+    await waitFor(() =>
+      expect(screen.queryByText(/Insufficient data for this period/i)).not.toBeInTheDocument(),
+    )
+  }
+
+  it('renders rating progression title', async () => {
+    await renderChart()
     expect(screen.getByText(/Rating Progression/i)).toBeDefined()
   })
 
-  it('renders period buttons', () => {
-    render(<EloHistoryChart playerId="p1" />)
+  it('renders period buttons', async () => {
+    await renderChart()
     expect(screen.getByText('7D')).toBeDefined()
     expect(screen.getByText('30D')).toBeDefined()
     expect(screen.getByText('90D')).toBeDefined()

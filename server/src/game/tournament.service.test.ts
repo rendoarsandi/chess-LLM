@@ -1,18 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TournamentService } from './tournament.service'
 import { players } from '../db/schema'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
-import * as schema from '../db/schema'
 import { AppDatabase } from '../db/types'
+import { createInMemoryDb } from '../db/test-utils'
 
 describe('TournamentService', () => {
   let db: AppDatabase
   let tournamentService: TournamentService
 
   beforeEach(() => {
-    const sqlite = new Database(':memory:')
-    db = drizzle(sqlite, { schema })
+    const { sqlite, db: testDb } = createInMemoryDb()
+    db = testDb
 
     // Create tables
     sqlite.exec(`

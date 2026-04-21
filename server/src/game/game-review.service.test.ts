@@ -1,20 +1,18 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { GameReviewService } from './game-review.service'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
 import { games, players, gameReviews, moveAnalyses } from '../db/schema'
 import { eq } from 'drizzle-orm'
 
 import { AppDatabase } from '../db/types'
-import * as schema from '../db/schema'
+import { createInMemoryDb } from '../db/test-utils'
 
 describe('GameReviewService', () => {
   let service: GameReviewService
   let db: AppDatabase
 
   beforeEach(() => {
-    const sqlite = new Database(':memory:')
-    db = drizzle(sqlite, { schema })
+    const { sqlite, db: testDb } = createInMemoryDb()
+    db = testDb
 
     sqlite.exec(`
       CREATE TABLE players (
@@ -147,10 +145,6 @@ describe('GameReviewService', () => {
     const gameId = await setupGame()
     await service.requestReview(gameId)
     const job = await service.claimJob('worker-1')
-
-    // SQLite mode timestamp is usually in seconds, so we need to wait at least 1s to ensure it changes
-    // or we compare with second precision.
-    await new Promise((r) => setTimeout(r, 1001))
 
     await service.heartbeat(job!.id)
     const updatedJob = (await db.select().from(gameReviews).where(eq(gameReviews.id, job!.id)))[0]

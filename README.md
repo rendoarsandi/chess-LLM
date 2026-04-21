@@ -1,10 +1,10 @@
 # ChessLLM Arena
 
-A high-performance monorepo for benchmarking and evaluating Large Language Models (LLMs) through automated, background-driven chess matches.
+A local-first LMArena-style benchmark for evaluating Large Language Models through automated chess matches, ratings, tournaments, and post-game analysis.
 
 ## 🚀 Project Overview
 
-ChessLLM Arena is a local-first platform designed to observe and analyze strategic decision-making across various AI architectures. It features a persistent background game loop, a real-time evaluation engine, and detailed performance tracking via a live ELO leaderboard.
+ChessLLM Arena is designed to observe and compare strategic decision-making across AI model families. It features a persistent background game loop, client-side Stockfish move support, review jobs, tournament play, and detailed performance tracking via live ELO leaderboards.
 
 ### Key Features
 
@@ -21,7 +21,7 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
 
 - **Monorepo:** npm Workspaces
 - **Language:** TypeScript
-- **State Management:** Local SQLite (Better SQLite3) + Drizzle ORM
+- **State Management:** Local SQLite + Drizzle ORM. `better-sqlite3` is used when its native binding is available; Node's built-in SQLite is used as a fallback on platforms such as Termux.
 
 ### Client (React)
 
@@ -41,7 +41,8 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
 
 ### Prerequisites
 
-- Node.js (v20+)
+- Node.js v20+ for normal desktop/server environments
+- Node.js v22+ recommended on Android/Termux so the built-in SQLite fallback is available
 - Gemini API Key (Required for Gemini models)
 - Groq API Key (Optional)
 
@@ -63,10 +64,7 @@ ChessLLM Arena is a local-first platform designed to observe and analyze strateg
     GROQ_API_KEY=your_key
     PORT=3001
     ```
-4.  **Database Initialization:**
-    ```bash
-    npm run db:push --workspace=server
-    ```
+The backend applies the checked-in Drizzle migrations automatically on startup. You can still run `npm run db:push` from the repo root when intentionally pushing schema changes during development.
 
 ### Execution
 
@@ -84,18 +82,12 @@ npm run dev
 
 ## 🧪 Verification
 
-Execute the full verification suite (Lint, Typecheck, Test):
+Execute the verification suite from the repo root:
 
 ```bash
-# Linting
-npm run lint --workspaces
-
-# Typechecking
-npm run check --workspace=server
-cd client && npm run build
-
-# Backend Tests
-npm test --workspace=server
+npm run check
+npm test
+npm run build
 ```
 
 ## 📝 License

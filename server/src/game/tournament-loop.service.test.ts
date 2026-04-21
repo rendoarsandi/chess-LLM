@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TournamentLoopService } from './tournament-loop.service'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
 import { tournaments, tournamentParticipants, players, games } from '../db/schema'
 import { TournamentService } from './tournament.service'
 import { GameService } from './game.service'
@@ -9,7 +7,7 @@ import { GameManager } from './game-manager'
 import { eq, and } from 'drizzle-orm'
 
 import { AppDatabase } from '../db/types'
-import * as schema from '../db/schema'
+import { createInMemoryDb } from '../db/test-utils'
 
 describe('TournamentLoopService', () => {
   let loopService: TournamentLoopService
@@ -18,8 +16,8 @@ describe('TournamentLoopService', () => {
   let db: AppDatabase
 
   beforeEach(() => {
-    const sqlite = new Database(':memory:')
-    db = drizzle(sqlite, { schema })
+    const { sqlite, db: testDb } = createInMemoryDb()
+    db = testDb
 
     sqlite.exec(`
       CREATE TABLE players (
