@@ -1,17 +1,18 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
+import { clearHistory } from '../api'
+import { useQueryClient } from '@tanstack/react-query'
 import {
-  getGames,
-  getGame,
-  createGame,
-  deleteGame,
-  getMoves,
-  getPlayers,
-  getLeaderboard,
-  pauseGame,
-  resumeGame,
-  clearHistory,
-} from '../api'
+  useGamesQuery,
+  useGameQuery,
+  useMovesQuery,
+  usePlayersQuery,
+  useLeaderboardQuery,
+  useCreateGameMutation,
+  useDeleteGameMutation,
+  usePauseGameMutation,
+  useResumeGameMutation,
+} from './queries'
 import { useGameSocket } from './useGameSocket'
 import { useGameBot } from './useGameBot'
 import { useAnalysisWorker } from './useAnalysisWorker'
@@ -19,19 +20,16 @@ import { useStockfish } from '../lib/stockfish/useStockfish'
 import { generate960Fen, safeNewChess } from '../lib/chess-utils'
 import { STOCKFISH_LOW_ID, STOCKFISH_MED_ID } from '../lib/constants'
 import { toast } from 'sonner'
-import type { Game, Move, Player } from '@/types'
+import { playMoveSound, soundManager } from '../lib/audio'
+import type { Game, Move } from '@/types'
 
 export function useArenaState() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024)
-  const [games, setGames] = useState<Game[]>([])
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null)
-  const [moves, setMoves] = useState<Move[]>([])
-  const [players, setPlayers] = useState<Player[]>([])
-  const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>('white')
   const [activeMoveIndex, setActiveMoveIndex] = useState<number | null>(null)
   const [showResultOverlay, setShowResultOverlay] = useState(true)
@@ -40,9 +38,31 @@ export function useArenaState() {
   )
   const [whitePlayerId, setWhitePlayerId] = useState(STOCKFISH_LOW_ID)
   const [blackPlayerId, setBlackPlayerId] = useState(STOCKFISH_MED_ID)
-  const [isCreatingGame, setIsCreatingGame] = useState(false)
 
-  const { lastUpdate, thinkingStatus, spectatorCount, lastMessage, sendMessage } = useGameSocket(
+  // Extract game ID from path
+  const segments = location.pathname.split('/').filter(Boolean)
+  const pathGameId = segments[0] === 'arena' ? segments[1] : undefined
+
+  // Queries
+  const { data: games = [] } = useGamesQuery()
+  const { data: players = [] } = usePlayersQuery()
+  const { data: leaderboard = [] } = useLeaderboardQuery()
+  const { data: selectedGame = null } = useGameQuery(pathGameId)
+  const { data: dbMoves = [] } = useMovesQuery(selectedGame?.id)
+
+  const [moves, setMoves] = useState<Move[]>([])
+
+  // Mutations
+  const createGameMutation = useCreateGameMutation()
+  const deleteGameMutation = useDeleteGameMutation()
+  const pauseGameMutation = usePauseGameMutation()
+  const resumeGameMutation = useResumeGameMutation()
+
+  useEffect(() => {
+    setMoves(dbMoves)
+  }, [dbMoves])
+
+  const { lastUpdate, thinkingStatus, spectatorCount, lastMessage, chatMessages, sendMessage } = useGameSocket(
     selectedGame?.id,
   )
   const lastProcessedFenRef = useRef<string | null>(null)
@@ -57,7 +77,6 @@ export function useArenaState() {
   const handleSelectGame = useCallback(
     (game: Game) => {
       if (!game?.id) return
-      setSelectedGame(game)
       setMoves([])
       setActiveMoveIndex(null)
       setLastMoveFromUpdate(null)
@@ -67,78 +86,51 @@ export function useArenaState() {
     [navigate],
   )
 
-  const fetchAllGames = useCallback(async () => {
-    try {
-      const allGames = await getGames()
-      setGames(allGames)
-    } catch (err) {
-      console.error('Failed to fetch games', err)
-    }
-  }, [])
-
-  const fetchLeaderboard = useCallback(async () => {
-    try {
-      const data = await getLeaderboard()
-      setLeaderboard(data)
-    } catch (err) {
-      console.error('Failed to fetch leaderboard', err)
-    }
-  }, [])
-
-  const fetchPlayers = useCallback(async () => {
-    try {
-      const allPlayers = await getPlayers()
-      setPlayers(allPlayers)
-    } catch (err) {
-      console.error('Failed to fetch players', err)
-    }
-  }, [])
-
   const handleCreateGame = async (
     whiteId: string,
     blackId: string,
     variant: string = currentVariant,
   ) => {
-    if (isCreatingGame) return
-    setIsCreatingGame(true)
+    if (createGameMutation.isPending) return
     setWhitePlayerId(whiteId)
     setBlackPlayerId(blackId)
     setLastMoveFromUpdate(null)
     try {
-      const options: { variant?: string; startPosId?: number } = { variant }
-      if (variant === 'chess960') options.startPosId = Math.floor(Math.random() * 960)
-      const { id } = await createGame(whiteId, blackId, options)
-      const newGame = await getGame(id)
-      handleSelectGame(newGame)
-      await Promise.all([fetchAllGames(), fetchLeaderboard()])
+      const result = await createGameMutation.mutateAsync({
+        whitePlayerId: whiteId,
+        blackPlayerId: blackId,
+        variant,
+      })
+      navigate(`/arena/${result.id}`)
       setIsSidebarCollapsed(true)
     } catch (err) {
       toast.error('Failed to start match', {
         description: err instanceof Error ? err.message : 'Please try again.',
       })
-    } finally {
-      setIsCreatingGame(false)
     }
   }
 
   const handleDeleteGame = async (id: string) => {
-    await deleteGame(id)
-    if (selectedGame?.id === id) {
-      setSelectedGame(null)
-      setActiveMoveIndex(null)
-      setLastMoveFromUpdate(null)
+    try {
+      await deleteGameMutation.mutateAsync(id)
+      if (pathGameId === id) {
+        setActiveMoveIndex(null)
+        setLastMoveFromUpdate(null)
+        navigate('/arena')
+      }
+    } catch {
+      toast.error('Failed to delete game')
     }
-    fetchAllGames()
   }
 
   const handleClearHistory = async () => {
     try {
       await clearHistory()
-      setSelectedGame(null)
-      setMoves([])
       setActiveMoveIndex(null)
       setLastMoveFromUpdate(null)
-      fetchAllGames()
+      queryClient.invalidateQueries({ queryKey: ['games'] })
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+      navigate('/arena')
       toast.success('Game history cleared')
     } catch (err) {
       console.error('Failed to clear history', err)
@@ -150,52 +142,41 @@ export function useArenaState() {
 
   const handleTogglePause = async () => {
     if (!selectedGame) return
-    if (selectedGame.status === 'ongoing') await pauseGame(selectedGame.id)
-    else if (selectedGame.status === 'paused') await resumeGame(selectedGame.id)
-    const updated = await getGame(selectedGame.id)
-    setSelectedGame(updated)
-    fetchAllGames()
+    try {
+      if (selectedGame.status === 'ongoing') {
+        await pauseGameMutation.mutateAsync(selectedGame.id)
+      } else if (selectedGame.status === 'paused') {
+        await resumeGameMutation.mutateAsync(selectedGame.id)
+      }
+    } catch {
+      toast.error('Failed to toggle game status')
+    }
   }
-
-  useEffect(() => {
-    fetchAllGames()
-    fetchPlayers()
-    fetchLeaderboard()
-  }, [fetchAllGames, fetchPlayers, fetchLeaderboard])
-
-  useEffect(() => {
-    if (!selectedGame) return
-    getMoves(selectedGame.id).then(setMoves)
-  }, [selectedGame])
 
   useEffect(() => {
     if (lastUpdate && selectedGame) {
       if (lastProcessedFenRef.current === lastUpdate.fen) return
       lastProcessedFenRef.current = lastUpdate.fen
 
-      setSelectedGame((prev) => {
-        if (!prev) return null
-        if (lastUpdate.san) {
-          try {
-            const chess = safeNewChess(prev.fen)
-            const move = chess.move(lastUpdate.san)
-            if (move) setLastMoveFromUpdate({ from: move.from, to: move.to })
-          } catch {
-            if (prev.fen !== lastUpdate.fen)
-              console.warn('Could not derive squares for SAN:', lastUpdate.san)
-          }
+      if (lastUpdate.san) {
+        try {
+          const chess = safeNewChess(selectedGame.fen)
+          const move = chess.move(lastUpdate.san)
+          if (move) setLastMoveFromUpdate({ from: move.from, to: move.to })
+        } catch {
+          if (selectedGame.fen !== lastUpdate.fen)
+            console.warn('Could not derive squares for SAN:', lastUpdate.san)
         }
-        return {
-          ...prev,
-          fen: lastUpdate.fen,
-          status: lastUpdate.status,
-          winnerId: lastUpdate.winnerId,
-          gameOverReason: lastUpdate.gameOverReason,
-        }
-      })
-      getMoves(selectedGame.id).then(setMoves)
+        playMoveSound(lastUpdate.san)
+      } else if (lastUpdate.status === 'completed' || lastUpdate.status === 'draw') {
+        soundManager.play('notify')
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['game', selectedGame.id] })
+      queryClient.invalidateQueries({ queryKey: ['moves', selectedGame.id] })
+      queryClient.invalidateQueries({ queryKey: ['games'] })
     }
-  }, [lastUpdate, selectedGame])
+  }, [lastUpdate, selectedGame, queryClient])
 
   useEffect(() => {
     const handleResize = () => {
@@ -305,31 +286,6 @@ export function useArenaState() {
   const whiteThinking = useMemo(() => getThinking('white'), [getThinking])
   const blackThinking = useMemo(() => getThinking('black'), [getThinking])
 
-  useEffect(() => {
-    const segments = location.pathname.split('/').filter(Boolean)
-    if (segments[0] === 'arena') {
-      if (segments[1]) {
-        if (selectedGame?.id !== segments[1])
-          getGame(segments[1])
-            .then((game) => {
-              if (game) {
-                setSelectedGame(game)
-                setMoves([])
-                setActiveMoveIndex(null)
-              }
-            })
-            .catch((err) => {
-              console.error('Failed to fetch game', err)
-              navigate('/arena')
-            })
-      } else if (selectedGame !== null) {
-        setSelectedGame(null)
-        setMoves([])
-        setActiveMoveIndex(null)
-      }
-    }
-  }, [location.pathname, selectedGame, navigate])
-
   return {
     isMobile,
     isSidebarCollapsed,
@@ -350,12 +306,12 @@ export function useArenaState() {
     setWhitePlayerId,
     blackPlayerId,
     setBlackPlayerId,
-    isCreatingGame,
+    isCreatingGame: createGameMutation.isPending,
     spectatorCount,
     thinkingStatus,
     variant: currentVariant,
     handleSelectGame,
-    fetchAllGames,
+    fetchAllGames: () => queryClient.invalidateQueries({ queryKey: ['games'] }),
     handleCreateGame,
     handleDeleteGame,
     handleClearHistory,
@@ -371,5 +327,7 @@ export function useArenaState() {
     hasOngoingGame,
     whiteThinking,
     blackThinking,
+    chatMessages,
+    sendMessage,
   }
 }

@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi, beforeAll, afterAll } from 'vitest'
+import React from 'react'
 
 // Store original console.error to use for actual test failures if needed
 const originalConsoleError = console.error
@@ -61,3 +62,32 @@ if (typeof window !== 'undefined' && !window.Worker) {
     dispatchEvent = vi.fn()
   } as unknown as typeof Worker
 }
+
+// Global mocks to optimize test runtime
+vi.mock('framer-motion', () => ({
+  motion: {
+    div: React.forwardRef(({ children, ...props }: any, ref: any) =>
+      React.createElement('div', { ...props, ref }, children)
+    ),
+    span: React.forwardRef(({ children, ...props }: any, ref: any) =>
+      React.createElement('span', { ...props, ref }, children)
+    ),
+  },
+  AnimatePresence: ({ children }: any) => children,
+}))
+
+vi.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }: any) => children,
+  LineChart: ({ children }: any) => children,
+  Line: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  Tooltip: () => null,
+}))
+
+vi.mock('react-chessboard', () => ({
+  Chessboard: () => React.createElement('div', { 'data-testid': 'mock-chessboard' }, 'Chessboard'),
+}))
+
+

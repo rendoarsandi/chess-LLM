@@ -11,6 +11,12 @@ export interface GameUpdate {
   pgn: string
 }
 
+export interface ChatMessage {
+  username: string
+  message: string
+  timestamp: number
+}
+
 export type SocketMessage =
   | {
       type: 'UPDATE'
@@ -30,8 +36,12 @@ export type SocketMessage =
       fen: string
       constraints: { depth: number; skillLevel?: number; movetime?: number }
     }
+  | { type: 'CHAT'; username: string; message: string; timestamp: number }
+  | { type: 'UPDATE_TRIGGER' }
 
-export type ClientMessage = { type: 'SUBMIT_MOVE'; gameId: string; move: string }
+export type ClientMessage =
+  | { type: 'SUBMIT_MOVE'; gameId: string; move: string }
+  | { type: 'CHAT'; gameId: string; username: string; message: string }
 
 export function useGameSocket(gameId: string | undefined) {
   const [lastUpdate, setLastUpdate] = useState<GameUpdate | null>(null)
@@ -39,6 +49,14 @@ export function useGameSocket(gameId: string | undefined) {
   const [spectatorCount, setSpectatorCount] = useState<number>(0)
   const [isConnected, setIsConnected] = useState(false)
   const [lastMessage, setLastMessage] = useState<SocketMessage | null>(null)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+
+  const [prevGameId, setPrevGameId] = useState<string | undefined>(gameId)
+  if (gameId !== prevGameId) {
+    setPrevGameId(gameId)
+    setChatMessages([])
+  }
+  
   const socketRef = useRef<WebSocket | null>(null)
   const connectRef = useRef<(() => void) | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -78,29 +96,35 @@ export function useGameSocket(gameId: string | undefined) {
 
     socket.onmessage = (event) => {
       try {
-        const message: SocketMessage = JSON.parse(event.data)
-        setLastMessage(message)
-        switch (message.type) {
-          case 'UPDATE':
-            setLastUpdate({
-              fen: message.fen,
-              status: message.status,
-              winnerId: message.winnerId,
-              gameOverReason: message.gameOverReason,
-              san: message.san,
-              pgn: message.pgn,
-            })
-            setThinkingStatus('idle')
-            break
-          case 'STATUS':
-            setThinkingStatus(message.status)
-            break
-          case 'SPECTATORS':
-            setSpectatorCount(message.count)
-            break
+        const msg = JSON.parse(event.data) as SocketMessage
+        setLastMessage(msg)
+
+        if (msg.type === 'UPDATE') {
+          setLastUpdate({
+            fen: msg.fen,
+            status: msg.status,
+            winnerId: msg.winnerId,
+            gameOverReason: msg.gameOverReason,
+            san: msg.san,
+            pgn: msg.pgn,
+          })
+          setThinkingStatus('idle')
+        } else if (msg.type === 'STATUS') {
+          setThinkingStatus(msg.status)
+        } else if (msg.type === 'SPECTATORS') {
+          setSpectatorCount(msg.count)
+        } else if (msg.type === 'CHAT') {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              username: msg.username,
+              message: msg.message,
+              timestamp: msg.timestamp || Date.now(),
+            },
+          ])
         }
-      } catch (e) {
-        console.error('[WebSocket] Error parsing message:', e)
+      } catch (err) {
+        console.error('[WebSocket] Failed to parse message:', err)
       }
     }
 
@@ -121,10 +145,7 @@ export function useGameSocket(gameId: string | undefined) {
     }
 
     socket.onerror = () => {
-      // WebSocket error events are generic and don't contain much info,
-      // but we can at least log that it occurred.
       console.error('[WebSocket] Error occurred on connection to:', wsUrl)
-      // Don't close manually here, as onclose will be triggered anyway if it's fatal
     }
   }, [gameId])
 
@@ -151,7 +172,8 @@ export function useGameSocket(gameId: string | undefined) {
     thinkingStatus,
     spectatorCount,
     isConnected,
-    sendMessage,
     lastMessage,
+    chatMessages,
+    sendMessage,
   }
 }

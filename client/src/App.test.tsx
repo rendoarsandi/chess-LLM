@@ -1,5 +1,7 @@
+import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 /**
  * @vitest-environment jsdom
  */
@@ -40,6 +42,31 @@ vi.mock('./hooks/useGameBot', () => ({
   useGameBot: vi.fn(),
 }))
 
+vi.mock('@/components/Leaderboard', () => ({
+  Leaderboard: () => <div>Model Rankings</div>,
+}))
+vi.mock('@/components/PlayerProfile', () => ({
+  PlayerProfile: () => <div>PlayerProfile Mock</div>,
+}))
+vi.mock('@/components/GameHistory', () => ({
+  GameHistory: () => <div>GameHistory Mock</div>,
+}))
+vi.mock('@/components/AnalysisMode', () => ({
+  AnalysisMode: () => <div>AnalysisMode Mock</div>,
+}))
+vi.mock('@/components/AdminSettings', () => ({
+  AdminSettings: () => <div>AdminSettings Mock</div>,
+}))
+vi.mock('@/components/TournamentManagement', () => ({
+  TournamentManagement: () => <div>TournamentManagement Mock</div>,
+}))
+vi.mock('@/components/TournamentList', () => ({
+  TournamentList: () => <div>TournamentList Mock</div>,
+}))
+vi.mock('@/components/TournamentDetail', () => ({
+  TournamentDetail: () => <div>TournamentDetail Mock</div>,
+}))
+
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -56,6 +83,21 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 describe('App Integration', () => {
+  const renderWithProviders = (ui: React.ReactElement) => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    })
+    return render(
+      <QueryClientProvider client={queryClient}>
+        {ui}
+      </QueryClientProvider>
+    )
+  }
+
   const mockPlayers: Player[] = [
     {
       id: '1',
@@ -123,7 +165,7 @@ describe('App Integration', () => {
   })
 
   it('renders the sidebar and arena content', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/']}>
         <App />
       </MemoryRouter>,
@@ -138,7 +180,7 @@ describe('App Integration', () => {
   it('can select and view a game', async () => {
     vi.mocked(api.getMoves).mockResolvedValue([mockMove])
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
       </MemoryRouter>,
@@ -160,7 +202,7 @@ describe('App Integration', () => {
     }
     vi.mocked(api.getGame).mockResolvedValue(mockGame960)
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
       </MemoryRouter>,
@@ -187,7 +229,7 @@ describe('App Integration', () => {
       gameOverReason: 'illegal move detected',
     })
 
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/arena/game-123']}>
         <App />
       </MemoryRouter>,
@@ -202,7 +244,7 @@ describe('App Integration', () => {
 
   it('allows navigating to the leaderboard', async () => {
     const user = userEvent.setup()
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/arena']}>
         <App />
       </MemoryRouter>,
@@ -219,7 +261,7 @@ describe('App Integration', () => {
   })
 
   it('renders the leaderboard when accessed directly', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter initialEntries={['/leaderboard']}>
         <App />
       </MemoryRouter>,

@@ -73,7 +73,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
     setupFiles: './vitest.setup.ts',
-    pool: 'threads',
-    fileParallelism: false,
+    pool: 'forks',
   },
 })

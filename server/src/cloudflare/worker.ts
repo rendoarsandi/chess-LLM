@@ -18,6 +18,12 @@ type WorkerHonoEnv = {
 }
 
 function createServices(env: CloudflareEnv) {
+  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY
+  process.env.GROQ_API_KEY = env.GROQ_API_KEY || process.env.GROQ_API_KEY
+  process.env.OPENROUTER_API_KEY = env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY
+  process.env.OPENROUTER_HTTP_REFERER = env.OPENROUTER_HTTP_REFERER || process.env.OPENROUTER_HTTP_REFERER
+  process.env.OPENROUTER_APP_TITLE = env.OPENROUTER_APP_TITLE || process.env.OPENROUTER_APP_TITLE
+
   const db = createD1Database(env.DB)
   const gameService = new GameService(db, new GameManager())
   const playerService = new PlayerService(db)

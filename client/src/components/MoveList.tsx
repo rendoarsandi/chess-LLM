@@ -11,6 +11,8 @@ interface MoveListProps {
   isLive?: boolean
   variations?: EngineEvaluation[]
   isEngineThinking?: boolean
+  className?: string
+  borderless?: boolean
 }
 
 export function MoveList({
@@ -20,6 +22,8 @@ export function MoveList({
   isLive,
   variations,
   isEngineThinking,
+  className,
+  borderless,
 }: MoveListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -59,7 +63,15 @@ export function MoveList({
       : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden shadow-xl flex flex-col h-[500px]">
+    <div
+      className={cn(
+        'flex flex-col h-full',
+        borderless
+          ? 'bg-transparent border-0 rounded-none shadow-none'
+          : 'bg-card border border-border rounded-lg overflow-hidden shadow-xl',
+        className,
+      )}
+    >
       {/* Engine Analysis (NOW ON TOP) */}
       <div className="p-3 border-b border-border bg-muted/20 shrink-0">
         <div className="flex items-center justify-between mb-2">
