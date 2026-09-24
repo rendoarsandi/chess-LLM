@@ -16,68 +16,8 @@ describe('TournamentLoopService', () => {
   let db: AppDatabase
 
   beforeEach(() => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE tournaments (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'scheduled',
-        start_time INTEGER NOT NULL,
-        time_control_settings TEXT,
-        current_round INTEGER NOT NULL DEFAULT 0,
-        total_rounds INTEGER NOT NULL,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE tournament_participants (
-        tournament_id TEXT NOT NULL,
-        player_id TEXT NOT NULL,
-        score INTEGER NOT NULL DEFAULT 0,
-        buchholz INTEGER NOT NULL DEFAULT 0,
-        joined_at INTEGER NOT NULL,
-        PRIMARY KEY(tournament_id, player_id),
-        FOREIGN KEY(tournament_id) REFERENCES tournaments(id),
-        FOREIGN KEY(player_id) REFERENCES players(id)
-      );
-      CREATE TABLE games (
-        id TEXT PRIMARY KEY,
-        white_player_id TEXT NOT NULL,
-        black_player_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'ongoing',
-        variant TEXT NOT NULL DEFAULT 'standard',
-        start_pos_id INTEGER,
-        fen TEXT NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        winner_id TEXT,
-        game_over_reason TEXT,
-        pgn TEXT,
-        tournament_id TEXT,
-        round_number INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY(white_player_id) REFERENCES players(id),
-        FOREIGN KEY(black_player_id) REFERENCES players(id)
-      );
-    `)
 
     tournamentService = new TournamentService(db)
     const gameManager = {

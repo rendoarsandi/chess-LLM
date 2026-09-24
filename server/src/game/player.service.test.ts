@@ -1,76 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PlayerService } from './player.service'
-import { players, games } from '../db/schema'
+import { GameManager } from './game-manager'
+import { players, games, llmConfigurations } from '../db/schema'
 import { AppDatabase } from '../db/types'
 import { createInMemoryDb } from '../db/test-utils'
 
 describe('PlayerService', () => {
   let service: PlayerService
   let db: AppDatabase
+  let gameManager: GameManager
 
   beforeEach(() => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-
-      CREATE TABLE llm_configurations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        provider TEXT NOT NULL,
-        model_id TEXT NOT NULL,
-        api_key TEXT,
-        is_active INTEGER NOT NULL DEFAULT 1,
-        is_hardcoded INTEGER NOT NULL DEFAULT 0,
-        player_id TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE rating_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_id TEXT NOT NULL,
-        rating REAL NOT NULL,
-        game_id TEXT NOT NULL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE games (
-        id TEXT PRIMARY KEY,
-        white_player_id TEXT NOT NULL,
-        black_player_id TEXT NOT NULL,
-        fen TEXT NOT NULL,
-        pgn TEXT,
-        status TEXT NOT NULL,
-        variant TEXT NOT NULL DEFAULT 'standard',
-        start_pos_id INTEGER,
-        winner_id TEXT,
-        game_over_reason TEXT,
-        tournament_id TEXT,
-        round_number INTEGER,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-    `)
-
+    gameManager = new GameManager()
     service = new PlayerService(db)
   })
 
@@ -92,6 +35,17 @@ describe('PlayerService', () => {
     const playersInDb = await db.select().from(players)
     expect(playersInDb).toHaveLength(1)
     expect(playersInDb[0].name).toBe('Gemini Pro')
+  })
+
+  it('should initialize active players in GameManager', async () => {
+    await service.syncHardcodedConfigs([{ provider: 'gemini', modelId: 'gemini-pro' }])
+    process.env.GEMINI_API_KEY = 'test-key'
+
+    await service.initializeActivePlayers(gameManager)
+
+    const configs = await db.select().from(llmConfigurations)
+    const playerId = configs[0].playerId
+    expect(gameManager.getPlayer(playerId!)).toBeDefined()
   })
 
   it('should get player profile', async () => {

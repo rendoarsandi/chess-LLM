@@ -42,6 +42,7 @@ export const gameRoutes = (gameService: GameService) => {
 
   router.delete('/:id', authenticatedMiddleware, async (c) => {
     const id = c.req.param('id')
+    if (!id) return c.json({ error: 'Missing game id' }, 400)
     const game = await gameService.getGame(id)
     if (!game) return c.json({ error: 'Game not found' }, 404)
 
@@ -67,6 +68,7 @@ export const gameRoutes = (gameService: GameService) => {
 
   router.post('/:id/pause', authenticatedMiddleware, async (c) => {
     const id = c.req.param('id')
+    if (!id) return c.json({ error: 'Missing game id' }, 400)
     const game = await gameService.getGame(id)
     if (!game) return c.json({ error: 'Game not found' }, 404)
 
@@ -80,6 +82,7 @@ export const gameRoutes = (gameService: GameService) => {
 
   router.post('/:id/resume', authenticatedMiddleware, async (c) => {
     const id = c.req.param('id')
+    if (!id) return c.json({ error: 'Missing game id' }, 400)
     const game = await gameService.getGame(id)
     if (!game) return c.json({ error: 'Game not found' }, 404)
 
@@ -93,6 +96,7 @@ export const gameRoutes = (gameService: GameService) => {
 
   router.post('/:id/move', authenticatedMiddleware, async (c) => {
     const id = c.req.param('id')
+    if (!id) return c.json({ error: 'Missing game id' }, 400)
     const body = await c.req.json()
     const { move, thinking } = body
 

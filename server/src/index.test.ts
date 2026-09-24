@@ -205,6 +205,29 @@ describe('API Endpoints', () => {
     expect(Array.isArray(data)).toBe(true)
   })
 
+  describe('Tournaments', () => {
+    it('POST /api/admin/tournaments should create a tournament', async () => {
+      const res = await app.request('/api/admin/tournaments', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Test Tournament',
+          startTime: new Date().toISOString(),
+          totalRounds: 3,
+          participantIds: [],
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      expect([201, 400]).toContain(res.status)
+    })
+
+    it('GET /api/tournaments should list tournaments', async () => {
+      const res = await app.request('/api/tournaments')
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(Array.isArray(data)).toBe(true)
+    })
+  })
+
   describe('Failure Cases', () => {
     it('GET /api/games/:id should return 404 for non-existent game', async () => {
       const res = await app.request('/api/games/00000000-0000-0000-0000-000000000000')

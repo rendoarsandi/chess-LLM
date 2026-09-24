@@ -3,40 +3,20 @@ import { GameService } from './game.service'
 import { GameManager } from './game-manager'
 import { players } from '../db/schema'
 import { eq } from 'drizzle-orm'
-import { db } from '../db'
+import { createInMemoryDb } from '../db/test-utils'
+import { AppDatabase } from '../db/types'
 
 describe('Chess 960 Integration', () => {
+  let db: AppDatabase
   let gameService: GameService
   const testWhiteId = 'test-white'
   const testBlackId = 'test-black'
 
   beforeEach(async () => {
+    const { db: testDb } = createInMemoryDb()
+    db = testDb
     gameService = new GameService(db, new GameManager())
 
-    // Clean up in correct order: child tables first
-    const {
-      moves,
-      ratingHistory,
-      games,
-      players,
-      moveAnalyses,
-      gameReviews,
-      llmConfigurations,
-      tournamentParticipants,
-      tournaments,
-    } = await import('../db/schema')
-
-    await db.delete(moveAnalyses)
-    await db.delete(gameReviews)
-    await db.delete(moves)
-    await db.delete(ratingHistory)
-    await db.delete(llmConfigurations)
-    await db.delete(tournamentParticipants)
-    await db.delete(games)
-    await db.delete(tournaments)
-    await db.delete(players)
-
-    // Setup players
     await db.insert(players).values([
       { id: testWhiteId, name: 'White', type: 'human', rating: 1200, rating960: 1200 },
       { id: testBlackId, name: 'Black', type: 'human', rating: 1200, rating960: 1200 },
@@ -86,7 +66,6 @@ describe('Chess 960 Integration', () => {
     // 960 ratings should change
     expect(white.rating960).toBeGreaterThan(1200)
     expect(black.rating960).toBeLessThan(1200)
-    expect(white.rating960).toBe(white.rating960)
   })
 
   it('should generate a random startPosId if none provided for chess960', async () => {
@@ -97,6 +76,6 @@ describe('Chess 960 Integration', () => {
     expect(game?.startPosId).toBeGreaterThanOrEqual(0)
     expect(game?.startPosId).toBeLessThan(960)
     expect(game?.fen).toBeDefined()
-    expect(game?.fen).not.toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') // Unlikely to be standard
+    expect(game?.fen).not.toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
   })
 })

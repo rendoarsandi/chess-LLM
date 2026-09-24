@@ -11,72 +11,8 @@ describe('GameReviewService', () => {
   let db: AppDatabase
 
   beforeEach(() => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE games (
-        id TEXT PRIMARY KEY,
-        white_player_id TEXT NOT NULL,
-        black_player_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'ongoing',
-        variant TEXT NOT NULL DEFAULT 'standard',
-        start_pos_id INTEGER,
-        fen TEXT NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        winner_id TEXT,
-        game_over_reason TEXT,
-        pgn TEXT,
-        tournament_id TEXT,
-        round_number INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY(white_player_id) REFERENCES players(id),
-        FOREIGN KEY(black_player_id) REFERENCES players(id)
-      );
-      CREATE TABLE game_reviews (
-        id TEXT PRIMARY KEY,
-        game_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'queued',
-        progress_current INTEGER NOT NULL DEFAULT 0,
-        progress_total INTEGER NOT NULL DEFAULT 0,
-        started_at INTEGER,
-        worker_id TEXT,
-        last_heartbeat INTEGER,
-        completed_at INTEGER,
-        created_at INTEGER NOT NULL,
-        FOREIGN KEY(game_id) REFERENCES games(id)
-      );
-      CREATE TABLE move_analyses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        review_id TEXT NOT NULL,
-        move_number INTEGER NOT NULL,
-        player_color TEXT NOT NULL,
-        classification TEXT NOT NULL,
-        evaluation TEXT NOT NULL,
-        best_line TEXT,
-        created_at INTEGER NOT NULL,
-        FOREIGN KEY(review_id) REFERENCES game_reviews(id)
-      );
-    `)
 
     service = new GameReviewService(db)
   })

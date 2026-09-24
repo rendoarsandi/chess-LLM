@@ -11,59 +11,8 @@ describe('MatchmakingService', () => {
   let matchmakingService: MatchmakingService
 
   beforeEach(async () => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-
-      CREATE TABLE llm_configurations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        provider TEXT NOT NULL,
-        model_id TEXT NOT NULL,
-        api_key TEXT,
-        is_active INTEGER NOT NULL DEFAULT 1,
-        is_hardcoded INTEGER NOT NULL DEFAULT 0,
-        player_id TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE games (
-        id TEXT PRIMARY KEY,
-        white_player_id TEXT NOT NULL,
-        black_player_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'ongoing',
-        variant TEXT NOT NULL DEFAULT 'standard',
-        start_pos_id INTEGER,
-        fen TEXT NOT NULL,
-        winner_id TEXT,
-        game_over_reason TEXT,
-        pgn TEXT,
-        tournament_id TEXT,
-        round_number INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
-      );
-    `)
 
     await db.insert(players).values([
       {

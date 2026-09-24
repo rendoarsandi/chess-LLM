@@ -84,7 +84,7 @@ export class GameRoom {
           .then((res) => res[0])
 
         if (fullGame) {
-          this.triggerCommentary(db, { ...fullGame, id: gameId }, result.san, result.fen, result.pg)
+          this.triggerCommentary(db, { ...fullGame, id: gameId }, result.san, result.fen, result.pgn)
         }
 
         // Advance loop

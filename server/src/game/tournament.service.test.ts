@@ -9,50 +9,8 @@ describe('TournamentService', () => {
   let tournamentService: TournamentService
 
   beforeEach(() => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    // Create tables
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE tournaments (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'scheduled',
-        start_time INTEGER NOT NULL,
-        time_control_settings TEXT,
-        current_round INTEGER NOT NULL DEFAULT 0,
-        total_rounds INTEGER NOT NULL,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE tournament_participants (
-        tournament_id TEXT NOT NULL,
-        player_id TEXT NOT NULL,
-        score INTEGER NOT NULL DEFAULT 0,
-        buchholz INTEGER NOT NULL DEFAULT 0,
-        joined_at INTEGER NOT NULL,
-        FOREIGN KEY(tournament_id) REFERENCES tournaments(id),
-        FOREIGN KEY(player_id) REFERENCES players(id)
-      );
-    `)
 
     tournamentService = new TournamentService(db)
   })

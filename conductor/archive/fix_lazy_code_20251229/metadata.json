@@ -1,8 +1,0 @@
-{
-  "track_id": "fix_lazy_code_20251229",
-  "type": "chore",
-  "status": "new",
-  "created_at": "2025-12-29T06:45:00Z",
-  "updated_at": "2025-12-29T06:45:00Z",
-  "description": "Systematic cleanup of lazy code patterns, AI artifacts, and type safety hardening."
-}

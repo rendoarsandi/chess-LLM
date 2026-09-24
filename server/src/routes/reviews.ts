@@ -9,6 +9,7 @@ export const reviewRoutes = (gameService: GameService, gameReviewService: GameRe
 
   router.post('/:gameId', authenticatedMiddleware, async (c) => {
     const gameId = c.req.param('gameId')
+    if (!gameId) return c.json({ error: 'Missing game id' }, 400)
     const game = await gameService.getGame(gameId)
     if (!game) return c.json({ error: 'Game not found' }, 404)
 
@@ -18,6 +19,7 @@ export const reviewRoutes = (gameService: GameService, gameReviewService: GameRe
 
   router.get('/:gameId', authenticatedMiddleware, async (c) => {
     const gameId = c.req.param('gameId')
+    if (!gameId) return c.json({ error: 'Missing game id' }, 400)
     const game = await gameService.getGame(gameId)
     if (!game) return c.json({ error: 'Game not found' }, 404)
 

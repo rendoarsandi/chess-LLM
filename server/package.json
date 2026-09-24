@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "typecheck:cloudflare": "tsc --noEmit -p tsconfig.cloudflare.json",
-    "check": "bun run lint && bun run typecheck",
+    "check": "npm run lint && npm run typecheck",
     "build": "tsc"
   },
   "keywords": [],

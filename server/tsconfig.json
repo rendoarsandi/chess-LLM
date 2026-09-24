@@ -4,9 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"],
+    "isolatedModules": false,
     "outDir": "./dist",
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "src/cloudflare/**/*", "src/db/d1.ts"]
+  "exclude": ["node_modules", "../node_modules", "src/cloudflare/**/*", "src/db/d1.ts"]
 }

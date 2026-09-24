@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { StockfishPlayerService } from './StockfishPlayerService'
 
 // Mock Worker
@@ -22,9 +22,14 @@ describe('StockfishPlayerService', () => {
   let mockWorker: MockWorker
 
   beforeEach(() => {
+    vi.useFakeTimers()
     vi.clearAllMocks()
     mockWorker = new MockWorker()
     service = new StockfishPlayerService(mockWorker as unknown as Worker)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('should initialize a worker', () => {
@@ -35,17 +40,13 @@ describe('StockfishPlayerService', () => {
   it('should resolve calculateMove when bestmove is received', async () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
-    // We need to trigger initialization sequence
+    // Advance 100ms for UCI handshake init
+    vi.advanceTimersByTime(100)
+
     mockWorker.simulateMessage('uciok')
     mockWorker.simulateMessage('readyok')
 
-    // Wait for initialization to complete in the service
-    await new Promise((resolve) => setTimeout(resolve, 150)) // Increased timeout for reliable test
-
     const movePromise = service.calculateMove(fen, 10)
-
-    // Give it a moment to send messages
-    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(mockWorker.postMessage).toHaveBeenCalledWith(`position fen ${fen}`)
     expect(mockWorker.postMessage).toHaveBeenCalledWith('go depth 10')

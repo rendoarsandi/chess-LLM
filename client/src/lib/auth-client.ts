@@ -50,4 +50,4 @@ export const authClient = {
     }),
   },
   signOut: async () => ({ success: true }),
-} as typeof realAuthClient
+} as unknown as typeof realAuthClient

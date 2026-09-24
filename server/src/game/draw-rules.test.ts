@@ -11,72 +11,8 @@ describe('GameService Draw Rules', () => {
   let db: AppDatabase
 
   beforeEach(() => {
-    const { sqlite, db: testDb } = createInMemoryDb()
+    const { db: testDb } = createInMemoryDb()
     db = testDb
-
-    // Create tables manually for the test
-    sqlite.exec(`
-      CREATE TABLE players (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL,
-        rating INTEGER NOT NULL DEFAULT 1200,
-        rating960 INTEGER NOT NULL DEFAULT 1200,
-        wins INTEGER NOT NULL DEFAULT 0,
-        losses INTEGER NOT NULL DEFAULT 0,
-        draws INTEGER NOT NULL DEFAULT 0,
-        wins960 INTEGER NOT NULL DEFAULT 0,
-        losses960 INTEGER NOT NULL DEFAULT 0,
-        draws960 INTEGER NOT NULL DEFAULT 0,
-        peak_rating INTEGER NOT NULL DEFAULT 1200,
-        peak_rating960 INTEGER NOT NULL DEFAULT 1200,
-        version TEXT,
-        provider TEXT,
-        bio TEXT,
-        created_at INTEGER NOT NULL
-      );
-      CREATE TABLE games (
-        id TEXT PRIMARY KEY,
-        white_player_id TEXT NOT NULL,
-        black_player_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'ongoing',
-        variant TEXT NOT NULL DEFAULT 'standard',
-        start_pos_id INTEGER,
-        fen TEXT NOT NULL DEFAULT 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        winner_id TEXT,
-        game_over_reason TEXT,
-        pgn TEXT,
-        tournament_id TEXT,
-        round_number INTEGER,
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL,
-        FOREIGN KEY(white_player_id) REFERENCES players(id),
-        FOREIGN KEY(black_player_id) REFERENCES players(id)
-      );
-      CREATE TABLE rating_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_id TEXT NOT NULL,
-        rating INTEGER NOT NULL,
-        game_id TEXT,
-        created_at INTEGER NOT NULL,
-        FOREIGN KEY(player_id) REFERENCES players(id),
-        FOREIGN KEY(game_id) REFERENCES games(id)
-      );
-      CREATE TABLE moves (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        game_id TEXT NOT NULL,
-        move_number INTEGER NOT NULL,
-        player_color TEXT NOT NULL,
-        move TEXT NOT NULL,
-        fen TEXT NOT NULL,
-        opening TEXT,
-        candidates TEXT,
-        reasoning TEXT,
-        thinking_ms INTEGER,
-        created_at INTEGER NOT NULL,
-        FOREIGN KEY(game_id) REFERENCES games(id)
-      );
-    `)
 
     gm = new GameManager()
     service = new GameService(db, gm)
