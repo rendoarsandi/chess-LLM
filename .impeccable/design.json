@@ -1,0 +1,730 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T12:39:33Z",
+  "title": "Design System: GameBench",
+  "extensions": {
+    "colorMeta": {
+      "blue": {
+        "role": "primary",
+        "displayName": "Workbench Blue",
+        "tonalRamp": [
+          "oklch(15% 0.20273 265.10)",
+          "oklch(26% 0.20273 265.10)",
+          "oklch(38% 0.20273 265.10)",
+          "oklch(49% 0.20273 265.10)",
+          "oklch(61% 0.20273 265.10)",
+          "oklch(72% 0.20273 265.10)",
+          "oklch(84% 0.20273 265.10)",
+          "oklch(95% 0.20273 265.10)"
+        ]
+      },
+      "blue-dark": {
+        "role": "primary",
+        "displayName": "Pressed Blue",
+        "tonalRamp": [
+          "oklch(15% 0.16729 265.37)",
+          "oklch(26% 0.16729 265.37)",
+          "oklch(38% 0.16729 265.37)",
+          "oklch(49% 0.16729 265.37)",
+          "oklch(61% 0.16729 265.37)",
+          "oklch(72% 0.16729 265.37)",
+          "oklch(84% 0.16729 265.37)",
+          "oklch(95% 0.16729 265.37)"
+        ]
+      },
+      "blue-pale": {
+        "role": "primary",
+        "displayName": "Blue Wash",
+        "tonalRamp": [
+          "oklch(15% 0.01824 269.09)",
+          "oklch(26% 0.01824 269.09)",
+          "oklch(38% 0.01824 269.09)",
+          "oklch(49% 0.01824 269.09)",
+          "oklch(61% 0.01824 269.09)",
+          "oklch(72% 0.01824 269.09)",
+          "oklch(84% 0.01824 269.09)",
+          "oklch(95% 0.01824 269.09)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Surface",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26% 0.00000 0.00)",
+          "oklch(38% 0.00000 0.00)",
+          "oklch(49% 0.00000 0.00)",
+          "oklch(61% 0.00000 0.00)",
+          "oklch(72% 0.00000 0.00)",
+          "oklch(84% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool Canvas",
+        "tonalRamp": [
+          "oklch(15% 0.00454 258.32)",
+          "oklch(26% 0.00454 258.32)",
+          "oklch(38% 0.00454 258.32)",
+          "oklch(49% 0.00454 258.32)",
+          "oklch(61% 0.00454 258.32)",
+          "oklch(72% 0.00454 258.32)",
+          "oklch(84% 0.00454 258.32)",
+          "oklch(95% 0.00454 258.32)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "tonalRamp": [
+          "oklch(15% 0.03917 257.77)",
+          "oklch(26% 0.03917 257.77)",
+          "oklch(38% 0.03917 257.77)",
+          "oklch(49% 0.03917 257.77)",
+          "oklch(61% 0.03917 257.77)",
+          "oklch(72% 0.03917 257.77)",
+          "oklch(84% 0.03917 257.77)",
+          "oklch(95% 0.03917 257.77)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate Text",
+        "tonalRamp": [
+          "oklch(15% 0.04097 257.42)",
+          "oklch(26% 0.04097 257.42)",
+          "oklch(38% 0.04097 257.42)",
+          "oklch(49% 0.04097 257.42)",
+          "oklch(61% 0.04097 257.42)",
+          "oklch(72% 0.04097 257.42)",
+          "oklch(84% 0.04097 257.42)",
+          "oklch(95% 0.04097 257.42)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "tonalRamp": [
+          "oklch(15% 0.01265 255.51)",
+          "oklch(26% 0.01265 255.51)",
+          "oklch(38% 0.01265 255.51)",
+          "oklch(49% 0.01265 255.51)",
+          "oklch(61% 0.01265 255.51)",
+          "oklch(72% 0.01265 255.51)",
+          "oklch(84% 0.01265 255.51)",
+          "oklch(95% 0.01265 255.51)"
+        ]
+      },
+      "rail": {
+        "role": "neutral",
+        "displayName": "Rail Paper",
+        "tonalRamp": [
+          "oklch(15% 0.00286 264.54)",
+          "oklch(26% 0.00286 264.54)",
+          "oklch(38% 0.00286 264.54)",
+          "oklch(49% 0.00286 264.54)",
+          "oklch(61% 0.00286 264.54)",
+          "oklch(72% 0.00286 264.54)",
+          "oklch(84% 0.00286 264.54)",
+          "oklch(95% 0.00286 264.54)"
+        ]
+      },
+      "support-surface": {
+        "role": "neutral",
+        "displayName": "Support Wash",
+        "tonalRamp": [
+          "oklch(15% 0.01737 264.49)",
+          "oklch(26% 0.01737 264.49)",
+          "oklch(38% 0.01737 264.49)",
+          "oklch(49% 0.01737 264.49)",
+          "oklch(61% 0.01737 264.49)",
+          "oklch(72% 0.01737 264.49)",
+          "oklch(84% 0.01737 264.49)",
+          "oklch(95% 0.01737 264.49)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Field Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.02217 256.74)",
+          "oklch(26% 0.02217 256.74)",
+          "oklch(38% 0.02217 256.74)",
+          "oklch(49% 0.02217 256.74)",
+          "oklch(61% 0.02217 256.74)",
+          "oklch(72% 0.02217 256.74)",
+          "oklch(84% 0.02217 256.74)",
+          "oklch(95% 0.02217 256.74)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus Blue",
+        "tonalRamp": [
+          "oklch(15% 0.16251 267.15)",
+          "oklch(26% 0.16251 267.15)",
+          "oklch(38% 0.16251 267.15)",
+          "oklch(49% 0.16251 267.15)",
+          "oklch(61% 0.16251 267.15)",
+          "oklch(72% 0.16251 267.15)",
+          "oklch(84% 0.16251 267.15)",
+          "oklch(95% 0.16251 267.15)"
+        ]
+      },
+      "button-border": {
+        "role": "neutral",
+        "displayName": "Button Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.02039 257.48)",
+          "oklch(26% 0.02039 257.48)",
+          "oklch(38% 0.02039 257.48)",
+          "oklch(49% 0.02039 257.48)",
+          "oklch(61% 0.02039 257.48)",
+          "oklch(72% 0.02039 257.48)",
+          "oklch(84% 0.02039 257.48)",
+          "oklch(95% 0.02039 257.48)"
+        ]
+      },
+      "button-hover": {
+        "role": "neutral",
+        "displayName": "Button Hover Ground",
+        "tonalRamp": [
+          "oklch(15% 0.00742 260.73)",
+          "oklch(26% 0.00742 260.73)",
+          "oklch(38% 0.00742 260.73)",
+          "oklch(49% 0.00742 260.73)",
+          "oklch(61% 0.00742 260.73)",
+          "oklch(72% 0.00742 260.73)",
+          "oklch(84% 0.00742 260.73)",
+          "oklch(95% 0.00742 260.73)"
+        ]
+      },
+      "button-hover-border": {
+        "role": "neutral",
+        "displayName": "Button Hover Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.03554 257.86)",
+          "oklch(26% 0.03554 257.86)",
+          "oklch(38% 0.03554 257.86)",
+          "oklch(49% 0.03554 257.86)",
+          "oklch(61% 0.03554 257.86)",
+          "oklch(72% 0.03554 257.86)",
+          "oklch(84% 0.03554 257.86)",
+          "oklch(95% 0.03554 257.86)"
+        ]
+      },
+      "icon-hover": {
+        "role": "neutral",
+        "displayName": "Icon Hover Ground",
+        "tonalRamp": [
+          "oklch(15% 0.01254 255.51)",
+          "oklch(26% 0.01254 255.51)",
+          "oklch(38% 0.01254 255.51)",
+          "oklch(49% 0.01254 255.51)",
+          "oklch(61% 0.01254 255.51)",
+          "oklch(72% 0.01254 255.51)",
+          "oklch(84% 0.01254 255.51)",
+          "oklch(95% 0.01254 255.51)"
+        ]
+      },
+      "danger": {
+        "role": "secondary",
+        "displayName": "Failure Red",
+        "tonalRamp": [
+          "oklch(15% 0.14846 22.98)",
+          "oklch(26% 0.14846 22.98)",
+          "oklch(38% 0.14846 22.98)",
+          "oklch(49% 0.14846 22.98)",
+          "oklch(61% 0.14846 22.98)",
+          "oklch(72% 0.14846 22.98)",
+          "oklch(84% 0.14846 22.98)",
+          "oklch(95% 0.14846 22.98)"
+        ]
+      },
+      "danger-surface": {
+        "role": "secondary",
+        "displayName": "Stop Wash",
+        "tonalRamp": [
+          "oklch(15% 0.01522 22.39)",
+          "oklch(26% 0.01522 22.39)",
+          "oklch(38% 0.01522 22.39)",
+          "oklch(49% 0.01522 22.39)",
+          "oklch(61% 0.01522 22.39)",
+          "oklch(72% 0.01522 22.39)",
+          "oklch(84% 0.01522 22.39)",
+          "oklch(95% 0.01522 22.39)"
+        ]
+      },
+      "danger-border": {
+        "role": "secondary",
+        "displayName": "Stop Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.04607 19.80)",
+          "oklch(26% 0.04607 19.80)",
+          "oklch(38% 0.04607 19.80)",
+          "oklch(49% 0.04607 19.80)",
+          "oklch(61% 0.04607 19.80)",
+          "oklch(72% 0.04607 19.80)",
+          "oklch(84% 0.04607 19.80)",
+          "oklch(95% 0.04607 19.80)"
+        ]
+      },
+      "connected-ink": {
+        "role": "secondary",
+        "displayName": "Connected Green",
+        "tonalRamp": [
+          "oklch(15% 0.07031 156.53)",
+          "oklch(26% 0.07031 156.53)",
+          "oklch(38% 0.07031 156.53)",
+          "oklch(49% 0.07031 156.53)",
+          "oklch(61% 0.07031 156.53)",
+          "oklch(72% 0.07031 156.53)",
+          "oklch(84% 0.07031 156.53)",
+          "oklch(95% 0.07031 156.53)"
+        ]
+      },
+      "connected-surface": {
+        "role": "secondary",
+        "displayName": "Connected Wash",
+        "tonalRamp": [
+          "oklch(15% 0.00990 155.10)",
+          "oklch(26% 0.00990 155.10)",
+          "oklch(38% 0.00990 155.10)",
+          "oklch(49% 0.00990 155.10)",
+          "oklch(61% 0.00990 155.10)",
+          "oklch(72% 0.00990 155.10)",
+          "oklch(84% 0.00990 155.10)",
+          "oklch(95% 0.00990 155.10)"
+        ]
+      },
+      "connected-border": {
+        "role": "secondary",
+        "displayName": "Connected Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.02691 159.51)",
+          "oklch(26% 0.02691 159.51)",
+          "oklch(38% 0.02691 159.51)",
+          "oklch(49% 0.02691 159.51)",
+          "oklch(61% 0.02691 159.51)",
+          "oklch(72% 0.02691 159.51)",
+          "oklch(84% 0.02691 159.51)",
+          "oklch(95% 0.02691 159.51)"
+        ]
+      },
+      "status-running": {
+        "role": "secondary",
+        "displayName": "Running Green",
+        "tonalRamp": [
+          "oklch(15% 0.09706 156.96)",
+          "oklch(26% 0.09706 156.96)",
+          "oklch(38% 0.09706 156.96)",
+          "oklch(49% 0.09706 156.96)",
+          "oklch(61% 0.09706 156.96)",
+          "oklch(72% 0.09706 156.96)",
+          "oklch(84% 0.09706 156.96)",
+          "oklch(95% 0.09706 156.96)"
+        ]
+      },
+      "status-completed": {
+        "role": "secondary",
+        "displayName": "Completed Blue",
+        "tonalRamp": [
+          "oklch(15% 0.12644 262.62)",
+          "oklch(26% 0.12644 262.62)",
+          "oklch(38% 0.12644 262.62)",
+          "oklch(49% 0.12644 262.62)",
+          "oklch(61% 0.12644 262.62)",
+          "oklch(72% 0.12644 262.62)",
+          "oklch(84% 0.12644 262.62)",
+          "oklch(95% 0.12644 262.62)"
+        ]
+      },
+      "status-paused": {
+        "role": "secondary",
+        "displayName": "Paused Amber",
+        "tonalRamp": [
+          "oklch(15% 0.09788 72.91)",
+          "oklch(26% 0.09788 72.91)",
+          "oklch(38% 0.09788 72.91)",
+          "oklch(49% 0.09788 72.91)",
+          "oklch(61% 0.09788 72.91)",
+          "oklch(72% 0.09788 72.91)",
+          "oklch(84% 0.09788 72.91)",
+          "oklch(95% 0.09788 72.91)"
+        ]
+      },
+      "live": {
+        "role": "secondary",
+        "displayName": "Live Green",
+        "tonalRamp": [
+          "oklch(15% 0.11286 156.78)",
+          "oklch(26% 0.11286 156.78)",
+          "oklch(38% 0.11286 156.78)",
+          "oklch(49% 0.11286 156.78)",
+          "oklch(61% 0.11286 156.78)",
+          "oklch(72% 0.11286 156.78)",
+          "oklch(84% 0.11286 156.78)",
+          "oklch(95% 0.11286 156.78)"
+        ]
+      },
+      "board-light": {
+        "role": "neutral",
+        "displayName": "Light Board Slate",
+        "tonalRamp": [
+          "oklch(15% 0.00864 247.92)",
+          "oklch(26% 0.00864 247.92)",
+          "oklch(38% 0.00864 247.92)",
+          "oklch(49% 0.00864 247.92)",
+          "oklch(61% 0.00864 247.92)",
+          "oklch(72% 0.00864 247.92)",
+          "oklch(84% 0.00864 247.92)",
+          "oklch(95% 0.00864 247.92)"
+        ]
+      },
+      "board-dark": {
+        "role": "neutral",
+        "displayName": "Dark Board Slate",
+        "tonalRamp": [
+          "oklch(15% 0.04842 249.60)",
+          "oklch(26% 0.04842 249.60)",
+          "oklch(38% 0.04842 249.60)",
+          "oklch(49% 0.04842 249.60)",
+          "oklch(61% 0.04842 249.60)",
+          "oklch(72% 0.04842 249.60)",
+          "oklch(84% 0.04842 249.60)",
+          "oklch(95% 0.04842 249.60)"
+        ]
+      },
+      "board-light-coordinate": {
+        "role": "neutral",
+        "displayName": "Light-Square Coordinate Ink",
+        "tonalRamp": [
+          "oklch(15% 0.04559 251.10)",
+          "oklch(26% 0.04559 251.10)",
+          "oklch(38% 0.04559 251.10)",
+          "oklch(49% 0.04559 251.10)",
+          "oklch(61% 0.04559 251.10)",
+          "oklch(72% 0.04559 251.10)",
+          "oklch(84% 0.04559 251.10)",
+          "oklch(95% 0.04559 251.10)"
+        ]
+      },
+      "board-dark-coordinate": {
+        "role": "neutral",
+        "displayName": "Dark-Square Coordinate Ink",
+        "tonalRamp": [
+          "oklch(15% 0.03557 251.29)",
+          "oklch(26% 0.03557 251.29)",
+          "oklch(38% 0.03557 251.29)",
+          "oklch(49% 0.03557 251.29)",
+          "oklch(61% 0.03557 251.29)",
+          "oklch(72% 0.03557 251.29)",
+          "oklch(84% 0.03557 251.29)",
+          "oklch(95% 0.03557 251.29)"
+        ]
+      },
+      "piece-white": {
+        "role": "neutral",
+        "displayName": "Piece Ivory",
+        "tonalRamp": [
+          "oklch(15% 0.00818 91.48)",
+          "oklch(26% 0.00818 91.48)",
+          "oklch(38% 0.00818 91.48)",
+          "oklch(49% 0.00818 91.48)",
+          "oklch(61% 0.00818 91.48)",
+          "oklch(72% 0.00818 91.48)",
+          "oklch(84% 0.00818 91.48)",
+          "oklch(95% 0.00818 91.48)"
+        ]
+      },
+      "piece-white-stroke": {
+        "role": "neutral",
+        "displayName": "Ivory Piece Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.02693 250.57)",
+          "oklch(26% 0.02693 250.57)",
+          "oklch(38% 0.02693 250.57)",
+          "oklch(49% 0.02693 250.57)",
+          "oklch(61% 0.02693 250.57)",
+          "oklch(72% 0.02693 250.57)",
+          "oklch(84% 0.02693 250.57)",
+          "oklch(95% 0.02693 250.57)"
+        ]
+      },
+      "piece-black": {
+        "role": "neutral",
+        "displayName": "Piece Graphite",
+        "tonalRamp": [
+          "oklch(15% 0.02948 254.67)",
+          "oklch(26% 0.02948 254.67)",
+          "oklch(38% 0.02948 254.67)",
+          "oklch(49% 0.02948 254.67)",
+          "oklch(61% 0.02948 254.67)",
+          "oklch(72% 0.02948 254.67)",
+          "oklch(84% 0.02948 254.67)",
+          "oklch(95% 0.02948 254.67)"
+        ]
+      },
+      "piece-black-stroke": {
+        "role": "neutral",
+        "displayName": "Graphite Piece Stroke",
+        "tonalRamp": [
+          "oklch(15% 0.00674 233.64)",
+          "oklch(26% 0.00674 233.64)",
+          "oklch(38% 0.00674 233.64)",
+          "oklch(49% 0.00674 233.64)",
+          "oklch(61% 0.00674 233.64)",
+          "oklch(72% 0.00674 233.64)",
+          "oklch(84% 0.00674 233.64)",
+          "oklch(95% 0.00674 233.64)"
+        ]
+      },
+      "move-highlight": {
+        "role": "secondary",
+        "displayName": "Move Yellow",
+        "tonalRamp": [
+          "oklch(15% 0.13947 99.79)",
+          "oklch(26% 0.13947 99.79)",
+          "oklch(38% 0.13947 99.79)",
+          "oklch(49% 0.13947 99.79)",
+          "oklch(61% 0.13947 99.79)",
+          "oklch(72% 0.13947 99.79)",
+          "oklch(84% 0.13947 99.79)",
+          "oklch(95% 0.13947 99.79)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The empty-state heading, with the implemented mobile size override."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Primary page headings."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings; form and methodology headings have local size overrides."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Compact result and inspector headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Page description paragraphs at the root text size."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Standard primary and secondary buttons."
+      },
+      "compact-control": {
+        "displayName": "Compact Control",
+        "purpose": "Compact buttons and text actions."
+      },
+      "navigation": {
+        "displayName": "Navigation",
+        "purpose": "The main navigation at desktop widths."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Labels above inputs and selects."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Table cells, move records, and compact inspector content."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Default small helper text."
+      },
+      "status": {
+        "displayName": "Status",
+        "purpose": "Text beside operational status dots."
+      },
+      "raw-response": {
+        "displayName": "Raw Response",
+        "purpose": "Recorded model response blocks."
+      }
+    },
+    "shadows": [
+      {
+        "name": "selected-workspace-tab",
+        "value": "0 2px 0 var(--blue)",
+        "purpose": "A blue underline for the selected workspace tab, not card elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "button-state",
+        "value": "background 0.15s, border-color 0.15s",
+        "purpose": "Background and border changes on standard buttons."
+      },
+      {
+        "name": "piece-move",
+        "value": "piece-move 0.36s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The arriving piece translates from its prior square."
+      },
+      {
+        "name": "move-settle",
+        "value": "move-settle 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Last-move overlays settle from opacity 0.8 to 0.4."
+      },
+      {
+        "name": "loading-spin",
+        "value": "spin 1.1s linear infinite",
+        "purpose": "The loading and live-response indicator."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none !important; transition: none !important; scroll-behavior: auto",
+        "purpose": "The source disables animation, transitions, and smooth scrolling when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "max-1200",
+        "value": "1200px"
+      },
+      {
+        "name": "max-900",
+        "value": "900px"
+      },
+      {
+        "name": "max-650",
+        "value": "650px"
+      },
+      {
+        "name": "min-1550",
+        "value": "1550px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The standard blue action used to create a run.",
+      "html": "<button type=\"button\" class=\"ds-button ds-primary\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\" /><path d=\"M12 5v14\" /></svg>New run</button>",
+      "css": ".ds-button { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; font-size: 13px; font-weight: 570; min-height: 41px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #d0d9e6; border-radius: 7px; padding: 0 16px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-primary { background: var(--blue, #2955d5); border-color: var(--blue, #2955d5); color: var(--surface, #ffffff); } .ds-primary:hover { background: var(--blue-dark, #2042a7); border-color: var(--blue-dark, #2042a7); } .ds-button:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-button:disabled { cursor: not-allowed; opacity: 0.48; } .ds-button svg { flex-shrink: 0; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none !important; } }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The bordered action used for export and other supporting actions.",
+      "html": "<button type=\"button\" class=\"ds-button ds-secondary\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 17V3\" /><path d=\"m6 11 6 6 6-6\" /><path d=\"M19 21H5\" /></svg>Export</button>",
+      "css": ".ds-button { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; font-size: 13px; font-weight: 570; min-height: 41px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #d0d9e6; border-radius: 7px; padding: 0 16px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-secondary { background: var(--surface, #ffffff); color: var(--ink, #202d40); } .ds-secondary:hover { background: #f0f3f8; border-color: #aab9cf; } .ds-button:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-button:disabled { cursor: not-allowed; opacity: 0.48; } .ds-button svg { flex-shrink: 0; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none !important; } }"
+    },
+    {
+      "name": "Stop Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "The compact danger variant within the stop confirmation. Its status colors persist on hover.",
+      "html": "<button type=\"button\" class=\"ds-button ds-danger\">Stop run</button>",
+      "css": ".ds-button { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; font-size: 13px; font-weight: 570; min-height: 41px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #d0d9e6; border-radius: 7px; padding: 0 16px; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background 0.15s, border-color 0.15s; } .ds-danger { min-height: 34px; padding: 0 11px; font-size: 12px; background: #fff1f0; color: var(--danger, #a53437); border-color: #e5bdbc; } .ds-danger:hover { background: #fff1f0; color: var(--danger, #a53437); border-color: #e5bdbc; } .ds-button:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-button:disabled { cursor: not-allowed; opacity: 0.48; } .ds-button svg { flex-shrink: 0; } @media (prefers-reduced-motion: reduce) { .ds-button { transition: none !important; } }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "The transparent icon control; this preview shows the board flip icon.",
+      "html": "<button type=\"button\" class=\"ds-icon-button\" aria-label=\"Flip board\" title=\"Flip board\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\" /><path d=\"M21 3v5h-5\" /></svg></button>",
+      "css": ".ds-icon-button { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--muted, #607087); padding: 0; cursor: pointer; } .ds-icon-button:hover:not(:disabled) { background: #eaf0f8; color: var(--ink, #202d40); } .ds-icon-button:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-icon-button:disabled { cursor: not-allowed; opacity: 0.48; }"
+    },
+    {
+      "name": "Text Action",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "A compact blue action with an underline on hover.",
+      "html": "<button type=\"button\" class=\"ds-text-button\">Try again</button>",
+      "css": ".ds-text-button { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; border: 0; padding: 3px 0; background: transparent; color: var(--blue, #2955d5); font-size: 12px; font-weight: 570; cursor: pointer; } .ds-text-button:hover { text-decoration: underline; } .ds-text-button:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-text-button:disabled { cursor: not-allowed; opacity: 0.48; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The labeled field used for a run name, with the source default value.",
+      "html": "<label class=\"ds-field-label\">Run name<input class=\"ds-field\" type=\"text\" value=\"Chess benchmark\" maxlength=\"80\" required /></label>",
+      "css": ".ds-field-label { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; color: var(--ink, #202d40); font-size: 12px; font-weight: 550; } .ds-field { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; font-size: 14px; font-weight: 400; display: block; width: 100%; margin-top: 9px; min-height: 41px; padding: 9px 12px; border: 1px solid #cdd7e5; border-radius: 6px; color: var(--ink, #202d40); background: var(--surface, #ffffff); min-width: 0; caret-color: var(--blue, #2955d5); } .ds-field::placeholder { color: var(--muted, #607087); } .ds-field:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; }"
+    },
+    {
+      "name": "Main Navigation",
+      "kind": "nav",
+      "refersTo": "main-navigation",
+      "description": "The three source routes, with the active route underlined in blue.",
+      "html": "<header class=\"ds-main-header\"><nav class=\"ds-main-nav\" aria-label=\"Main navigation\"><a href=\"/\" aria-current=\"page\">Benchmark runs</a><a href=\"/live\">Live arena</a><a href=\"/method\">Methodology</a></nav></header>",
+      "css": ".ds-main-header { background: var(--surface, #ffffff); border-bottom: 1px solid var(--line, #dfe5ed); min-height: 76px; display: flex; align-items: center; padding: 0 28px; } .ds-main-nav { display: flex; gap: 30px; align-self: stretch; } .ds-main-nav a { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; display: flex; align-items: center; position: relative; font-size: 13px; font-weight: 550; color: var(--muted, #607087); text-decoration: none; text-underline-offset: 3px; } .ds-main-nav a:hover { text-decoration: underline; } .ds-main-nav a:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-main-nav a[aria-current=\"page\"] { color: var(--blue, #2955d5); } .ds-main-nav a[aria-current=\"page\"]::after { content: \"\"; position: absolute; bottom: 0; height: 2px; background: var(--blue, #2955d5); left: 0; right: 0; } @media (max-width: 900px) { .ds-main-header { flex-wrap: wrap; padding: 16px 23px 0; } .ds-main-nav { width: 100%; gap: 28px; height: 43px; } .ds-main-nav a { font-size: 12px; } } @media (max-width: 650px) { .ds-main-header { padding-inline: 18px; } .ds-main-nav { justify-content: space-between; gap: 16px; } .ds-main-nav a { font-size: 11px; } }"
+    },
+    {
+      "name": "Selected Model Chip",
+      "kind": "chip",
+      "refersTo": "model-chip",
+      "description": "The removable selected-model pattern; its label is a component placeholder, not benchmark data.",
+      "html": "<button type=\"button\" class=\"ds-model-chip\" aria-label=\"Remove selected model\">Model name<svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" /></svg></button>",
+      "css": ".ds-model-chip { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; display: inline-flex; gap: 8px; align-items: center; border: 0; border-radius: 5px; background: var(--blue-pale, #edf2ff); color: var(--blue-dark, #2042a7); font-size: 10px; padding: 7px 9px; cursor: pointer; } .ds-model-chip svg { flex-shrink: 0; } .ds-model-chip:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } .ds-model-chip:disabled { cursor: not-allowed; opacity: 0.48; }"
+    },
+    {
+      "name": "Form Section",
+      "kind": "card",
+      "refersTo": "form-section",
+      "description": "The flat, bordered section from the run configuration form.",
+      "html": "<section class=\"ds-form-section\"><h2>Run details</h2><label class=\"ds-field-label\">Run name<input class=\"ds-field\" type=\"text\" value=\"Chess benchmark\" maxlength=\"80\" required /></label></section>",
+      "css": ".ds-form-section { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; background: var(--surface, #ffffff); color: var(--ink, #202d40); border: 1px solid var(--line, #dfe5ed); padding: 28px; border-radius: var(--radius, 12px); margin-bottom: 24px; } .ds-form-section h2 { font-size: 17px; font-weight: 650; line-height: 1.4; letter-spacing: -0.025em; margin: 0 0 16px; } .ds-field-label { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; color: var(--ink, #202d40); font-size: 12px; font-weight: 550; } .ds-field { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; font-size: 14px; font-weight: 400; display: block; width: 100%; margin-top: 9px; min-height: 41px; padding: 9px 12px; border: 1px solid #cdd7e5; border-radius: 6px; color: var(--ink, #202d40); background: var(--surface, #ffffff); min-width: 0; caret-color: var(--blue, #2955d5); } .ds-field::placeholder { color: var(--muted, #607087); } .ds-field:focus-visible { outline: 3px solid var(--focus, #6085ee); outline-offset: 3px; } @media (max-width: 900px) { .ds-form-section { padding: 22px; } } @media (max-width: 650px) { .ds-form-section { padding: 23px 19px; } }"
+    },
+    {
+      "name": "Slate Chessboard",
+      "kind": "custom",
+      "refersTo": "chessboard",
+      "description": "The actual SVG-piece board in the standard starting position. It is a read-only position view; move motion styles are included for the source state classes.",
+      "html": "<div class=\"ds-board-caption\"><span>Starting position</span><span>White to move</span></div><div class=\"ds-chessboard\" role=\"img\" aria-label=\"Chess position. White to move. Black rook on a8, Black knight on b8, Black bishop on c8, Black queen on d8, Black king on e8, Black bishop on f8, Black knight on g8, Black rook on h8, Black pawn on a7, Black pawn on b7, Black pawn on c7, Black pawn on d7, Black pawn on e7, Black pawn on f7, Black pawn on g7, Black pawn on h7, White pawn on a2, White pawn on b2, White pawn on c2, White pawn on d2, White pawn on e2, White pawn on f2, White pawn on g2, White pawn on h2, White rook on a1, White knight on b1, White bishop on c1, White queen on d1, White king on e1, White bishop on f1, White knight on g1, White rook on h1.\"><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 7h6v5h5V7h6v5h5V7h4v12l-5 4v11H13V23l-5-4V7z\" /> <path d=\"M13 23h19M10 34h25v5H10zM9 18h27\" /></svg><span class=\"ds-rank-label\">8</span></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m14 7 10 3 5 5c6 5 7 12 5 19H15l3-10-6 2-5-5 10-11z\" /> <path d=\"m14 7 1 8M18 17l2-2M25 17c-6 5-7 9-5 17M11 34h26v5H11z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"6\" r=\"2.5\" /> <path d=\"M22.5 9c-12 9-12 16 0 20 12-4 12-11 0-20zM21 13l6 8M19 28l-4 6h15l-4-6M11 34h23v5H11z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 13 8 9 5.5-11L28 22l8-9-5 19H14zM12 32h21v7H12z\" /> <circle cx=\"8\" cy=\"11\" r=\"2.5\" /> <circle cx=\"22.5\" cy=\"8\" r=\"2.5\" /> <circle cx=\"37\" cy=\"11\" r=\"2.5\" /> <path d=\"M15 28h15\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22.5 4v10M18 8h9M22.5 16c-10-9-18 2-10 11l3 6h15l3-6c8-9 0-20-10.5-11zM12 33h21v6H12z\" /> <path d=\"M16 29h13M22.5 16v12\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"6\" r=\"2.5\" /> <path d=\"M22.5 9c-12 9-12 16 0 20 12-4 12-11 0-20zM21 13l6 8M19 28l-4 6h15l-4-6M11 34h23v5H11z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m14 7 10 3 5 5c6 5 7 12 5 19H15l3-10-6 2-5-5 10-11z\" /> <path d=\"m14 7 1 8M18 17l2-2M25 17c-6 5-7 9-5 17M11 34h26v5H11z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 7h6v5h5V7h6v5h5V7h4v12l-5 4v11H13V23l-5-4V7z\" /> <path d=\"M13 23h19M10 34h25v5H10zM9 18h27\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg><span class=\"ds-rank-label\">7</span></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#26313f\" stroke=\"#e6ebee\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><span class=\"ds-rank-label\">6</span></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-dark-square\"><span class=\"ds-rank-label\">5</span></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-light-square\"><span class=\"ds-rank-label\">4</span></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-dark-square\"><span class=\"ds-rank-label\">3</span></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-dark-square\"></div><div class=\"ds-square ds-light-square\"></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg><span class=\"ds-rank-label\">2</span></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"11\" r=\"5\" /> <path d=\"M18 16c-5 6-3 9 1 11l-4 7h15l-4-7c4-2 6-5 1-11z\" /> <path d=\"M13 34h19v5H13z\" /></svg></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 7h6v5h5V7h6v5h5V7h4v12l-5 4v11H13V23l-5-4V7z\" /> <path d=\"M13 23h19M10 34h25v5H10zM9 18h27\" /></svg><span class=\"ds-rank-label\">1</span><span class=\"ds-file-label\">a</span></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m14 7 10 3 5 5c6 5 7 12 5 19H15l3-10-6 2-5-5 10-11z\" /> <path d=\"m14 7 1 8M18 17l2-2M25 17c-6 5-7 9-5 17M11 34h26v5H11z\" /></svg><span class=\"ds-file-label\">b</span></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"6\" r=\"2.5\" /> <path d=\"M22.5 9c-12 9-12 16 0 20 12-4 12-11 0-20zM21 13l6 8M19 28l-4 6h15l-4-6M11 34h23v5H11z\" /></svg><span class=\"ds-file-label\">c</span></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 13 8 9 5.5-11L28 22l8-9-5 19H14zM12 32h21v7H12z\" /> <circle cx=\"8\" cy=\"11\" r=\"2.5\" /> <circle cx=\"22.5\" cy=\"8\" r=\"2.5\" /> <circle cx=\"37\" cy=\"11\" r=\"2.5\" /> <path d=\"M15 28h15\" /></svg><span class=\"ds-file-label\">d</span></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22.5 4v10M18 8h9M22.5 16c-10-9-18 2-10 11l3 6h15l3-6c8-9 0-20-10.5-11zM12 33h21v6H12z\" /> <path d=\"M16 29h13M22.5 16v12\" /></svg><span class=\"ds-file-label\">e</span></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"22.5\" cy=\"6\" r=\"2.5\" /> <path d=\"M22.5 9c-12 9-12 16 0 20 12-4 12-11 0-20zM21 13l6 8M19 28l-4 6h15l-4-6M11 34h23v5H11z\" /></svg><span class=\"ds-file-label\">f</span></div><div class=\"ds-square ds-dark-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m14 7 10 3 5 5c6 5 7 12 5 19H15l3-10-6 2-5-5 10-11z\" /> <path d=\"m14 7 1 8M18 17l2-2M25 17c-6 5-7 9-5 17M11 34h26v5H11z\" /></svg><span class=\"ds-file-label\">g</span></div><div class=\"ds-square ds-light-square\"><svg viewBox=\"0 0 45 45\" class=\"ds-piece\" aria-hidden=\"true\" fill=\"#fffdf7\" stroke=\"#3d4956\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 7h6v5h5V7h6v5h5V7h4v12l-5 4v11H13V23l-5-4V7z\" /> <path d=\"M13 23h19M10 34h25v5H10zM9 18h27\" /></svg><span class=\"ds-file-label\">h</span></div></div>",
+      "css": ".ds-board-caption { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted, #607087); font-size: 10px; padding: 0 0 10px; } .ds-chessboard { font-family: 'Public Sans Variable', 'Public Sans', sans-serif; width: 100%; aspect-ratio: 1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); overflow: hidden; border-radius: 4px; } .ds-square { aspect-ratio: 1; position: relative; display: grid; place-items: center; } .ds-light-square { background: #e6ebf0; color: #465b72; } .ds-dark-square { background: #7790aa; color: #0d1b2a; } .ds-piece { width: 88%; height: 88%; position: relative; z-index: 1; } .ds-rank-label, .ds-file-label { position: absolute; z-index: 2; font-size: clamp(7px, 0.65vw, 10px); font-weight: 550; line-height: 1; } .ds-rank-label { left: 3px; top: 3px; } .ds-file-label { right: 3px; bottom: 3px; } .ds-moving-piece { z-index: 3; animation: ds-piece-move 0.36s cubic-bezier(0.16, 1, 0.3, 1); } .ds-last-square::after { content: \"\"; position: absolute; inset: 0; background: #f0dc66; opacity: 0.4; animation: ds-move-settle 0.8s cubic-bezier(0.16, 1, 0.3, 1); } @keyframes ds-piece-move { from { transform: translate(var(--move-x), var(--move-y)); } to { transform: translate(0, 0); } } @keyframes ds-move-settle { from { opacity: 0.8; } to { opacity: 0.4; } } @media (max-width: 650px) { .ds-rank-label, .ds-file-label { font-size: 9px; } } @media (prefers-reduced-motion: reduce) { .ds-moving-piece, .ds-last-square::after { animation: none !important; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Research workbench",
+    "overview": "Cool pale surfaces, graphite text, deep blue controls, and Public Sans form a quiet working environment. Compact labels and square data rows carry the record; headings and restrained rounded controls establish hierarchy. The slate chessboard belongs to the same material palette as the surrounding interface.\n\nFlat surfaces and thin dividers keep related measurements legible. Color identifies actions, selection, and status; visible status text accompanies its color. The committed world is recorded in [PRODUCT.md](PRODUCT.md) and [the surface brief](docs/arena-surface.md), with the implemented source as the authority for values.\n\nThis is a source-derived record of `client/src/styles.css`, `App.tsx`, `Board.tsx`, and `main.tsx`. The validated Empty, Setup, and Live screenshots in `client/.impeccable/review` precede the final contrast and operator-control changes; they do not establish visual approval of the final source. Sidecar tonal ramps are generated swatch previews, not additional shipped color tokens.",
+    "keyCharacteristics": [
+      "Cool pale grounds and white working surfaces.",
+      "Public Sans with tabular numerals throughout the interface.",
+      "Blue action and selection states, plus text-bearing operational status.",
+      "Flat, square data rows within softly rounded containers.",
+      "A slate chessboard with outlined SVG pieces and restrained move motion."
+    ],
+    "rules": [
+      {
+        "name": "The Status Text Rule",
+        "body": "Keep the status name or connection message beside its colored indicator.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numeric Alignment Rule",
+        "body": "Preserve tabular numerals for measurements and score tables.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "Separate working regions with surface tone and dividers; reserve the existing shadow treatment for the selected tab indicator.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use blue for primary actions, links, progress, and selection.",
+      "**Do** retain visible status text beside color indicators.",
+      "**Do** preserve Public Sans and tabular numerals for working data.",
+      "**Do** use flat surfaces, thin dividers, and square data rows inside the recorded container shapes.",
+      "**Do** keep board labels, focus outlines, and placeholder text in their recorded contrast treatments.",
+      "**Do** retain reduced-motion handling for state transitions and board movement."
+    ],
+    "donts": [
+      "**Don't** replace status names with color alone.",
+      "**Don't** add ambient card shadows to the existing flat container vocabulary.",
+      "**Don't** replace the existing SVG piece and control artwork with text glyphs.",
+      "**Don't** present fabricated rankings, costs, or match results as measured data.",
+      "**Don't** treat generated sidecar color ramps or earlier screenshots as approval of new shipped tokens."
+    ]
+  }
+}

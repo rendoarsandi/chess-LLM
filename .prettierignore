@@ -1,0 +1,8 @@
+node_modules/
+client/dist/
+server/dist/
+.local/
+.wrangler/
+test-results/
+client/.impeccable/review/
+package-lock.json

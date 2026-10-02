@@ -1,48 +1,34 @@
 {
-  "name": "chessllm",
-  "version": "1.0.0",
+  "name": "gamebench",
+  "version": "2.0.0",
   "private": true,
-  "description": "LLM chess arena for benchmarking model play, ratings, tournaments, and game review.",
-  "scripts": {
-    "test": "npm test -w client && npm test -w server",
-    "test:client": "npm test -w client",
-    "test:server": "npm test -w server",
-    "dev": "concurrently \"npm run dev -w client\" \"npm run dev -w server\"",
-    "lint": "npm run lint -w client && npm run lint -w server",
-    "format": "prettier --write .",
-    "check": "npm run check -w client && npm run check -w server",
-    "check:cloudflare": "npm run typecheck:cloudflare -w server",
-    "build": "npm run build -w client && npm run build -w server",
-    "db:generate": "npx drizzle-kit generate --config drizzle.config.ts",
-    "db:push": "npx drizzle-kit push --config drizzle.config.ts",
-    "cf:dev": "npx wrangler dev",
-    "cf:deploy": "npx wrangler deploy",
-    "cf:d1:apply": "npx wrangler d1 migrations apply chessllm-arena",
-    "test:e2e": "npx playwright test"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "module",
+  "description": "LLM game benchmarks on Cloudflare Workers and Durable Objects.",
   "workspaces": [
     "client",
     "server"
   ],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev:cloudflare": "npm run build -w client && node scripts/desktop-check.mjs preview",
+    "check": "npm run check -w client && npm run check -w server",
+    "test": "npm test -w server && npm test -w client",
+    "test:e2e": "node scripts/desktop-check.mjs browser",
+    "build": "npm run build -w client && npm run build -w server",
+    "cf:deploy": "npm run build && node scripts/desktop-check.mjs deploy",
+    "cf:dry-run": "npm run build && node scripts/desktop-check.mjs dry-run",
+    "format": "prettier --write .",
+    "test:cloudflare": "node scripts/desktop-check.mjs cloudflare",
+    "test:light": "npm test -w server -- --maxWorkers=1 --no-file-parallelism"
+  },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.3.6",
     "@playwright/test": "^1.57.0",
-    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.0.3",
-    "buffer": "^6.0.3",
     "concurrently": "^9.2.1",
-    "prettier": "^3.7.4"
-  },
-  "dependencies": {
-    "drizzle-orm": "^0.45.1"
-  },
-  "overrides": {
-    "esbuild": "^0.25.0",
-    "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.0"
-    }
+    "esbuild": "^0.28.2",
+    "prettier": "^3.7.4",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.0.0"
   }
 }

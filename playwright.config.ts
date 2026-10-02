@@ -1,58 +1,34 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig } from '@playwright/test'
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 60000,
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  workers: 1,
+  timeout: 30000,
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['list'], ['html', { open: 'never' }]],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  reporter: 'list',
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5173',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-    video: 'on-first-retry',
-  },
-
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          executablePath: '/data/data/com.termux/files/usr/bin/chromium-browser',
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        },
-      },
+    baseURL: 'http://127.0.0.1:5174',
+    viewport: { width: 1440, height: 1000 },
+    trace: 'retain-on-failure',
+    launchOptions: {
+      executablePath:
+        process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ??
+        (process.platform === 'android'
+          ? '/data/data/com.termux/files/usr/bin/chromium-browser'
+          : undefined),
+      args: ['--no-sandbox'],
     },
-  ],
-
-  /* Run your local dev server before starting the tests */
+  },
   webServer: [
     {
-      command: 'npm run dev -w server',
-      url: 'http://localhost:3001/api/games',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      command: 'npx tsx server/test/ui-server.ts',
+      url: 'http://127.0.0.1:3002/api/health',
+      timeout: 60000,
     },
     {
-      command: 'npm run dev -w client',
-      url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
-      timeout: 120000,
+      command: 'GAMEBENCH_API_ORIGIN=http://127.0.0.1:3002 npm run dev -w client -- --port 5174',
+      url: 'http://127.0.0.1:5174',
+      timeout: 60000,
     },
   ],
 })

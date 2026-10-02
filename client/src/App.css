@@ -1,7 +1,0 @@
-/* Merged styles into index.css or replaced with Tailwind */
-#root {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}

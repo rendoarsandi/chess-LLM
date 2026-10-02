@@ -3,11 +3,16 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": ["node"],
-    "isolatedModules": false,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "types": [
+      "node",
+      "@cloudflare/workers-types"
+    ],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "strict": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "../node_modules", "src/cloudflare/**/*", "src/db/d1.ts"]
+  "include": [
+    "src/**/*.ts",
+    "../shared/**/*.ts"
+  ]
 }

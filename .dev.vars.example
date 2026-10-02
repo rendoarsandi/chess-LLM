@@ -1,7 +1,5 @@
+# Copy to .dev.vars. The real file is gitignored.
 ADMIN_API_TOKEN=replace-with-a-long-random-token
-OPENROUTER_API_KEY=sk-or-v1-...
-OPENROUTER_HTTP_REFERER=https://your-site.pages.dev
-OPENROUTER_APP_TITLE=ChessLLM Arena
-MATCHMAKING_ENABLED=true
-MATCHMAKING_INTERVAL_MS=60000
-MATCHMAKING_VARIANT=standard
+OPENROUTER_API_KEY=sk-or-v1-replace-me
+OPENROUTER_HTTP_REFERER=http://localhost:5173
+OPENROUTER_APP_TITLE=GameBench

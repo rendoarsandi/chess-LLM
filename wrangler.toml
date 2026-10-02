@@ -1,28 +1,27 @@
-name = "chessllm-arena"
+name = "gamebench"
 main = "server/src/cloudflare/worker.ts"
-compatibility_date = "2026-04-21"
-compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./client/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
 
 [vars]
-MATCHMAKING_ENABLED = "false"
-MATCHMAKING_INTERVAL_MS = "60000"
-MATCHMAKING_VARIANT = "standard"
-OPENROUTER_APP_TITLE = "ChessLLM Arena"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "chessllm-arena"
-database_id = "replace-with-your-d1-database-id"
-migrations_dir = "server/drizzle"
+OPENROUTER_APP_TITLE = "GameBench"
 
 [[durable_objects.bindings]]
-name = "GAME_ROOM"
-class_name = "GameRoom"
+name = "BENCHMARK_RUN"
+class_name = "BenchmarkRun"
 
 [[durable_objects.bindings]]
-name = "ARENA_SCHEDULER"
-class_name = "ArenaScheduler"
+name = "ARENA_REGISTRY"
+class_name = "ArenaRegistry"
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["GameRoom", "ArenaScheduler"]
+new_sqlite_classes = ["BenchmarkRun", "ArenaRegistry"]
+
+[observability]
+enabled = true

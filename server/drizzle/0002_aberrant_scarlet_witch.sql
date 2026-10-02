@@ -1,1 +1,0 @@
-ALTER TABLE `moves` ADD `thinking_ms` integer;
