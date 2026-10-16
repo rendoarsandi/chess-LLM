@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers'
 import { evictDurableObject, runDurableObjectAlarm } from 'cloudflare:test'
 import { afterEach, expect, it, vi } from 'vitest'
+import worker from '../../server/src/cloudflare/worker'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -63,7 +64,10 @@ it('executes on real DO alarms, restores SQLite state, hibernates spectators, an
   expect(await runDurableObjectAlarm(stub)).toBe(true)
   expect((await (await stub.fetch('https://run/')).json()).matches[0].plies).toBe(2)
 
-  const live = await stub.fetch('https://run/live', { headers: { Upgrade: 'websocket' } })
+  const live = await worker.fetch(
+    new Request(`https://gamebench/api/runs/${id}/live`, { headers: { Upgrade: 'websocket' } }),
+    env,
+  )
   expect(live.status).toBe(101)
   const socket = live.webSocket
   socket.accept()

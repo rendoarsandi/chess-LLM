@@ -52,6 +52,5 @@ playwright/.cache/
 # Local benchmark storage
 .local/
 .wrangler/
-
-# Non-shipping visual review evidence
-client/.impeccable/review/
+.tanstack/
+client/public/engine/

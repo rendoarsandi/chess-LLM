@@ -728,13 +728,174 @@ td small {
 .board-panel {
   min-width: 0;
 }
+.analysed-board {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 8px;
+}
+.evaluation-bar {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.evaluation-white {
+  position: absolute;
+  inset: 0;
+  background: #fffdf7;
+  transform-origin: center bottom;
+  transition: transform 0.3s ease-out;
+}
+.evaluation-flipped .evaluation-white {
+  transform-origin: center top;
+}
+.evaluation-label {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink);
+  background: #fffdf7;
+  padding: 2px 1px;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+  border-radius: 3px;
+}
+.evaluation-label.black-ahead {
+  bottom: auto;
+  top: 5px;
+  color: #fffdf7;
+  background: var(--ink);
+}
+.evaluation-flipped .evaluation-label {
+  bottom: auto;
+  top: 5px;
+}
+.evaluation-flipped .evaluation-label.black-ahead {
+  top: auto;
+  bottom: 5px;
+}
+.engine-analysis {
+  border-block: 1px solid var(--line);
+  padding-block: 15px;
+  margin-bottom: 23px;
+  min-width: 0;
+}
+.engine-heading,
+.engine-heading h3,
+.engine-controls,
+.engine-controls > span,
+.engine-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.engine-heading,
+.engine-controls {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.engine-heading h3 {
+  margin: 0;
+  font-size: 12px;
+}
+.engine-heading h3 > span,
+.engine-toggle {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.engine-toggle {
+  cursor: pointer;
+  min-height: 32px;
+}
+.engine-toggle input {
+  min-height: auto;
+  accent-color: var(--blue);
+}
+.engine-controls {
+  margin-block: 8px 12px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.engine-controls select {
+  padding: 5px 7px;
+  min-height: 32px;
+  font-size: 11px;
+}
+.engine-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.engine-lines li {
+  display: grid;
+  grid-template-columns: 12px 49px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-block: 10px;
+  font-size: 11px;
+}
+.engine-line-rank {
+  color: var(--muted);
+  font-size: 10px;
+}
+.engine-score {
+  color: var(--ink);
+  background: #f3f5f8;
+  text-align: center;
+  border-radius: 3px;
+  padding: 2px 3px;
+  font-size: 11px;
+}
+.engine-score-black {
+  background: var(--ink);
+  color: var(--surface);
+}
+.engine-variation {
+  white-space: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.engine-note,
+.engine-error p {
+  font-size: 10px;
+  line-height: 1.6;
+  margin-block: 10px 0;
+}
+.engine-note,
+.engine-source {
+  color: var(--muted);
+}
+.engine-source {
+  display: inline-block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.engine-error {
+  color: var(--danger);
+}
 .chessboard {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   overflow: hidden;
   border-radius: 4px;
+}
+.engine-arrow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  color: var(--blue);
+  opacity: 0.7;
+  z-index: 4;
 }
 .square {
   aspect-ratio: 1;

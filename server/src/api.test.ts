@@ -1,5 +1,6 @@
-import { afterEach, expect, it } from 'vitest'
-import { createApi } from './api'
+import { afterEach, beforeAll, expect, it } from 'vitest'
+import { loadStartHandler } from './start-handler'
+import type { StartHandler } from './start-handler'
 import { LocalPlatform } from './local-platform'
 import { NodeDatabase } from './storage/node-database'
 import type { ModelProvider } from './core/provider'
@@ -32,7 +33,15 @@ const provider: ModelProvider = {
   },
 }
 const platform = new LocalPlatform(database, provider, 'fixture-secret', true)
-const app = createApi(() => platform)
+let app: StartHandler
+beforeAll(async () => {
+  app = await loadStartHandler()
+})
+function requestApi(path: string, init?: RequestInit) {
+  return Promise.resolve(
+    app.fetch(new Request(`http://localhost${path}`, init), { context: { platform } }),
+  )
+}
 const input = {
   name: 'API fixture',
   gameId: 'chess',
@@ -51,19 +60,27 @@ afterEach(() => platform.stop())
 it('protects mutations, validates the public protocol, and makes creation retry-safe', async () => {
   const id = crypto.randomUUID()
   const request = () =>
-    app.request('/api/runs', {
+    requestApi('/api/runs', {
       method: 'POST',
       headers: { ...headers, 'Idempotency-Key': id },
       body: JSON.stringify(input),
     })
-  const denied = await app.request('/api/runs', {
+  const denied = await requestApi('/api/runs', {
     method: 'POST',
     body: JSON.stringify(input),
     headers: { 'Content-Type': 'application/json' },
   })
   expect(denied.status).toBe(401)
   expect(await platform.listRuns()).toHaveLength(0)
-  const invalid = await app.request('/api/runs', {
+  const health = await requestApi('/api/health')
+  expect(health.headers.get('Cache-Control')).toBe('no-store')
+  expect(health.headers.get('X-Content-Type-Options')).toBe('nosniff')
+  expect((await requestApi('/api/runs', { method: 'POST', headers, body: '{' })).status).toBe(400)
+  expect(
+    (await requestApi('/api/runs', { method: 'POST', headers, body: '☃'.repeat(6000) })).status,
+  ).toBe(413)
+  expect((await requestApi('/api/missing')).status).toBe(404)
+  const invalid = await requestApi('/api/runs', {
     method: 'POST',
     headers,
     body: JSON.stringify({ ...input, modelIds: [models[0].id, models[0].id] }),
@@ -76,7 +93,7 @@ it('protects mutations, validates the public protocol, and makes creation retry-
   models[0].inputPrice = 0
   expect(
     (
-      await app.request('/api/runs', {
+      await requestApi('/api/runs', {
         method: 'POST',
         headers: { ...headers, 'Idempotency-Key': id },
         body: JSON.stringify({ ...input, name: 'Changed experiment' }),
@@ -85,17 +102,17 @@ it('protects mutations, validates the public protocol, and makes creation retry-
   ).toBe(409)
   expect(await platform.listRuns()).toHaveLength(1)
   await platform.tickRun(id)
-  const spectator = await app.request(`/api/runs/${id}`)
+  const spectator = await requestApi(`/api/runs/${id}`)
   expect(spectator.status).toBe(200)
   expect(await spectator.json()).toMatchObject({ id, matches: [{ plies: 1 }, { plies: 0 }] })
-  const exported = await app.request(`/api/runs/${id}/export`)
+  const exported = await requestApi(`/api/runs/${id}/export`)
   const record = (await exported.json()) as { run: RunSnapshot; attempts: unknown[] }
   expect(exported.headers.get('Content-Disposition')).toContain(`${id}.json`)
   expect(record.run.config.modelIds).toEqual(input.modelIds)
   expect(record.attempts).toHaveLength(1)
   expect(JSON.stringify(record)).not.toContain('fixture-secret')
-  expect((await app.request('/api/runs/not-a-uuid')).status).toBe(404)
-  expect((await app.request(`/api/runs/${id}/pause`, { method: 'POST', headers })).status).toBe(200)
-  expect((await app.request(`/api/runs/${id}/export`)).status).toBe(200)
+  expect((await requestApi('/api/runs/not-a-uuid')).status).toBe(404)
+  expect((await requestApi(`/api/runs/${id}/pause`, { method: 'POST', headers })).status).toBe(200)
+  expect((await requestApi(`/api/runs/${id}/export`)).status).toBe(200)
   database.close()
 })

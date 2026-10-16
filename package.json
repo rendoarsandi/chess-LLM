@@ -9,26 +9,29 @@
     "server"
   ],
   "scripts": {
-    "dev": "concurrently -k \"npm run dev -w server\" \"npm run dev -w client\"",
+    "setup:termux": "node scripts/termux-runtime.mjs setup",
+    "dev": "npm run dev -w client",
     "dev:cloudflare": "npm run build -w client && node scripts/desktop-check.mjs preview",
     "check": "npm run check -w client && npm run check -w server",
-    "test": "npm test -w server && npm test -w client",
+    "test": "npm run build && npm test -w server && npm test -w client",
     "test:e2e": "node scripts/desktop-check.mjs browser",
     "build": "npm run build -w client && npm run build -w server",
     "cf:deploy": "npm run build && node scripts/desktop-check.mjs deploy",
     "cf:dry-run": "npm run build && node scripts/desktop-check.mjs dry-run",
     "format": "prettier --write .",
     "test:cloudflare": "node scripts/desktop-check.mjs cloudflare",
-    "test:light": "npm test -w server -- --maxWorkers=1 --no-file-parallelism"
+    "test:light": "npm run build && npm test -w server -- --maxWorkers=1 --no-file-parallelism"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "^1.3.6",
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^25.0.3",
-    "concurrently": "^9.2.1",
+    "@cloudflare/vitest-plugin": "^1.4.4",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
     "esbuild": "^0.28.2",
-    "prettier": "^3.7.4",
-    "vitest": "^4.1.11",
-    "wrangler": "^4.0.0"
+    "prettier": "^3.9.10",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.1"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   }
 }

@@ -73,6 +73,26 @@ test('launches through the UI, streams to public spectators, pauses safely, and 
     'aria-label',
     /White pawn on f2/,
   )
+  const analysis = page.getByRole('region', { name: 'Stockfish analysis' })
+  await analysis.getByLabel('Analysis time per position').selectOption('1000')
+  await expect(analysis.getByRole('status')).toContainText('Search complete', { timeout: 20000 })
+  const lines = analysis
+    .getByRole('list', { name: 'Best continuation lines' })
+    .getByRole('listitem')
+  await expect(lines).toHaveCount(3)
+  for (const line of await lines.all()) await expect(line).toContainText(/1\. /)
+  await expect(page.getByRole('img', { name: /Stockfish evaluation/ })).toHaveAttribute(
+    'aria-label',
+    /\d+\.\d{2}/,
+  )
+  await capture(page, 'analysis')
+  await analysis.getByRole('checkbox', { name: 'Analysis', exact: true }).uncheck()
+  await expect(analysis.getByRole('status')).toHaveText('Analysis off')
+  await expect(page.getByRole('img', { name: /Stockfish evaluation/ })).toHaveAttribute(
+    'aria-label',
+    /off/,
+  )
+  await analysis.getByRole('checkbox', { name: 'Analysis', exact: true }).check()
   await page.getByRole('button', { name: 'Latest position', exact: true }).click()
   await page.getByRole('button', { name: 'Resume run', exact: true }).click()
 

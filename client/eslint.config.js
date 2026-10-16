@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', '.tanstack', 'src/routeTree.gen.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -21,7 +21,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx'],
-    rules: {},
+    files: ['src/routes/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': ['error', { allowExportNames: ['Route'] }] },
   },
 ])

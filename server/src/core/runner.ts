@@ -11,7 +11,9 @@ import type { GameAdapter } from './game'
 import { ProviderError, requestReserve, type ModelProvider } from './provider'
 import { RunStore } from '../storage/run-store'
 
-export class RunConflict extends Error {}
+export class RunConflict extends Error {
+  readonly code = 'RUN_CONFLICT'
+}
 
 export class BenchmarkRunner {
   private inFlight: Promise<void> | null = null

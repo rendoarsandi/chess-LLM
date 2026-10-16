@@ -1,6 +1,6 @@
-import { serve } from '@hono/node-server'
-import type { Server } from 'node:http'
-import { createApi } from '../src/api'
+import { createServer, type RequestListener } from 'node:http'
+import { toNodeHandler } from 'srvx/node'
+import { loadStartHandler } from '../src/start-handler'
 import { LocalPlatform } from '../src/local-platform'
 import { NodeDatabase } from '../src/storage/node-database'
 import { attachLiveSockets } from '../src/local-websocket'
@@ -48,7 +48,10 @@ const provider: ModelProvider = {
   },
 }
 const platform = new LocalPlatform(new NodeDatabase(':memory:'), provider, 'fixture-admin', true)
-const api = createApi(() => platform)
-const server = serve({ fetch: api.fetch, port: 3002, hostname: '127.0.0.1' })
-attachLiveSockets(server as Server, platform)
+const app = await loadStartHandler()
+const server = createServer(
+  toNodeHandler((request) => app.fetch(request, { context: { platform } })) as RequestListener,
+)
+server.listen(3002, '127.0.0.1')
+attachLiveSockets(server, platform)
 platform.start()

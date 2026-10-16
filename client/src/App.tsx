@@ -1,5 +1,12 @@
-import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
-import { Link, NavLink, Route, Routes, useNavigate, useParams } from 'react-router'
+import {
+  createContext,
+  useContext,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
+import { Link, Outlet, useNavigate, useParams } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowDownToLine,
@@ -27,6 +34,8 @@ import {
 import { Chess, DEFAULT_POSITION as startingFen } from 'chess.js'
 import { api, downloadText, money, tokenKey } from './api'
 import { Board } from './Board'
+import { EngineAnalysis, EvaluationBar } from './EngineAnalysis'
+import { useStockfish } from './useStockfish'
 import { useLiveRun, type ThinkingEvent } from './useLiveRun'
 import {
   standings,
@@ -68,6 +77,23 @@ function Loading({ children = 'Loading…' }: { children?: ReactNode }) {
   )
 }
 
+const ConnectionContext = createContext({ connected: false, connect: () => {} })
+
+export function RunsPage() {
+  const { connected } = useContext(ConnectionContext)
+  return <Workbench connected={connected} />
+}
+
+export function LivePage() {
+  const { connected } = useContext(ConnectionContext)
+  return <Workbench connected={connected} liveOnly />
+}
+
+export function NewRunPage() {
+  const { connected, connect } = useContext(ConnectionContext)
+  return <NewRun connected={connected} connect={connect} />
+}
+
 export default function App() {
   const [connected, setConnected] = useState(() => !!sessionStorage.getItem(tokenKey))
   const [showConnection, setShowConnection] = useState(false)
@@ -81,7 +107,7 @@ export default function App() {
     setToken('')
   }
   return (
-    <>
+    <ConnectionContext.Provider value={{ connected, connect: () => setShowConnection(true) }}>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
@@ -93,11 +119,15 @@ export default function App() {
           GameBench
         </Link>
         <nav aria-label="Main navigation">
-          <NavLink to="/" end>
+          <Link to="/" activeProps={{ className: 'active' }} activeOptions={{ exact: true }}>
             Benchmark runs
-          </NavLink>
-          <NavLink to="/live">Live arena</NavLink>
-          <NavLink to="/method">Methodology</NavLink>
+          </Link>
+          <Link to="/live" activeProps={{ className: 'active' }}>
+            Live arena
+          </Link>
+          <Link to="/method" activeProps={{ className: 'active' }}>
+            Methodology
+          </Link>
         </nav>
         <button
           className={`button compact ${connected ? 'connected' : ''}`}
@@ -168,27 +198,7 @@ export default function App() {
             </span>
           </div>
         )}
-        <Routes>
-          <Route path="/" element={<Workbench connected={connected} />} />
-          <Route path="/runs/:id" element={<Workbench connected={connected} />} />
-          <Route
-            path="/runs/new"
-            element={<NewRun connected={connected} connect={() => setShowConnection(true)} />}
-          />
-          <Route path="/live" element={<Workbench connected={connected} liveOnly />} />
-          <Route path="/method" element={<Methodology />} />
-          <Route
-            path="*"
-            element={
-              <div className="empty-message">
-                <h1>Page not found</h1>
-                <Link className="button primary" to="/">
-                  Go to benchmark runs
-                </Link>
-              </div>
-            }
-          />
-        </Routes>
+        <Outlet />
       </main>
       <footer className="site-footer">
         <span>GameBench · Chess is the first experiment.</span>
@@ -196,12 +206,12 @@ export default function App() {
           How results are measured <ArrowRight size={13} />
         </Link>
       </footer>
-    </>
+    </ConnectionContext.Provider>
   )
 }
 
 function Workbench({ liveOnly = false, connected }: { liveOnly?: boolean; connected: boolean }) {
-  const { id } = useParams()
+  const { id } = useParams({ strict: false })
   const runs = useQuery({ queryKey: ['runs'], queryFn: api.runs, refetchInterval: 4000 })
   const visibleRuns = runs.data?.filter((run) => !liveOnly || run.status === 'running') ?? []
   const selectedId = id ?? visibleRuns[0]?.id
@@ -271,7 +281,8 @@ function Workbench({ liveOnly = false, connected }: { liveOnly?: boolean; connec
 function RunItem({ run, active }: { run: RunSummary; active: boolean }) {
   return (
     <Link
-      to={`/runs/${run.id}`}
+      to="/runs/$id"
+      params={{ id: run.id }}
       className={`run-item ${active ? 'active' : ''}`}
       aria-current={active ? 'page' : undefined}
     >
@@ -676,6 +687,7 @@ function MatchViewer({
   const selected = index >= 0 ? legal[index] : null
   const fen =
     cursor === null ? (match.view.fen ?? startingFen) : (selected?.positionAfter ?? startingFen)
+  const engine = useStockfish(fen)
   let lastMove: { from: string; to: string } | undefined
   if (selected?.action && selected.positionAfter === fen) {
     const positionBefore = index > 0 ? (legal[index - 1].positionAfter ?? startingFen) : startingFen
@@ -691,7 +703,19 @@ function MatchViewer({
           <strong>{modelName(run, match.modelIds[flipped ? 0 : 1])}</strong>
           <span>{flipped ? 'White' : 'Black'}</span>
         </div>
-        <Board fen={fen} flipped={flipped} lastMove={lastMove} />
+        <div className="analysed-board">
+          <EvaluationBar
+            score={engine.analysis.lines[0]?.score}
+            flipped={flipped}
+            status={engine.analysis.status}
+          />
+          <Board
+            fen={fen}
+            flipped={flipped}
+            lastMove={lastMove}
+            bestMove={engine.analysis.lines[0]?.moves[0]}
+          />
+        </div>
         <div className="player-line">
           <span className={`seat-dot ${flipped ? 'black-seat' : 'white-seat'}`} />
           <strong>{modelName(run, match.modelIds[flipped ? 1 : 0])}</strong>
@@ -770,6 +794,7 @@ function MatchViewer({
           <span className={`live-dot ${liveConnected ? '' : 'offline'}`} />
           {liveConnected ? 'Live updates connected' : 'Reconnecting · refreshing positions'}
         </div>
+        <EngineAnalysis engine={engine} />
         {thinking && run.status === 'running' && (
           <div className="live-thinking">
             <h3 aria-live="polite">
@@ -964,7 +989,7 @@ function NewRun({ connected, connect }: { connected: boolean; connect: () => voi
     onSuccess: (run) => {
       client.setQueryData(['run', run.id], run)
       void client.invalidateQueries({ queryKey: ['runs'] })
-      navigate(`/runs/${run.id}`)
+      void navigate({ to: '/runs/$id', params: { id: run.id } })
     },
   })
   const filtered =
@@ -1252,7 +1277,7 @@ function NewRun({ connected, connect }: { connected: boolean; connect: () => voi
   )
 }
 
-function Methodology() {
+export function Methodology() {
   return (
     <article className="methodology">
       <Link to="/" className="back-link">
@@ -1322,8 +1347,7 @@ function Methodology() {
       <p>
         For local development, copy <code>.dev.vars.example</code> to <code>.dev.vars</code>, fill
         in the values, and run <code>npm run dev</code>. For Cloudflare, set both secrets with
-        Wrangler and run <code>npm run cf:deploy</code>. The repository README has the complete
-        deployment instructions.
+        Wrangler and run <code>npm run cf:deploy</code>.
       </p>
       <Link to="/runs/new" className="button primary">
         Set up a run <ArrowRight size={16} />

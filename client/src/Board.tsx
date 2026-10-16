@@ -1,5 +1,5 @@
 import { Chess, DEFAULT_POSITION, type PieceSymbol } from 'chess.js'
-import type { CSSProperties } from 'react'
+import { useId, type CSSProperties } from 'react'
 
 const startingFen = DEFAULT_POSITION
 const names: Record<PieceSymbol, string> = {
@@ -80,15 +80,25 @@ export function Board({
   fen = startingFen,
   flipped = false,
   lastMove,
+  bestMove,
 }: {
   fen?: string
   flipped?: boolean
   lastMove?: { from: string; to: string }
+  bestMove?: string
 }) {
+  const arrowId = useId()
   const chess = new Chess(fen)
   const board = chess.board().flat()
   const squares = flipped ? [...board].reverse() : board
   const files = flipped ? 'hgfedcba' : 'abcdefgh'
+  function coordinates(square: string) {
+    const file = square.charCodeAt(0) - 97
+    const rank = Number(square[1]) - 1
+    return [flipped ? 7 - file + 0.5 : file + 0.5, flipped ? rank + 0.5 : 7 - rank + 0.5]
+  }
+  const from = bestMove ? coordinates(bestMove.slice(0, 2)) : null
+  const to = bestMove ? coordinates(bestMove.slice(2, 4)) : null
   return (
     <div
       className="chessboard"
@@ -101,6 +111,25 @@ export function Board({
         )
         .join(', ')}.`}
     >
+      {from && to && (
+        <svg className="engine-arrow" viewBox="0 0 8 8" aria-hidden="true">
+          <defs>
+            <marker id={arrowId} markerWidth="3" markerHeight="3" refX="2" refY="1.5" orient="auto">
+              <path d="M0 0 3 1.5 0 3z" fill="currentColor" />
+            </marker>
+          </defs>
+          <line
+            x1={from[0]}
+            y1={from[1]}
+            x2={to[0]}
+            y2={to[1]}
+            stroke="currentColor"
+            strokeWidth="0.15"
+            strokeLinecap="round"
+            markerEnd={`url(#${arrowId})`}
+          />
+        </svg>
+      )}
       {squares.map((piece, index) => {
         const row = Math.floor(index / 8),
           column = index % 8
