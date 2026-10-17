@@ -12,11 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkbenchRouteImport } from './routes/_workbench'
 import { Route as ApiRouteImport } from './routes/api'
 import { Route as WorkbenchIndexRouteImport } from './routes/_workbench.index'
+import { Route as WorkbenchHistoryRouteImport } from './routes/_workbench.history'
+import { Route as WorkbenchLeaderboardRouteImport } from './routes/_workbench.leaderboard'
 import { Route as WorkbenchLiveRouteImport } from './routes/_workbench.live'
 import { Route as WorkbenchMethodRouteImport } from './routes/_workbench.method'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ApiGamesRouteImport } from './routes/api.games'
 import { Route as ApiHealthRouteImport } from './routes/api.health'
+import { Route as ApiHistoryRouteImport } from './routes/api.history'
+import { Route as ApiLeaderboardRouteImport } from './routes/api.leaderboard'
 import { Route as ApiModelsRouteImport } from './routes/api.models'
 import { Route as ApiRunsRouteImport } from './routes/api.runs'
 import { Route as WorkbenchRunsIdRouteImport } from './routes/_workbench.runs.$id'
@@ -39,6 +43,16 @@ const ApiRoute = ApiRouteImport.update({
 const WorkbenchIndexRoute = WorkbenchIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => WorkbenchRoute,
+} as any)
+const WorkbenchHistoryRoute = WorkbenchHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => WorkbenchRoute,
+} as any)
+const WorkbenchLeaderboardRoute = WorkbenchLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => WorkbenchRoute,
 } as any)
 const WorkbenchLiveRoute = WorkbenchLiveRouteImport.update({
@@ -64,6 +78,16 @@ const ApiGamesRoute = ApiGamesRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/health',
   path: '/health',
+  getParentRoute: () => ApiRoute,
+} as any)
+const ApiHistoryRoute = ApiHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ApiRoute,
+} as any)
+const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => ApiRoute,
 } as any)
 const ApiModelsRoute = ApiModelsRouteImport.update({
@@ -116,11 +140,15 @@ const ApiRunsIdMatchesMatchIdAttemptsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof WorkbenchIndexRoute
   '/api': typeof ApiRouteWithChildren
+  '/history': typeof WorkbenchHistoryRoute
+  '/leaderboard': typeof WorkbenchLeaderboardRoute
   '/live': typeof WorkbenchLiveRoute
   '/method': typeof WorkbenchMethodRoute
   '/api/$': typeof ApiSplatRoute
   '/api/games': typeof ApiGamesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/models': typeof ApiModelsRoute
   '/api/runs': typeof ApiRunsRouteWithChildren
   '/runs/$id': typeof WorkbenchRunsIdRoute
@@ -133,11 +161,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/api': typeof ApiRouteWithChildren
+  '/history': typeof WorkbenchHistoryRoute
+  '/leaderboard': typeof WorkbenchLeaderboardRoute
   '/live': typeof WorkbenchLiveRoute
   '/method': typeof WorkbenchMethodRoute
   '/api/$': typeof ApiSplatRoute
   '/api/games': typeof ApiGamesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/models': typeof ApiModelsRoute
   '/api/runs': typeof ApiRunsRouteWithChildren
   '/': typeof WorkbenchIndexRoute
@@ -153,11 +185,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_workbench': typeof WorkbenchRouteWithChildren
   '/api': typeof ApiRouteWithChildren
+  '/_workbench/history': typeof WorkbenchHistoryRoute
+  '/_workbench/leaderboard': typeof WorkbenchLeaderboardRoute
   '/_workbench/live': typeof WorkbenchLiveRoute
   '/_workbench/method': typeof WorkbenchMethodRoute
   '/api/$': typeof ApiSplatRoute
   '/api/games': typeof ApiGamesRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/models': typeof ApiModelsRoute
   '/api/runs': typeof ApiRunsRouteWithChildren
   '/_workbench/': typeof WorkbenchIndexRoute
@@ -174,11 +210,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api'
+    | '/history'
+    | '/leaderboard'
     | '/live'
     | '/method'
     | '/api/$'
     | '/api/games'
     | '/api/health'
+    | '/api/history'
+    | '/api/leaderboard'
     | '/api/models'
     | '/api/runs'
     | '/runs/$id'
@@ -191,11 +231,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/api'
+    | '/history'
+    | '/leaderboard'
     | '/live'
     | '/method'
     | '/api/$'
     | '/api/games'
     | '/api/health'
+    | '/api/history'
+    | '/api/leaderboard'
     | '/api/models'
     | '/api/runs'
     | '/'
@@ -210,11 +254,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_workbench'
     | '/api'
+    | '/_workbench/history'
+    | '/_workbench/leaderboard'
     | '/_workbench/live'
     | '/_workbench/method'
     | '/api/$'
     | '/api/games'
     | '/api/health'
+    | '/api/history'
+    | '/api/leaderboard'
     | '/api/models'
     | '/api/runs'
     | '/_workbench/'
@@ -255,6 +303,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkbenchIndexRouteImport
       parentRoute: typeof WorkbenchRoute
     }
+    '/_workbench/history': {
+      id: '/_workbench/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof WorkbenchHistoryRouteImport
+      parentRoute: typeof WorkbenchRoute
+    }
+    '/_workbench/leaderboard': {
+      id: '/_workbench/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof WorkbenchLeaderboardRouteImport
+      parentRoute: typeof WorkbenchRoute
+    }
     '/_workbench/live': {
       id: '/_workbench/live'
       path: '/live'
@@ -288,6 +350,20 @@ declare module '@tanstack/react-router' {
       path: '/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof ApiRoute
+    }
+    '/api/history': {
+      id: '/api/history'
+      path: '/history'
+      fullPath: '/api/history'
+      preLoaderRoute: typeof ApiHistoryRouteImport
+      parentRoute: typeof ApiRoute
+    }
+    '/api/leaderboard': {
+      id: '/api/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/api/leaderboard'
+      preLoaderRoute: typeof ApiLeaderboardRouteImport
       parentRoute: typeof ApiRoute
     }
     '/api/models': {
@@ -357,6 +433,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface WorkbenchRouteChildren {
+  WorkbenchHistoryRoute: typeof WorkbenchHistoryRoute
+  WorkbenchLeaderboardRoute: typeof WorkbenchLeaderboardRoute
   WorkbenchLiveRoute: typeof WorkbenchLiveRoute
   WorkbenchMethodRoute: typeof WorkbenchMethodRoute
   WorkbenchIndexRoute: typeof WorkbenchIndexRoute
@@ -365,6 +443,8 @@ interface WorkbenchRouteChildren {
 }
 
 const WorkbenchRouteChildren: WorkbenchRouteChildren = {
+  WorkbenchHistoryRoute: WorkbenchHistoryRoute,
+  WorkbenchLeaderboardRoute: WorkbenchLeaderboardRoute,
   WorkbenchLiveRoute: WorkbenchLiveRoute,
   WorkbenchMethodRoute: WorkbenchMethodRoute,
   WorkbenchIndexRoute: WorkbenchIndexRoute,
@@ -409,6 +489,8 @@ interface ApiRouteChildren {
   ApiSplatRoute: typeof ApiSplatRoute
   ApiGamesRoute: typeof ApiGamesRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiHistoryRoute: typeof ApiHistoryRoute
+  ApiLeaderboardRoute: typeof ApiLeaderboardRoute
   ApiModelsRoute: typeof ApiModelsRoute
   ApiRunsRoute: typeof ApiRunsRouteWithChildren
 }
@@ -417,6 +499,8 @@ const ApiRouteChildren: ApiRouteChildren = {
   ApiSplatRoute: ApiSplatRoute,
   ApiGamesRoute: ApiGamesRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiHistoryRoute: ApiHistoryRoute,
+  ApiLeaderboardRoute: ApiLeaderboardRoute,
   ApiModelsRoute: ApiModelsRoute,
   ApiRunsRoute: ApiRunsRouteWithChildren,
 }

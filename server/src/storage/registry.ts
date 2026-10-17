@@ -1,11 +1,14 @@
 import type { RunSummary } from '../../../shared/protocol'
 import type { Database } from './database'
+import { ArenaIndex } from './arena-index'
 
 export class Registry {
+  readonly arena: ArenaIndex
   constructor(private db: Database) {
     db.query(
       'CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, document TEXT NOT NULL)',
     )
+    this.arena = new ArenaIndex(db)
   }
 
   upsert(run: RunSummary) {

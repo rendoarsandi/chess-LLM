@@ -6,7 +6,7 @@
   "scripts": {
     "check": "tsc --noEmit && eslint .",
     "test": "vitest run",
-    "build": "esbuild src/cloudflare/worker.ts --bundle --format=esm --platform=browser --target=es2022 --external:node:* --outfile=dist/worker.js --metafile=dist/meta.json"
+    "build": "esbuild src/cloudflare/worker.ts --bundle --format=esm --platform=browser --conditions=workerd --define:process.env.NODE_ENV='\"production\"' --target=es2022 --external:node:* --outfile=dist/worker.js --metafile=dist/meta.json"
   },
   "dependencies": {
     "@openrouter/sdk": "^1.4.25",

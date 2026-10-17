@@ -6,7 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
-import { Link, Outlet, useNavigate, useParams } from '@tanstack/react-router'
+import { Link, Outlet, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowDownToLine,
@@ -36,6 +36,7 @@ import { api, downloadText, money, tokenKey } from './api'
 import { Board } from './Board'
 import { EngineAnalysis, EvaluationBar } from './EngineAnalysis'
 import { useStockfish } from './useStockfish'
+import { useReplay } from './useReplay'
 import { useLiveRun, type ThinkingEvent } from './useLiveRun'
 import {
   standings,
@@ -46,7 +47,7 @@ import {
   type RunSummary,
 } from '../../shared/protocol'
 
-function Status({ status }: { status: string }) {
+export function Status({ status }: { status: string }) {
   return (
     <span className={`status status-${status}`}>
       <span aria-hidden="true" />
@@ -55,7 +56,7 @@ function Status({ status }: { status: string }) {
   )
 }
 
-function ErrorNotice({ error, retry }: { error: Error | null; retry?: () => void }) {
+export function ErrorNotice({ error, retry }: { error: Error | null; retry?: () => void }) {
   return error ? (
     <div className="notice error" role="alert">
       <span>{error.message}</span>
@@ -68,7 +69,7 @@ function ErrorNotice({ error, retry }: { error: Error | null; retry?: () => void
   ) : null
 }
 
-function Loading({ children = 'Loading…' }: { children?: ReactNode }) {
+export function Loading({ children = 'Loading…' }: { children?: ReactNode }) {
   return (
     <div className="loading" role="status">
       <LoaderCircle size={18} className="spin" />
@@ -124,6 +125,12 @@ export default function App() {
           </Link>
           <Link to="/live" activeProps={{ className: 'active' }}>
             Live arena
+          </Link>
+          <Link to="/leaderboard" activeProps={{ className: 'active' }}>
+            Leaderboard
+          </Link>
+          <Link to="/history" activeProps={{ className: 'active' }}>
+            Match history
           </Link>
           <Link to="/method" activeProps={{ className: 'active' }}>
             Methodology
@@ -212,6 +219,7 @@ export default function App() {
 
 function Workbench({ liveOnly = false, connected }: { liveOnly?: boolean; connected: boolean }) {
   const { id } = useParams({ strict: false })
+  const { match: initialMatchId } = useSearch({ strict: false })
   const runs = useQuery({ queryKey: ['runs'], queryFn: api.runs, refetchInterval: 4000 })
   const visibleRuns = runs.data?.filter((run) => !liveOnly || run.status === 'running') ?? []
   const selectedId = id ?? visibleRuns[0]?.id
@@ -263,8 +271,9 @@ function Workbench({ liveOnly = false, connected }: { liveOnly?: boolean; connec
           <section className="workspace" aria-label="Selected experiment">
             {selectedId ? (
               <RunWorkspace
-                key={selectedId}
+                key={`${selectedId}:${initialMatchId ?? ''}`}
                 id={selectedId}
+                initialMatchId={initialMatchId}
                 liveOnly={liveOnly}
                 connected={connected}
               />
@@ -364,10 +373,12 @@ function EmptyWorkspace({ liveOnly }: { liveOnly: boolean }) {
 
 function RunWorkspace({
   id,
+  initialMatchId,
   liveOnly,
   connected,
 }: {
   id: string
+  initialMatchId?: string
   liveOnly: boolean
   connected: boolean
 }) {
@@ -382,11 +393,13 @@ function RunWorkspace({
         : 2000,
   })
   const [tab, setTab] = useState<'results' | 'watch' | 'protocol'>(() =>
-    liveOnly || client.getQueryData<RunSnapshot>(['run', id])?.status === 'running'
+    initialMatchId ||
+    liveOnly ||
+    client.getQueryData<RunSnapshot>(['run', id])?.status === 'running'
       ? 'watch'
       : 'results',
   )
-  const [selectedMatch, setSelectedMatch] = useState<string | null>(null)
+  const [selectedMatch, setSelectedMatch] = useState<string | null>(initialMatchId ?? null)
   const [confirmStop, setConfirmStop] = useState(false)
   function moveTab(event: KeyboardEvent<HTMLButtonElement>) {
     const keys = ['results', 'watch', 'protocol'] as const
@@ -675,7 +688,6 @@ function MatchViewer({
   liveConnected: boolean
 }) {
   const [flipped, setFlipped] = useState(false)
-  const [cursor, setCursor] = useState<number | null>(null)
   const attemptsQuery = useQuery({
     queryKey: ['attempts', run.id, match.id],
     queryFn: () => api.attempts(run.id, match.id),
@@ -683,6 +695,9 @@ function MatchViewer({
   })
   const attempts = attemptsQuery.data ?? []
   const legal = attempts.filter((attempt) => attempt.outcome === 'legal')
+  const replay = useReplay(legal.length)
+  const { cursor } = replay
+  const setCursor = replay.seek
   const index = cursor === null ? legal.length - 1 : Math.min(cursor, legal.length - 1)
   const selected = index >= 0 ? legal[index] : null
   const fen =
@@ -720,6 +735,37 @@ function MatchViewer({
           <span className={`seat-dot ${flipped ? 'black-seat' : 'white-seat'}`} />
           <strong>{modelName(run, match.modelIds[flipped ? 1 : 0])}</strong>
           <span>{flipped ? 'Black' : 'White'}</span>
+        </div>
+        <div className="replay-toolbar">
+          <button
+            className="button compact"
+            disabled={!legal.length}
+            aria-label={replay.playing ? 'Pause replay' : 'Play replay'}
+            onClick={replay.toggle}
+          >
+            {replay.playing ? <Pause size={14} /> : <Play size={14} />}
+            {replay.playing ? 'Pause replay' : 'Play replay'}
+          </button>
+          <label>
+            <span className="sr-only">Replay speed</span>
+            <select
+              value={replay.delay}
+              onChange={(event) => replay.speed(Number(event.target.value))}
+            >
+              <option value={2000}>0.5× speed</option>
+              <option value={1000}>1× speed</option>
+              <option value={500}>2× speed</option>
+            </select>
+          </label>
+          <span role="status">
+            {replay.playing
+              ? 'Playing replay'
+              : cursor === null
+                ? 'Following latest position'
+                : index >= legal.length - 1
+                  ? 'Replay finished'
+                  : 'Replay paused'}
+          </span>
         </div>
         <div className="playback-controls">
           <button

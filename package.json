@@ -11,7 +11,7 @@
   "scripts": {
     "setup:termux": "node scripts/termux-runtime.mjs setup",
     "dev": "npm run dev -w client",
-    "dev:cloudflare": "npm run build -w client && node scripts/desktop-check.mjs preview",
+    "dev:cloudflare": "npm run build && node scripts/desktop-check.mjs preview",
     "check": "npm run check -w client && npm run check -w server",
     "test": "npm run build && npm test -w server && npm test -w client",
     "test:e2e": "node scripts/desktop-check.mjs browser",

@@ -1,6 +1,5 @@
 import type { DurableObjectState, WebSocket as WorkerWebSocket } from '@cloudflare/workers-types'
 import type { LiveEvent, RunConfig } from '../../../shared/protocol'
-import { summarize } from '../../../shared/protocol'
 import { BenchmarkRunner, RunConflict } from '../core/runner'
 import { games } from '../games/chess'
 import { OpenRouterProvider } from '../providers/openrouter'
@@ -97,7 +96,7 @@ export class BenchmarkRun {
       'https://registry/runs',
       {
         method: 'POST',
-        body: JSON.stringify(summarize(run)),
+        body: JSON.stringify(run),
       },
     )
     if (!response.ok) throw new Error('Run index update failed')

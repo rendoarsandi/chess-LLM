@@ -1,7 +1,8 @@
 import { env } from 'cloudflare:workers'
 import { evictDurableObject, runDurableObjectAlarm } from 'cloudflare:test'
 import { afterEach, expect, it, vi } from 'vitest'
-import worker from '../../server/src/cloudflare/worker'
+import worker from '../../server/dist/worker.js'
+import { summarize } from '../../shared/protocol'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -58,6 +59,18 @@ it('executes on real DO alarms, restores SQLite state, hibernates spectators, an
     body: JSON.stringify({ id, config }),
   })
   expect(created.status).toBe(200)
+  // A pre-upgrade registry only saved summaries. Reading history must backfill its run object.
+  const registryStub = env.ARENA_REGISTRY.getByName('global')
+  await registryStub.fetch('https://registry/runs', {
+    method: 'POST',
+    body: JSON.stringify(summarize(await created.json())),
+  })
+  const restored = await (
+    await worker.fetch(new Request('https://gamebench/api/history'), env)
+  ).json()
+  expect(restored.matches.filter((match) => match.runId === id)).toHaveLength(2)
+  expect(restored.coverage.indexing).toBe(false)
+  await evictDurableObject(registryStub)
   expect(await runDurableObjectAlarm(stub)).toBe(true)
   expect((await (await stub.fetch('https://run/')).json()).matches[0].plies).toBe(1)
   await evictDurableObject(stub)
@@ -109,4 +122,22 @@ it('executes on real DO alarms, restores SQLite state, hibernates spectators, an
     status: 'completed',
     completedMatches: 2,
   })
+  await evictDurableObject(registryStub)
+  const leaderboard = await (
+    await worker.fetch(new Request('https://gamebench/api/leaderboard'), env)
+  ).json()
+  expect(leaderboard.rows.map((row) => [row.modelId, row.games, row.wins, row.losses])).toEqual([
+    ['fixture/a', 2, 1, 1],
+    ['fixture/b', 2, 1, 1],
+  ])
+  const history = await (
+    await worker.fetch(
+      new Request(
+        'https://gamebench/api/history?modelA=fixture%2Fa&modelB=fixture%2Fb&status=completed',
+      ),
+      env,
+    )
+  ).json()
+  expect(history.headToHead).toEqual({ games: 2, aWins: 1, draws: 0, bWins: 1 })
+  expect(history.matches.map((match) => match.runId)).toEqual([id, id])
 })

@@ -1,5 +1,5 @@
 import type { LiveEvent, RunConfig, RunSnapshot } from '../../shared/protocol'
-import { summarize } from '../../shared/protocol'
+import type { ArenaQuery, HistoryQuery } from '../../shared/arena'
 import type { Platform } from './core/platform'
 import type { ModelProvider } from './core/provider'
 import { BenchmarkRunner, RunConflict } from './core/runner'
@@ -26,6 +26,21 @@ export class LocalPlatform implements Platform {
     providerConfigured = false,
   ) {
     this.registry = new Registry(db)
+    new RunStore(db, 'schema')
+    let cursor = ''
+    while (true) {
+      const rows = db.query<{ id: string; document: string }>(
+        'SELECT id, document FROM run_state WHERE id > ? ORDER BY id LIMIT 25',
+        cursor,
+      )
+      if (!rows.length) break
+      for (const row of rows) this.registry.arena.index(JSON.parse(row.document) as RunSnapshot)
+      cursor = rows[rows.length - 1].id
+    }
+    for (const row of db.query<{ id: string }>(
+      'SELECT r.id FROM runs r LEFT JOIN run_state s ON s.id = r.id WHERE s.id IS NULL',
+    ))
+      this.registry.arena.unavailable(row.id)
     this.health = { providerConfigured, adminConfigured: !!adminToken, runtime: 'local' as const }
   }
   listModels() {
@@ -34,19 +49,25 @@ export class LocalPlatform implements Platform {
   async listRuns() {
     return this.registry.list()
   }
+  async leaderboard(query: ArenaQuery) {
+    return this.registry.arena.leaderboard(query)
+  }
+  async history(query: HistoryQuery) {
+    return this.registry.arena.history(query)
+  }
   async getRun(id: string) {
     return new RunStore(this.db, id).read()
   }
   async createRun(id: string, config: RunConfig) {
     const run = this.getRunner(id, config).create(id, config)
-    this.registry.upsert(summarize(run))
+    this.registry.arena.index(run)
     return run
   }
   async command(id: string, action: 'pause' | 'resume' | 'cancel') {
     const run = await this.getRun(id)
     if (!run) throw new RunConflict('Run not found.')
     const current = this.getRunner(id, run.config).command(action)
-    this.registry.upsert(summarize(current))
+    this.registry.arena.index(current)
     this.emit(id, { type: 'snapshot', run: current })
     return current
   }
@@ -80,7 +101,7 @@ export class LocalPlatform implements Platform {
     await this.getRunner(id, run.config).tick()
     const current = (await this.getRun(id)) as RunSnapshot
     this.latestProgress.delete(id)
-    this.registry.upsert(summarize(current))
+    this.registry.arena.index(current)
     this.emit(id, { type: 'snapshot', run: current })
   }
 

@@ -135,5 +135,49 @@ test('launches through the UI, streams to public spectators, pauses safely, and 
       attempt.reasoning?.includes('Synthetic fixture reasoning'),
     ),
   ).toBe(true)
+  await results
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Leaderboard', exact: true })
+    .click()
+  await expect(results.getByRole('heading', { name: 'Global leaderboard' })).toBeVisible()
+  await expect(results.getByRole('cell', { name: '50.0% 2 games', exact: true })).toHaveCount(2)
+  await capture(results, 'leaderboard')
+  await results.getByRole('link', { name: 'Match history for Fixture alpha', exact: true }).click()
+  await results.getByLabel('Opponent', { exact: true }).selectOption('fixture/beta')
+  await expect(results.getByRole('region', { name: 'Head-to-head record' })).toContainText(
+    '1 wins for Fixture alpha, 0 draws, 1 wins for Fixture beta',
+  )
+  await expect(
+    results.getByRole('region', { name: 'Saved matches' }).getByRole('link', { name: /^Replay / }),
+  ).toHaveCount(2)
+  await capture(results, 'history')
+  await results
+    .getByRole('link', {
+      name: 'Replay Fixture beta vs Fixture alpha in UI fixture — synthetic',
+      exact: true,
+    })
+    .click()
+  await expect(results).toHaveURL(new RegExp(`match=${record.run.matches[1].id}`))
+  await expect(results.locator('.match-picker button.selected')).toContainText('Match 2')
+  await expect(results.getByRole('tab', { name: 'Watch matches' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await results
+    .getByRole('region', { name: 'Stockfish analysis' })
+    .getByRole('checkbox', { name: 'Analysis', exact: true })
+    .uncheck()
+  await results.getByLabel('Replay speed', { exact: true }).selectOption('500')
+  await results.getByRole('button', { name: 'Play replay', exact: true }).click()
+  await expect(results.getByRole('button', { name: 'Pause replay', exact: true })).toBeVisible()
+  await expect(results.locator('.replay-toolbar')).toContainText('Replay finished')
+  await expect(results.getByRole('img', { name: /Chess position/ })).toHaveAttribute(
+    'aria-label',
+    /Black queen on h4/,
+  )
+  await results.getByRole('button', { name: 'Play replay', exact: true }).click()
+  await results.getByRole('button', { name: 'Pause replay', exact: true }).click()
+  await expect(results.locator('.replay-toolbar')).toContainText('Replay paused')
+  await capture(results, 'replay')
   await results.close()
 })

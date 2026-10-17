@@ -140,3 +140,29 @@ export const gameCatalogue = () =>
     protocolVersion,
     seatNames,
   }))
+
+export function parseArenaQuery(
+  params: URLSearchParams,
+): import('../../shared/arena').HistoryQuery {
+  const query: import('../../shared/arena').HistoryQuery = {}
+  for (const key of ['gameId', 'protocol', 'modelA', 'modelB', 'search'] as const) {
+    const value = params.get(key)?.trim()
+    if (value && value.length > 200) throw new InputError(`${key} is too long.`)
+    if (value) query[key] = value
+  }
+  const page = params.get('page')
+  if (page !== null) {
+    if (!/^\d+$/.test(page) || Number(page) < 1 || Number(page) > 1000000)
+      throw new InputError('Page must be a positive integer up to 1000000.')
+    query.page = Number(page)
+  }
+  const status = params.get('status')
+  if (status !== null) {
+    if (!['all', 'completed', 'running', 'queued', 'cancelled'].includes(status))
+      throw new InputError('Unknown match status.')
+    query.status = status as import('../../shared/arena').HistoryQuery['status']
+  }
+  if (query.modelA && query.modelA === query.modelB)
+    throw new InputError('Choose two different models.')
+  return query
+}

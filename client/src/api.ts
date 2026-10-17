@@ -1,3 +1,4 @@
+import type { ArenaQuery, HistoryQuery, LeaderboardPage, HistoryPage } from '../../shared/arena'
 import type {
   Attempt,
   Health,
@@ -23,7 +24,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return data as T
 }
 
+function queryString(query: ArenaQuery) {
+  return new URLSearchParams(
+    Object.entries(query)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [key, String(value)]),
+  )
+}
+
 export const api = {
+  leaderboard: (query: ArenaQuery) =>
+    request<LeaderboardPage>(`/leaderboard?${queryString(query)}`),
+  history: (query: HistoryQuery) => request<HistoryPage>(`/history?${queryString(query)}`),
   health: () => request<Health>('/health'),
   models: () => request<ModelInfo[]>('/models'),
   runs: () => request<RunSummary[]>('/runs'),

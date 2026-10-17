@@ -4,6 +4,7 @@ import type { StartHandler } from './start-handler'
 import { LocalPlatform } from './local-platform'
 import { NodeDatabase } from './storage/node-database'
 import type { ModelProvider } from './core/provider'
+import type { LeaderboardPage, HistoryPage } from '../../shared/arena'
 import type { RunSnapshot } from '../../shared/protocol'
 
 const database = new NodeDatabase(':memory:')
@@ -19,9 +20,9 @@ const provider: ModelProvider = {
   async listModels() {
     return models
   },
-  async complete() {
+  async complete(_model, prompt) {
     return {
-      text: '{"action":"e4"}',
+      text: JSON.stringify({ action: /FEN: \S+ b /.test(prompt) ? 'e5' : 'e4' }),
       inputTokens: 10,
       outputTokens: 5,
       costUsd: 0,
@@ -114,5 +115,26 @@ it('protects mutations, validates the public protocol, and makes creation retry-
   expect((await requestApi('/api/runs/not-a-uuid')).status).toBe(404)
   expect((await requestApi(`/api/runs/${id}/pause`, { method: 'POST', headers })).status).toBe(200)
   expect((await requestApi(`/api/runs/${id}/export`)).status).toBe(200)
+  expect((await requestApi('/api/leaderboard?page=-1')).status).toBe(400)
+  expect((await requestApi('/api/history?status=unknown')).status).toBe(400)
+  expect((await requestApi('/api/history?modelA=same&modelB=same')).status).toBe(400)
+  expect((await requestApi('/api/leaderboard?search=' + 'a'.repeat(201))).status).toBe(400)
+  expect((await requestApi('/api/leaderboard?page=1')).headers.get('Cache-Control')).toBe(
+    'no-store',
+  )
+  await platform.command(id, 'resume')
+  await platform.tickRun(id)
+  const leaders = (await (
+    await requestApi('/api/leaderboard?gameId=chess')
+  ).json()) as LeaderboardPage
+  expect(leaders.rows.map((row) => [row.games, row.draws])).toEqual([
+    [1, 1],
+    [1, 1],
+  ])
+  const history = (await (
+    await requestApi('/api/history?modelA=fixture%2Falpha&modelB=fixture%2Fbeta&status=completed')
+  ).json()) as HistoryPage
+  expect(history.matches).toMatchObject([{ runId: id, plies: 2, status: 'completed' }])
+  expect(history.headToHead).toEqual({ games: 1, aWins: 0, draws: 1, bWins: 0 })
   database.close()
 })

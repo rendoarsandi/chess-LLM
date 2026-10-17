@@ -1,5 +1,5 @@
+import type { ArenaQuery, HistoryQuery, LeaderboardPage, HistoryPage } from '../../../shared/arena'
 import {
-  summarize,
   type RunConfig,
   type RunSnapshot,
   type RunSummary,
@@ -32,6 +32,24 @@ export class CloudflarePlatform implements Platform {
     if (!response.ok) throw new Error('Registry unavailable')
     return (await response.json()) as RunSummary[]
   }
+  async leaderboard(query: ArenaQuery): Promise<LeaderboardPage> {
+    return this.arenaRequest('/leaderboard', query)
+  }
+  async history(query: HistoryQuery): Promise<HistoryPage> {
+    return this.arenaRequest('/history', query)
+  }
+  private async arenaRequest<T>(path: string, query: ArenaQuery): Promise<T> {
+    const params = new URLSearchParams(
+      Object.entries(query)
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value]) => [key, String(value)]),
+    )
+    const response = await this.env.ARENA_REGISTRY.getByName('global').fetch(
+      `https://registry${path}?${params}`,
+    )
+    if (!response.ok) throw new Error('Arena results unavailable')
+    return (await response.json()) as T
+  }
   async createRun(id: string, config: RunConfig) {
     const run = await this.request<RunSnapshot>(id, '/initialize', {
       method: 'POST',
@@ -39,7 +57,7 @@ export class CloudflarePlatform implements Platform {
     })
     const response = await this.env.ARENA_REGISTRY.getByName('global').fetch(
       'https://registry/runs',
-      { method: 'POST', body: JSON.stringify(summarize(run)) },
+      { method: 'POST', body: JSON.stringify(run) },
     )
     if (!response.ok) throw new Error('Registry unavailable')
     return run
