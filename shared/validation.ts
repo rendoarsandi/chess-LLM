@@ -5,7 +5,20 @@ export class InputError extends Error {}
 export function validateRunInput(value: unknown): RunInput {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new InputError('Expected a run configuration.')
-  const data = value as Record<string, unknown>
+  let data = value as Record<string, unknown>
+  if (data.execution !== undefined && data.execution !== 'api' && data.execution !== 'mcp')
+    throw new InputError('execution must be api or mcp.')
+  if (data.execution === 'mcp')
+    data = {
+      repetitions: 1,
+      temperature: 0,
+      maxTokens: 128,
+      maxPlies: 400,
+      maxAttempts: 3,
+      timeoutMs: 90000,
+      budgetUsd: 0.01,
+      ...data,
+    }
   if (typeof data.name !== 'string' || !data.name.trim() || data.name.trim().length > 80) {
     throw new InputError('Give the run a name between 1 and 80 characters.')
   }
@@ -14,7 +27,9 @@ export function validateRunInput(value: unknown): RunInput {
     !Array.isArray(data.modelIds) ||
     data.modelIds.length < 2 ||
     data.modelIds.length > 8 ||
-    data.modelIds.some((id) => typeof id !== 'string' || id.length > 160) ||
+    data.modelIds.some(
+      (id) => typeof id !== 'string' || !id.trim() || id !== id.trim() || id.length > 160,
+    ) ||
     new Set(data.modelIds).size !== data.modelIds.length
   ) {
     throw new InputError('Select 2–8 different models.')
@@ -35,6 +50,7 @@ export function validateRunInput(value: unknown): RunInput {
     return value
   }
   return {
+    ...(data.execution === 'mcp' ? { execution: 'mcp' as const } : {}),
     name: data.name.trim(),
     gameId: data.gameId,
     modelIds: data.modelIds as string[],

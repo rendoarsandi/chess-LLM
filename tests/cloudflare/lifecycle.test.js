@@ -6,6 +6,96 @@ import { summarize } from '../../shared/protocol'
 
 afterEach(() => vi.unstubAllGlobals())
 
+it('keeps MCP joins, credentials, and move receipts across Durable Object eviction without inference alarms', async () => {
+  const inference = vi.fn(async () => {
+    throw new Error('MCP must not call an inference provider')
+  })
+  vi.stubGlobal('fetch', inference)
+  const admin = { 'Content-Type': 'application/json', 'x-admin-token': 'fixture-admin' }
+  const response = await worker.fetch(
+    new Request('https://gamebench/api/runs', {
+      method: 'POST',
+      headers: admin,
+      body: JSON.stringify({
+        name: 'MCP eviction',
+        gameId: 'chess',
+        execution: 'mcp',
+        modelIds: ['harness/a', 'harness/b'],
+      }),
+    }),
+    env,
+  )
+  expect(response.status).toBe(201)
+  const run = await response.json()
+  const credentials = await (
+    await worker.fetch(
+      new Request(`https://gamebench/api/runs/${run.id}/mcp-credentials`, {
+        method: 'POST',
+        headers: admin,
+      }),
+      env,
+    )
+  ).json()
+  const stub = env.BENCHMARK_RUN.getByName(run.id)
+  expect(await runDurableObjectAlarm(stub)).toBe(false)
+  async function call(token, name, args) {
+    const response = await worker.fetch(
+      new Request('https://gamebench/api/mcp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name, arguments: args },
+        }),
+      }),
+      env,
+    )
+    expect(response.status).toBe(200)
+    const reply = await response.json()
+    expect(reply.result.isError).toBeUndefined()
+    return reply.result.structuredContent
+  }
+  const matchId = run.matches[0].id
+  for (const { token } of credentials) await call(token, 'join_match', { matchId })
+  await evictDurableObject(stub)
+  const token = credentials[0].token
+  const { state } = await call(token, 'get_match_state', { matchId })
+  expect(state).toMatchObject({ yourTurn: true, joined: [true, true] })
+  const submission = {
+    matchId,
+    moveId: 'eviction-0001',
+    expectedPly: state.ply,
+    expectedFen: state.fen,
+    action: 'e4',
+  }
+  expect((await call(token, 'submit_move', submission)).receipt.replayed).toBe(false)
+  await evictDurableObject(stub)
+  const recovered = await call(token, 'submit_move', submission)
+  expect(recovered.receipt.replayed).toBe(true)
+  expect(recovered.state).toMatchObject({ ply: 1, turn: 'black', joined: [true, true] })
+  expect(recovered.state.pgn).toContain('1. e4')
+  expect(await runDurableObjectAlarm(stub)).toBe(false)
+  expect(inference).not.toHaveBeenCalled()
+  const exported = await (
+    await worker.fetch(new Request(`https://gamebench/api/runs/${run.id}/export`), env)
+  ).json()
+  expect(exported.attempts).toHaveLength(1)
+  expect(JSON.stringify(exported)).not.toContain(token)
+  const indexed = await (
+    await worker.fetch(new Request(`https://gamebench/api/history?protocol=chess-san-mcp-v1`), env)
+  ).json()
+  expect(indexed.matches.find((match) => match.id === matchId)).toMatchObject({
+    plies: 1,
+    status: 'running',
+  })
+})
+
 it('executes on real DO alarms, restores SQLite state, hibernates spectators, and finishes without a browser', async () => {
   vi.stubGlobal('fetch', async (request) => {
     const body = await request.json()

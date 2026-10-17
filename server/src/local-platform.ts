@@ -8,6 +8,8 @@ import { Registry } from './storage/registry'
 import { RunStore } from './storage/run-store'
 import type { Database } from './storage/database'
 import { exportRun } from './core/export'
+import type { McpOperation } from '../../shared/mcp'
+import { McpMatchService } from './core/mcp-match'
 
 /** Development host for the same runner/storage contract; production uses DO alarms. */
 export class LocalPlatform implements Platform {
@@ -78,6 +80,20 @@ export class LocalPlatform implements Platform {
     return exportRun(new RunStore(this.db, id))
   }
 
+  issueMcpCredentials(id: string) {
+    return new McpMatchService(new RunStore(this.db, id)).issueCredentials()
+  }
+
+  async mcp(id: string, token: string, operation: McpOperation) {
+    const reply = await new McpMatchService(new RunStore(this.db, id)).execute(token, operation)
+    if (operation.type === 'join' || operation.type === 'move') {
+      const run = new RunStore(this.db, id).read()!
+      this.registry.arena.index(run)
+      this.emit(id, { type: 'snapshot', run })
+    }
+    return reply
+  }
+
   private getRunner(id: string, config: RunConfig) {
     if (!this.runners.has(id))
       this.runners.set(
@@ -97,7 +113,7 @@ export class LocalPlatform implements Platform {
 
   async tickRun(id: string) {
     const run = await this.getRun(id)
-    if (!run) return
+    if (!run || run.config.execution === 'mcp') return
     await this.getRunner(id, run.config).tick()
     const current = (await this.getRun(id)) as RunSnapshot
     this.latestProgress.delete(id)
@@ -127,7 +143,7 @@ export class LocalPlatform implements Platform {
     const tick = async () => {
       try {
         const pending = this.db.query<{ id: string }>(
-          "SELECT id FROM run_state WHERE json_extract(document, '$.status') = 'running' OR json_extract(document, '$.pending') IS NOT NULL",
+          "SELECT id FROM run_state WHERE (json_extract(document, '$.status') = 'running' OR json_extract(document, '$.pending') IS NOT NULL) AND COALESCE(json_extract(document, '$.config.execution'), 'api') != 'mcp'",
         )
         await Promise.all(pending.map((run) => this.tickRun(run.id)))
       } catch (error) {

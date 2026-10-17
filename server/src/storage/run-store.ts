@@ -6,6 +6,9 @@ export class RunStore {
     private db: Database,
     private runId: string,
   ) {
+    db.query(
+      'CREATE TABLE IF NOT EXISTS mcp_credentials (run_id TEXT NOT NULL, model_id TEXT NOT NULL, token_hash TEXT NOT NULL, PRIMARY KEY(run_id, model_id))',
+    )
     db.query('CREATE TABLE IF NOT EXISTS run_state (id TEXT PRIMARY KEY, document TEXT NOT NULL)')
     db.query(
       'CREATE TABLE IF NOT EXISTS attempts (id TEXT PRIMARY KEY, run_id TEXT NOT NULL, match_id TEXT NOT NULL, created_at INTEGER NOT NULL, document TEXT NOT NULL)',
@@ -19,6 +22,38 @@ export class RunStore {
     const row = this.db.query<{ document: string }>(
       'SELECT document FROM run_state WHERE id = ?',
       this.runId,
+    )[0]
+    return row ? JSON.parse(row.document) : null
+  }
+
+  replaceMcpCredentials(credentials: { modelId: string; hash: string }[]) {
+    this.db.transaction(() => {
+      this.db.query('DELETE FROM mcp_credentials WHERE run_id = ?', this.runId)
+      for (const { modelId, hash } of credentials)
+        this.db.query(
+          'INSERT INTO mcp_credentials(run_id, model_id, token_hash) VALUES (?, ?, ?)',
+          this.runId,
+          modelId,
+          hash,
+        )
+    })
+  }
+
+  mcpIdentity(hash: string): string | null {
+    return (
+      this.db.query<{ model_id: string }>(
+        'SELECT model_id FROM mcp_credentials WHERE run_id = ? AND token_hash = ?',
+        this.runId,
+        hash,
+      )[0]?.model_id ?? null
+    )
+  }
+
+  attempt(id: string): Attempt | null {
+    const row = this.db.query<{ document: string }>(
+      'SELECT document FROM attempts WHERE run_id = ? AND id = ?',
+      this.runId,
+      id,
     )[0]
     return row ? JSON.parse(row.document) : null
   }

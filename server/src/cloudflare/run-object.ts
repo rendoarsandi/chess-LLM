@@ -7,6 +7,7 @@ import { RunStore } from '../storage/run-store'
 import { durableDatabase } from './database'
 import type { WorkerEnv } from './env'
 import { exportRun } from '../core/export'
+import { McpMatchService, McpUnauthorized, validateMcpOperation } from '../core/mcp-match'
 
 export class BenchmarkRun {
   private store: RunStore
@@ -39,7 +40,8 @@ export class BenchmarkRun {
       if (url.pathname === '/initialize' && request.method === 'POST') {
         const { id, config } = (await request.json()) as { id: string; config: RunConfig }
         const run = this.getRunner(config).create(id, config)
-        if (run.status === 'running') await this.ctx.storage.setAlarm(Date.now() + 1000)
+        if (run.status === 'running' && config.execution !== 'mcp')
+          await this.ctx.storage.setAlarm(Date.now() + 1000)
         return Response.json(run)
       }
       const run = this.store.read()
@@ -58,6 +60,15 @@ export class BenchmarkRun {
         return Response.json(this.store.attempts(url.searchParams.get('matchId') ?? undefined))
       if (url.pathname === '/' && request.method === 'GET') return Response.json(run)
       if (!run) return new Response('Run not found', { status: 404 })
+      if (request.method === 'POST' && url.pathname === '/mcp-credentials')
+        return Response.json(await new McpMatchService(this.store).issueCredentials())
+      if (request.method === 'POST' && url.pathname === '/mcp') {
+        const { token, operation } = (await request.json()) as { token: string; operation: unknown }
+        const validated = validateMcpOperation(operation)
+        const reply = await new McpMatchService(this.store).execute(token, validated)
+        if (validated.type === 'join' || validated.type === 'move') await this.publish()
+        return Response.json(reply)
+      }
       const action = url.pathname.slice(1)
       if (
         request.method === 'POST' &&
@@ -65,13 +76,16 @@ export class BenchmarkRun {
       ) {
         this.getRunner(run.config).command(action)
         this.latestProgress = null
-        if (action === 'resume') await this.ctx.storage.setAlarm(Date.now() + 1000)
+        if (action === 'resume' && run.config.execution !== 'mcp')
+          await this.ctx.storage.setAlarm(Date.now() + 1000)
         else if (!run.pending) await this.ctx.storage.deleteAlarm()
         await this.publish()
         return Response.json(this.store.read())
       }
       return new Response('Not found', { status: 404 })
     } catch (error) {
+      if (error instanceof McpUnauthorized)
+        return Response.json({ error: error.message }, { status: 401 })
       if (error instanceof RunConflict)
         return Response.json({ error: error.message }, { status: 409 })
       throw error
@@ -84,7 +98,8 @@ export class BenchmarkRun {
     await this.getRunner(run.config).tick()
     this.latestProgress = null
     const current = this.store.read()!
-    if (current.status === 'running') await this.ctx.storage.setAlarm(Date.now() + 1000)
+    if (current.status === 'running' && current.config.execution !== 'mcp')
+      await this.ctx.storage.setAlarm(Date.now() + 1000)
     // If indexing fails, Cloudflare retries the alarm. Persisted turns are not repeated.
     await this.publish()
   }

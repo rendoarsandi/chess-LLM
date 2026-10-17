@@ -9,6 +9,8 @@ import type { Platform } from '../core/platform'
 import { RunConflict } from '../core/runner'
 import { OpenRouterProvider } from '../providers/openrouter'
 import type { WorkerEnv } from './env'
+import type { McpCredential, McpOperation, McpReply } from '../../../shared/mcp'
+import { McpUnauthorized } from '../core/mcp-match'
 
 export class CloudflarePlatform implements Platform {
   health
@@ -85,6 +87,17 @@ export class CloudflarePlatform implements Platform {
     )) as unknown as Response
   }
 
+  issueMcpCredentials(id: string) {
+    return this.request<McpCredential[]>(id, '/mcp-credentials', { method: 'POST' })
+  }
+
+  mcp(id: string, token: string, operation: McpOperation) {
+    return this.request<McpReply>(id, '/mcp', {
+      method: 'POST',
+      body: JSON.stringify({ token, operation }),
+    })
+  }
+
   private async request<T>(
     id: string,
     path: string,
@@ -92,6 +105,8 @@ export class CloudflarePlatform implements Platform {
   ): Promise<T> {
     const response = await this.env.BENCHMARK_RUN.getByName(id).fetch(`https://run${path}`, options)
     if (!response.ok) {
+      if (response.status === 401)
+        throw new McpUnauthorized('Participant credential is missing, invalid, or revoked.')
       if (response.status === 409)
         throw new RunConflict(((await response.json()) as { error: string }).error)
       throw new Error('Run object unavailable')

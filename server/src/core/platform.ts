@@ -1,4 +1,5 @@
 import type { ArenaQuery, HistoryQuery, LeaderboardPage, HistoryPage } from '../../../shared/arena'
+import type { McpCredential, McpOperation, McpReply } from '../../../shared/mcp'
 import type {
   Attempt,
   Health,
@@ -21,4 +22,6 @@ export interface Platform {
   attempts(id: string, matchId?: string): Promise<Attempt[]>
   live?(id: string, request: Request): Promise<Response>
   exportRun(id: string): Promise<Response>
+  issueMcpCredentials(id: string): Promise<McpCredential[]>
+  mcp(id: string, token: string, operation: McpOperation): Promise<McpReply>
 }

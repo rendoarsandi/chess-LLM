@@ -53,6 +53,9 @@ export class BenchmarkRunner {
               attemptsThisTurn: 0,
               metrics: [emptyMetrics(), emptyMetrics()],
               result: null,
+              ...(config.execution === 'mcp'
+                ? { mcp: { joined: [false, false] as [boolean, boolean] } }
+                : {}),
             })
           }
         }
@@ -106,6 +109,8 @@ export class BenchmarkRunner {
 
   private async advance() {
     let run = this.required()
+    // External MCP participants own these turns; never invoke an inference provider.
+    if (run.config.execution === 'mcp') return
     // A persisted request without a live promise means the process was interrupted.
     // Pause rather than silently repeating a potentially billed request.
     if (run.pending) {

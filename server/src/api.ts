@@ -100,12 +100,12 @@ export function secureResponse(response: Response) {
 }
 
 export async function createRun(request: Request, platform: Platform, body: string) {
-  if (!platform.health.providerConfigured)
+  const input = validateRunInput(JSON.parse(body))
+  if (input.execution !== 'mcp' && !platform.health.providerConfigured)
     return Response.json(
       { error: 'Set OPENROUTER_API_KEY on the server before starting a run.' },
       { status: 503 },
     )
-  const input = validateRunInput(JSON.parse(body))
   const adapter = games[input.gameId]
   if (!adapter) throw new InputError('This game is not available. Choose chess.')
   const id = request.headers.get('Idempotency-Key') ?? crypto.randomUUID()
@@ -116,14 +116,28 @@ export async function createRun(request: Request, platform: Platform, body: stri
       throw new RunConflict('This request ID belongs to another run.')
     return Response.json(await platform.createRun(id, existing.config), { status: 201 })
   }
-  const catalog = await platform.listModels()
+  const catalog =
+    input.execution === 'mcp'
+      ? input.modelIds.map((id) => ({
+          id,
+          name: id,
+          contextLength: 0,
+          inputPrice: 0,
+          outputPrice: 0,
+          requestPrice: 0,
+        }))
+      : await platform.listModels()
   const models = input.modelIds.map((id) => {
     const model = catalog.find((model) => model.id === id)
     if (!model) throw new InputError(`Model ${id} is not currently available through OpenRouter.`)
     return model
   })
   return Response.json(
-    await platform.createRun(id, { ...input, models, protocolVersion: adapter.protocolVersion }),
+    await platform.createRun(id, {
+      ...input,
+      models,
+      protocolVersion: input.execution === 'mcp' ? 'chess-san-mcp-v1' : adapter.protocolVersion,
+    }),
     { status: 201 },
   )
 }

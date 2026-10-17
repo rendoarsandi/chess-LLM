@@ -11,6 +11,7 @@ export interface ModelInfo {
 }
 
 export interface RunInput {
+  execution?: 'api' | 'mcp'
   name: string
   gameId: string
   modelIds: string[]
@@ -56,6 +57,7 @@ export interface Match {
   attemptsThisTurn: number
   metrics: [Metrics, Metrics]
   result: MatchResult | null
+  mcp?: { joined: [boolean, boolean] }
 }
 
 export interface PendingRequest {
